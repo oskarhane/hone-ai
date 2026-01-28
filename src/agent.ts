@@ -34,6 +34,7 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
     
     let stdout = '';
     let stderr = '';
+    let isKilled = false;
     
     // Stream stdout to console and capture
     if (child.stdout) {
@@ -59,8 +60,29 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
       child.stdin.end();
     }
     
+    // Handle SIGINT (ctrl+c) and SIGTERM to kill child process
+    const handleSignal = (signal: NodeJS.Signals) => {
+      if (!isKilled && child.pid) {
+        isKilled = true;
+        // Kill the child process group
+        try {
+          process.kill(-child.pid, signal);
+        } catch (err) {
+          // Fallback to killing just the child
+          child.kill(signal);
+        }
+      }
+    };
+    
+    process.on('SIGINT', handleSignal);
+    process.on('SIGTERM', handleSignal);
+    
     // Handle process exit
     child.on('close', (code: number | null) => {
+      // Clean up signal handlers
+      process.off('SIGINT', handleSignal);
+      process.off('SIGTERM', handleSignal);
+      
       resolve({
         exitCode: code ?? 1,
         stdout,
@@ -70,6 +92,10 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
     
     // Handle spawn errors (e.g., command not found)
     child.on('error', (error: Error) => {
+      // Clean up signal handlers
+      process.off('SIGINT', handleSignal);
+      process.off('SIGTERM', handleSignal);
+      
       reject(new Error(`Failed to spawn ${agent}: ${error.message}`));
     });
   });

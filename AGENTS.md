@@ -54,3 +54,6 @@ Learnings and patterns for future agents working on xloop.
 - Handle 'close' event for exit code (treat null as 1)
 - Use 'which' command to check if agent binary exists in PATH
 - Avoid testing with real agent spawns (interactive CLIs hang in tests)
+- Handle SIGINT/SIGTERM to kill child process on ctrl+c
+- Use process.kill(-child.pid) to kill process group (shell + children)
+- Clean up signal handlers on exit/error to prevent memory leaks

@@ -250,3 +250,26 @@ Key Decisions:
 
 Next Task: task-009 (Implement agent prompt construction)
 
+================================================================================
+TASK-008-1: Fix exit and output streams from agents
+Date: 2026-01-28T15:00:00Z
+================================================================================
+
+Summary:
+Fixed agent spawning to properly handle ctrl+c (SIGINT) and SIGTERM signals.
+Added signal handlers that kill child process when parent receives signal.
+Child process killed using process group (-pid) with fallback to direct kill.
+Signal handlers cleaned up on child exit/error to prevent memory leaks.
+
+Files Changed:
+- src/agent.ts (added signal handling for SIGINT/SIGTERM)
+
+Key Decisions:
+- Listen for SIGINT and SIGTERM on parent process
+- Kill child using -pid to kill entire process group (shell + children)
+- Fallback to direct child.kill() if process group kill fails
+- Clean up signal handlers on close/error to prevent memory leaks
+- Track isKilled flag to prevent multiple kill attempts
+
+Next Task: task-009 (Implement agent prompt construction)
+
