@@ -26,7 +26,7 @@ tasks:
       Create utilities to manage .plans/ directory at project root.
       Auto-create directory on first use. Implement config file reading/writing
       at .plans/xloop.config.json with defaults for defaultAgent, models, commitPrefix.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -34,7 +34,7 @@ tasks:
       - "Config file created with defaults on first run"
       - "Config can be read and parsed correctly"
       - "ANTHROPIC_API_KEY loaded from .env"
-    completed_at: null
+    completed_at: 2026-01-28T14:00:00Z
 
   - id: task-003
     title: "Implement --agent global flag"

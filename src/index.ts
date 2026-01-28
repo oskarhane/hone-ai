@@ -1,5 +1,12 @@
 #!/usr/bin/env bun
 import { Command } from 'commander';
+import { loadConfig, ensurePlansDir } from './config';
+
+// Ensure .plans directory exists on startup
+ensurePlansDir();
+
+// Load config to create default if not exists (but don't await in top level)
+loadConfig().catch(console.error);
 
 const program = new Command();
 

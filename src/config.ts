@@ -1,0 +1,75 @@
+import { existsSync, mkdirSync } from 'fs';
+import { readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
+
+export interface XLoopConfig {
+  defaultAgent: 'opencode' | 'claude';
+  models: {
+    opencode: string;
+    claude: string;
+  };
+  commitPrefix: string;
+}
+
+const DEFAULT_CONFIG: XLoopConfig = {
+  defaultAgent: 'claude',
+  models: {
+    opencode: 'claude-sonnet-4',
+    claude: 'claude-sonnet-4'
+  },
+  commitPrefix: 'xloop'
+};
+
+export function getPlansDir(): string {
+  return join(process.cwd(), '.plans');
+}
+
+export function ensurePlansDir(): void {
+  const plansDir = getPlansDir();
+  if (!existsSync(plansDir)) {
+    mkdirSync(plansDir, { recursive: true });
+  }
+}
+
+export function getConfigPath(): string {
+  return join(getPlansDir(), 'xloop.config.json');
+}
+
+export async function loadConfig(): Promise<XLoopConfig> {
+  ensurePlansDir();
+  
+  const configPath = getConfigPath();
+  
+  if (!existsSync(configPath)) {
+    await writeFile(configPath, JSON.stringify(DEFAULT_CONFIG, null, 2));
+    return DEFAULT_CONFIG;
+  }
+  
+  try {
+    const content = await readFile(configPath, 'utf-8');
+    const config = JSON.parse(content);
+    return { ...DEFAULT_CONFIG, ...config };
+  } catch (error) {
+    console.error('Error reading config, using defaults:', error);
+    return DEFAULT_CONFIG;
+  }
+}
+
+export async function saveConfig(config: XLoopConfig): Promise<void> {
+  ensurePlansDir();
+  const configPath = getConfigPath();
+  await writeFile(configPath, JSON.stringify(config, null, 2));
+}
+
+export function getApiKey(): string | undefined {
+  return process.env.ANTHROPIC_API_KEY;
+}
+
+export function validateApiKey(): void {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    console.error('Error: ANTHROPIC_API_KEY not found in environment');
+    console.error('Please set ANTHROPIC_API_KEY in your .env file or environment');
+    process.exit(1);
+  }
+}

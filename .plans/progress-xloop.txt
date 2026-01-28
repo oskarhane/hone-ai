@@ -22,3 +22,27 @@ Key Decisions:
 
 Next Task: task-002 (Implement .plans directory and config management)
 
+================================================================================
+TASK-002: Implement .plans directory and config management
+Date: 2026-01-28T14:00:00Z
+================================================================================
+
+Summary:
+Created config management system with auto-creation of .plans/ directory and
+xloop.config.json. Config includes defaultAgent, models, and commitPrefix.
+API key loaded from ANTHROPIC_API_KEY env var. Added comprehensive unit tests.
+
+Files Changed:
+- src/config.ts (created config utilities)
+- src/index.ts (integrated config loading)
+- src/__tests__/config.test.ts (added unit tests)
+- .env.example (documented required env vars)
+
+Key Decisions:
+- Config auto-created with sensible defaults on first run
+- API key validation separated into validateApiKey() function
+- .plans/ directory created at startup via ensurePlansDir()
+- Tests use isolated workspace to avoid side effects
+
+Next Task: task-003 (Implement --agent global flag)
+
