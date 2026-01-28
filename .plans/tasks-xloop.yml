@@ -496,8 +496,8 @@ tasks:
     title: "script for single executable build"
     description: |
       add a bun command to build a single executable. see https://bun.com/docs/bundler/executables
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "bun build would build a single executable for macos"
-    completed_at: null
+    completed_at: 2026-01-28T20:30:00Z

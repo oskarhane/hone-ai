@@ -95,3 +95,12 @@ Learnings and patterns for future agents working on xloop.
 - Default retry: 3 attempts, 1s initial delay, 10s max delay
 - ErrorMessages object provides structured message/details for common scenarios
 - Network retry integrated into prd-generator and task-generator API calls
+
+## Build & Distribution
+
+- Build script in package.json: `bun run build`
+- Uses `bun build --compile --minify --sourcemap` to create standalone executable
+- Outputs single binary `xloop` (~57MB) that includes Bun runtime and all dependencies
+- Binary can be copied to /usr/local/bin or other PATH location for system-wide use
+- Build output (xloop, xloop.map) added to .gitignore
+- README documents both source installation and binary build process

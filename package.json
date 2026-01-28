@@ -6,6 +6,9 @@
   "bin": {
     "xloop": "./src/index.ts"
   },
+  "scripts": {
+    "build": "bun build --compile --minify --sourcemap ./src/index.ts --outfile xloop"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/js-yaml": "^4.0.9"

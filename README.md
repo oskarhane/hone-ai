@@ -13,9 +13,21 @@ xloop manages the full development lifecycle from requirements gathering through
 
 ## Installation
 
+### From Source
+
 ```bash
 bun install
 ```
+
+### Build Single Executable
+
+Build a standalone macOS executable:
+
+```bash
+bun run build
+```
+
+This creates a `xloop` binary that can be moved anywhere (e.g., `/usr/local/bin/xloop`).
 
 ## Setup
 

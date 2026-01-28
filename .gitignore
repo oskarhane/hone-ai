@@ -6,6 +6,10 @@ out
 dist
 *.tgz
 
+# build output
+xloop
+xloop.map
+
 # code coverage
 coverage
 *.lcov

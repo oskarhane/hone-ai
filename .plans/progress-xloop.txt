@@ -719,3 +719,28 @@ Key Decisions:
 
 Next Task: task-022 (script for single executable build)
 
+================================================================================
+TASK-022: script for single executable build
+Date: 2026-01-28T20:30:00Z
+================================================================================
+
+Summary:
+Added build script to package.json using Bun's compile feature to create single
+executable binary. Build outputs xloop binary (~57MB) and sourcemap. Added build
+artifacts to .gitignore. Documented build process in README with clear instructions.
+Updated AGENTS.md with build patterns for future agents.
+
+Files Changed:
+- package.json (added build script with --compile --minify --sourcemap flags)
+- .gitignore (added xloop and xloop.map build artifacts)
+- README.md (added "Build Single Executable" section with instructions)
+- AGENTS.md (documented build & distribution patterns)
+
+Key Decisions:
+- Using bun build --compile for single executable creation
+- Added --minify and --sourcemap flags for production builds
+- Binary is platform-specific (macOS only per task requirements)
+- Binary includes Bun runtime and all dependencies (~57MB)
+- Documented installation of binary to /usr/local/bin or other PATH location
+
+Next Task: All tasks complete
