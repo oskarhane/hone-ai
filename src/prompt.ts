@@ -1,4 +1,3 @@
-import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { getPlansDir, type XLoopConfig } from './config';
@@ -15,41 +14,42 @@ export interface PromptOptions {
 
 /**
  * Construct a structured prompt for agent invocations.
- * Includes AGENTS.md, task file, progress file, and phase-specific instructions.
+ * References files using @<path> syntax instead of embedding content.
  */
-export async function constructPrompt(options: PromptOptions): Promise<string> {
+export function constructPrompt(options: PromptOptions): string {
   const { phase, featureName, config, taskId, reviewFeedback } = options;
   
   const parts: string[] = [];
   
-  // Add phase-specific header
+  // Build list of file references
+  const fileRefs: string[] = [];
+  
+  // Add task file reference (required)
+  const taskPath = join(getPlansDir(), `tasks-${featureName}.yml`);
+  if (existsSync(taskPath)) {
+    fileRefs.push(`@${taskPath}`);
+  }
+  
+  // Add progress file reference if exists
+  const progressPath = join(getPlansDir(), `progress-${featureName}.txt`);
+  if (existsSync(progressPath)) {
+    fileRefs.push(`@${progressPath}`);
+  }
+  
+  // Add AGENTS.md reference if exists
+  const agentsPath = join(process.cwd(), 'AGENTS.md');
+  if (existsSync(agentsPath)) {
+    fileRefs.push(`@${agentsPath}`);
+  }
+  
+  // Add phase-specific header with file references
   parts.push(getPhaseHeader(phase));
   parts.push('');
   
-  // Add AGENTS.md if exists
-  const agentsContent = await readAgentsFile();
-  if (agentsContent) {
-    parts.push('# CONTEXT: AGENTS.md');
+  if (fileRefs.length > 0) {
+    parts.push('# CONTEXT FILES');
     parts.push('');
-    parts.push(agentsContent);
-    parts.push('');
-  }
-  
-  // Add task file content
-  const taskContent = await readTaskFile(featureName);
-  if (taskContent) {
-    parts.push('# CONTEXT: Task List');
-    parts.push('');
-    parts.push(taskContent);
-    parts.push('');
-  }
-  
-  // Add progress file if exists
-  const progressContent = await readProgressFile(featureName);
-  if (progressContent) {
-    parts.push('# CONTEXT: Progress Log');
-    parts.push('');
-    parts.push(progressContent);
+    parts.push(fileRefs.join(' '));
     parts.push('');
   }
   
@@ -258,54 +258,4 @@ FINALIZED: <task-id>`;
   return instructions;
 }
 
-/**
- * Read AGENTS.md from project root if it exists.
- */
-async function readAgentsFile(): Promise<string | null> {
-  const agentsPath = join(process.cwd(), 'AGENTS.md');
-  if (!existsSync(agentsPath)) {
-    return null;
-  }
-  
-  try {
-    return await readFile(agentsPath, 'utf-8');
-  } catch (error) {
-    console.error('Warning: Failed to read AGENTS.md:', error);
-    return null;
-  }
-}
 
-/**
- * Read task file for the given feature.
- */
-async function readTaskFile(featureName: string): Promise<string | null> {
-  const taskPath = join(getPlansDir(), `tasks-${featureName}.yml`);
-  if (!existsSync(taskPath)) {
-    console.error(`Error: Task file not found: ${taskPath}`);
-    return null;
-  }
-  
-  try {
-    return await readFile(taskPath, 'utf-8');
-  } catch (error) {
-    console.error(`Error: Failed to read task file: ${error}`);
-    return null;
-  }
-}
-
-/**
- * Read progress file for the given feature if it exists.
- */
-async function readProgressFile(featureName: string): Promise<string | null> {
-  const progressPath = join(getPlansDir(), `progress-${featureName}.txt`);
-  if (!existsSync(progressPath)) {
-    return null;
-  }
-  
-  try {
-    return await readFile(progressPath, 'utf-8');
-  } catch (error) {
-    console.error('Warning: Failed to read progress file:', error);
-    return null;
-  }
-}

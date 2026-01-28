@@ -203,12 +203,12 @@ tasks:
       the agents (opencode, claude) can take references to AGENTS.md, tasks-<feature>.yml, progress-<feature>.txt etc
       instead of reading the files and adding their content to the prompt, they can reference them in the prompt.
       This reduces the prompt size and improves performance. Just add @<file_path> in the prompt.
-    status: pending
+    status: completed
     dependencies:
       - task-008
     acceptance_criteria:
       - "References @AGENTS.md, @.plans/tasks-<feature>.yml, @.plans/progress-<feature>.txt etc"
-    completed_at: null
+    completed_at: 2026-01-28T16:30:00Z
 
   # Phase 5: --do Command
   - id: task-010

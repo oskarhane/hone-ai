@@ -304,3 +304,28 @@ Key Decisions:
 
 Next Task: task-010 (Implement --do command basic structure)
 
+================================================================================
+TASK-009-1: Don't read files and add to prompt, reference them
+Date: 2026-01-28T16:30:00Z
+================================================================================
+
+Summary:
+Refactored prompt construction to use @<file_path> references instead of 
+reading and embedding file contents. This reduces prompt size and improves 
+performance. Changed constructPrompt from async to sync function since it 
+only checks file existence, not content. Updated all tests to verify file 
+references are included correctly.
+
+Files Changed:
+- src/prompt.ts (refactored to use file references, removed read functions)
+- src/prompt.test.ts (updated all tests to check for @ references)
+
+Key Decisions:
+- File references use @<absolute-path> pattern
+- Only check existsSync, don't read content
+- Order: tasks file, progress file, AGENTS.md
+- constructPrompt is now synchronous
+- Tests verify @ references appear in prompt
+
+Next Task: task-010 (Implement --do command basic structure)
+

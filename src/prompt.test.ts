@@ -39,14 +39,14 @@ const mockConfig: XLoopConfig = {
 };
 
 describe('constructPrompt', () => {
-  test('includes phase header', async () => {
+  test('includes phase header', () => {
     // Create minimal task file
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
     );
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'implement',
       featureName: 'test',
       config: mockConfig
@@ -55,41 +55,40 @@ describe('constructPrompt', () => {
     expect(prompt).toContain('# XLOOP: IMPLEMENT PHASE');
   });
   
-  test('includes AGENTS.md if exists', async () => {
+  test('includes AGENTS.md reference if exists', () => {
     writeFileSync(join(TEST_WORKSPACE, 'AGENTS.md'), '# Learning 1\nSome pattern');
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
     );
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'implement',
       featureName: 'test',
       config: mockConfig
     });
     
-    expect(prompt).toContain('# CONTEXT: AGENTS.md');
-    expect(prompt).toContain('# Learning 1');
+    expect(prompt).toContain('# CONTEXT FILES');
+    expect(prompt).toContain('@' + join(TEST_WORKSPACE, 'AGENTS.md'));
   });
   
-  test('includes task file content', async () => {
+  test('includes task file reference', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    title: Test Task\n    status: pending\n'
     );
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'implement',
       featureName: 'test',
       config: mockConfig
     });
     
-    expect(prompt).toContain('# CONTEXT: Task List');
-    expect(prompt).toContain('task-001');
-    expect(prompt).toContain('Test Task');
+    expect(prompt).toContain('# CONTEXT FILES');
+    expect(prompt).toContain('@' + join(TEST_PLANS_DIR, 'tasks-test.yml'));
   });
   
-  test('includes progress file if exists', async () => {
+  test('includes progress file reference if exists', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
@@ -99,40 +98,39 @@ describe('constructPrompt', () => {
       'Previous iteration completed'
     );
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'implement',
       featureName: 'test',
       config: mockConfig
     });
     
-    expect(prompt).toContain('# CONTEXT: Progress Log');
-    expect(prompt).toContain('Previous iteration completed');
+    expect(prompt).toContain('# CONTEXT FILES');
+    expect(prompt).toContain('@' + join(TEST_PLANS_DIR, 'progress-test.txt'));
   });
   
-  test('implement phase includes task selection instructions', async () => {
+  test('implement phase includes task selection instructions', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
     );
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'implement',
       featureName: 'test',
       config: mockConfig
     });
     
     expect(prompt).toContain('# TASK SELECTION');
-    expect(prompt).toContain('status: pending');
     expect(prompt).toContain('bun test');
   });
   
-  test('implement phase includes lint command if configured', async () => {
+  test('implement phase includes lint command if configured', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
     );
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'implement',
       featureName: 'test',
       config: mockConfig
@@ -141,13 +139,13 @@ describe('constructPrompt', () => {
     expect(prompt).toContain('bun run lint');
   });
   
-  test('review phase includes review checklist', async () => {
+  test('review phase includes review checklist', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
     );
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'review',
       featureName: 'test',
       config: mockConfig,
@@ -160,14 +158,14 @@ describe('constructPrompt', () => {
     expect(prompt).toContain('task-001');
   });
   
-  test('finalize phase includes review feedback', async () => {
+  test('finalize phase includes review feedback', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
     );
     
     const feedback = '**Issue**: Missing error handling\n**Suggestion**: Add try-catch';
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'finalize',
       featureName: 'test',
       config: mockConfig,
@@ -180,13 +178,13 @@ describe('constructPrompt', () => {
     expect(prompt).toContain('Missing error handling');
   });
   
-  test('finalize phase without review feedback shows default message', async () => {
+  test('finalize phase without review feedback shows default message', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
     );
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'finalize',
       featureName: 'test',
       config: mockConfig,
@@ -196,39 +194,39 @@ describe('constructPrompt', () => {
     expect(prompt).toContain('No review feedback provided');
   });
   
-  test('handles missing AGENTS.md gracefully', async () => {
+  test('handles missing AGENTS.md gracefully', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
     );
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'implement',
       featureName: 'test',
       config: mockConfig
     });
     
-    expect(prompt).not.toContain('# CONTEXT: AGENTS.md');
+    expect(prompt).not.toContain('@' + join(TEST_WORKSPACE, 'AGENTS.md'));
     expect(prompt).toContain('# TASK SELECTION');
   });
   
-  test('handles missing progress file gracefully', async () => {
+  test('handles missing progress file gracefully', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
     );
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'implement',
       featureName: 'test',
       config: mockConfig
     });
     
-    expect(prompt).not.toContain('# CONTEXT: Progress Log');
+    expect(prompt).not.toContain('progress-test.txt');
     expect(prompt).toContain('# TASK SELECTION');
   });
   
-  test('uses default feedback command if not configured', async () => {
+  test('uses default feedback command if not configured', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
@@ -239,7 +237,7 @@ describe('constructPrompt', () => {
       feedbackCommand: undefined
     };
     
-    const prompt = await constructPrompt({
+    const prompt = constructPrompt({
       phase: 'implement',
       featureName: 'test',
       config: configWithoutFeedback

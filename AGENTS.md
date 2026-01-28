@@ -61,8 +61,10 @@ Learnings and patterns for future agents working on xloop.
 ## Prompt Construction
 
 - Three phases: implement, review, finalize - each with specific instructions
-- Include context files: AGENTS.md, tasks-<feature>.yml, progress-<feature>.txt
+- Reference context files using @<file_path> syntax instead of reading content
+- File references: @.plans/tasks-<feature>.yml, @.plans/progress-<feature>.txt, @AGENTS.md
 - All context files optional - gracefully handle missing files
 - Feedback and lint commands configurable in config (feedbackCommand, lintCommand)
 - Output markers: TASK_COMPLETED: <id> for implement, FINALIZED: <id> for finalize
 - Prompts tell agent to update task status, progress file, AGENTS.md, and commit
+- constructPrompt() is synchronous - only checks file existence, doesn't read content
