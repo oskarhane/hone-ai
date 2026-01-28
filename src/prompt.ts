@@ -140,12 +140,16 @@ When task completed run the feedback loops and fix any issues:
   instructions += `
 - If CLI or script, run them and verify output.
 
+If tests fail or there are errors you cannot fix, DO NOT output TASK_COMPLETED.
+Instead, exit with an error. The task will remain pending and be retried on the next run.
+
 # OUTPUT
 
 At the end, output on a single line:
 TASK_COMPLETED: <task-id>
 
-This allows xloop to track which task you completed.`;
+This allows xloop to track which task you completed.
+Only output this marker if the task is fully complete and all feedback loops pass.`;
 
   return instructions;
 }

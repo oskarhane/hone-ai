@@ -78,13 +78,23 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
     
     if (implementResult.exitCode !== 0) {
       console.error('\n✗ Implement phase failed');
-      throw new Error(`Agent exited with code ${implementResult.exitCode}`);
+      console.error('\nThe agent encountered an error during task implementation.');
+      console.error('The task has NOT been marked as completed.');
+      console.error('When you run xloop again, it will retry the same task.');
+      console.error(`\nAgent exit code: ${implementResult.exitCode}`);
+      if (implementResult.stderr) {
+        console.error('\nError output:');
+        console.error(implementResult.stderr);
+      }
+      throw new Error(`Implement phase failed with exit code ${implementResult.exitCode}`);
     }
     
     // Extract task ID from output
     const completedTaskId = extractTaskId(implementResult.stdout, 'TASK_COMPLETED');
     if (completedTaskId) {
       console.log(`\n✓ Task ${completedTaskId} implementation complete`);
+    } else {
+      console.warn('\n⚠ Warning: No TASK_COMPLETED marker found in output');
     }
     
     // Check if all tasks are complete
@@ -113,7 +123,15 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
       
       if (reviewResult.exitCode !== 0) {
         console.error('\n✗ Review phase failed');
-        throw new Error(`Agent exited with code ${reviewResult.exitCode}`);
+        console.error('\nThe agent encountered an error during task review.');
+        console.error('The task has NOT been marked as completed.');
+        console.error('When you run xloop again, it will retry the same task.');
+        console.error(`\nAgent exit code: ${reviewResult.exitCode}`);
+        if (reviewResult.stderr) {
+          console.error('\nError output:');
+          console.error(reviewResult.stderr);
+        }
+        throw new Error(`Review phase failed with exit code ${reviewResult.exitCode}`);
       }
       
       reviewFeedback = reviewResult.stdout;
@@ -140,7 +158,15 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
     
     if (finalizeResult.exitCode !== 0) {
       console.error('\n✗ Finalize phase failed');
-      throw new Error(`Agent exited with code ${finalizeResult.exitCode}`);
+      console.error('\nThe agent encountered an error during task finalization.');
+      console.error('The task may not have been properly committed or marked as completed.');
+      console.error('Review the git status and task file manually before continuing.');
+      console.error(`\nAgent exit code: ${finalizeResult.exitCode}`);
+      if (finalizeResult.stderr) {
+        console.error('\nError output:');
+        console.error(finalizeResult.stderr);
+      }
+      throw new Error(`Finalize phase failed with exit code ${finalizeResult.exitCode}`);
     }
     
     // Verify task was finalized

@@ -245,4 +245,22 @@ describe('constructPrompt', () => {
     
     expect(prompt).toContain('bun test');
   });
+  
+  test('implement phase includes failure handling instructions', () => {
+    writeFileSync(
+      join(TEST_PLANS_DIR, 'tasks-test.yml'),
+      'tasks:\n  - id: task-001\n    status: pending\n'
+    );
+    
+    const prompt = constructPrompt({
+      phase: 'implement',
+      featureName: 'test',
+      config: mockConfig
+    });
+    
+    expect(prompt).toContain('If tests fail or there are errors you cannot fix');
+    expect(prompt).toContain('DO NOT output TASK_COMPLETED');
+    expect(prompt).toContain('task will remain pending');
+    expect(prompt).toContain('Only output this marker if the task is fully complete');
+  });
 });

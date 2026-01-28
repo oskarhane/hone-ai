@@ -71,3 +71,14 @@ Learnings and patterns for future agents working on xloop.
 - Output markers: TASK_COMPLETED: <id> for implement, FINALIZED: <id> for finalize
 - Prompts tell agent to update task status, progress file, AGENTS.md, and commit
 - constructPrompt() is synchronous - only checks file existence, doesn't read content
+
+## Error Handling & Failure Recovery
+
+- When agent exits with non-zero code, execution stops immediately (throw)
+- Failed tasks NOT marked as completed - task remains in 'pending' status
+- Next run will retry the same task from beginning
+- Error messages include: phase that failed, exit code, stderr output
+- Implement phase: agent told to NOT output TASK_COMPLETED if tests fail
+- Review phase: if fails, finalize never runs so task file never updated
+- Finalize phase: more complex - may need manual recovery if partial work done
+- Warning displayed if TASK_COMPLETED marker not found in agent output
