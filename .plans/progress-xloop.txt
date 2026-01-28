@@ -532,3 +532,29 @@ Key Decisions:
 
 Next Task: task-015 (Implement comprehensive error handling)
 
+================================================================================
+TASK-013-1: Implement iteration workflow - Invocation 3 (Finalize) - hardening git commit
+Date: 2026-01-28T16:15:00Z
+================================================================================
+
+Summary:
+Enhanced finalize phase prompt instructions to emphasize git commit requirement.
+Made git commit step more prominent with REQUIRED label and CRITICAL warning.
+Added explicit steps for staging files, verification of commit success, and
+clarified that FINALIZED marker should only be output after successful commit.
+Added instruction to investigate if commit fails. All 67 tests pass.
+
+Files Changed:
+- src/prompt.ts (enhanced git commit instructions lines 254-270)
+- .plans/tasks-xloop.yml (marked task-013-1 completed)
+- .plans/progress-xloop.txt (added task-013-1 entry)
+
+Key Decisions:
+- Git commit labeled as REQUIRED with DO NOT SKIP THIS STEP
+- Added explicit staging commands and verification step
+- Added CRITICAL warning that commit is not optional
+- FINALIZED marker only after successful commit
+- If no changes to commit, indicates problem to investigate
+
+Next Task: task-015 (Implement comprehensive error handling)
+

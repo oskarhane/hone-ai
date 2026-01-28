@@ -251,16 +251,27 @@ ${reviewFeedback || 'No review feedback provided (review was skipped or approved
    - Be terse - only add truly useful info that future agents need
    - Don't duplicate existing info
 
-6. **Git Commit**
-   - Stage all changes: task file, progress file, code changes, AGENTS.md if updated
+6. **Git Commit** (REQUIRED - DO NOT SKIP THIS STEP)
+   - You MUST create a git commit for this task to be considered complete
+   - Stage all changes using: \`git add <files>\`
+     * Task file (.plans/tasks-<feature>.yml)
+     * Progress file (.plans/progress-<feature>.txt)
+     * All code changes
+     * AGENTS.md (if you updated it)
    - Commit with format: \`<feature>-<task-id>: <descriptive message>\`
-   - Example: \`xloop-task-009: add prompt construction module\`
+   - Example: \`git commit -m "xloop-task-009: add prompt construction module"\`
+   - Verify commit succeeded by checking \`git log -1\` shows your commit
    - DO NOT push to remote
+
+CRITICAL: The git commit is NOT optional. Without it, your work will not be properly tracked.
+If you cannot commit (e.g., no changes to commit), that indicates a problem - investigate and fix it.
 
 # OUTPUT
 
 At the end, output on a single line:
-FINALIZED: <task-id>`;
+FINALIZED: <task-id>
+
+Only output this marker AFTER you have successfully created the git commit.`;
 
   return instructions;
 }
