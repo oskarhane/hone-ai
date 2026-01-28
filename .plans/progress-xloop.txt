@@ -405,3 +405,28 @@ Key Decisions:
 
 Next Task: task-013 (Implement iteration workflow - Invocation 3 (Finalize))
 
+
+================================================================================
+TASK-012-1: Fix invocation for agents
+Date: 2026-01-28T19:00:00Z
+================================================================================
+
+Summary:
+Fixed agent subprocess spawning to use non-interactive mode matching old-loop/once.sh
+patterns. Claude now uses `-p "prompt"` flag, opencode uses `run "prompt"` subcommand.
+Changed stdio from ['pipe', 'pipe', 'pipe'] to ['inherit', 'pipe', 'pipe'] to inherit
+stdin. Removed stdin write logic since prompt is now passed as argument. All tests pass.
+
+Files Changed:
+- src/agent.ts (updated spawnAgent to use command-line args instead of stdin)
+- AGENTS.md (documented non-interactive invocation patterns)
+
+Key Decisions:
+- Claude invocation: claude -p "prompt text"
+- Opencode invocation: opencode run "prompt text"
+- stdin inherited (not piped) since prompt is in args
+- stdout/stderr still captured and streamed to console
+- No changes needed to tests (they don't spawn real agents)
+
+Next Task: task-013 (Implement iteration workflow - Invocation 3 (Finalize))
+

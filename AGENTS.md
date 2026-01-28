@@ -47,9 +47,10 @@ Learnings and patterns for future agents working on xloop.
 ## Agent Subprocess Spawning
 
 - Use child_process.spawn for spawning opencode/claude
-- Set stdio: ['pipe', 'pipe', 'pipe'] for full control over streams
+- Non-interactive mode: claude uses `-p "prompt"`, opencode uses `run "prompt"`
+- Set stdio: ['inherit', 'pipe', 'pipe'] - inherit stdin, capture stdout/stderr
 - Stream stdout/stderr to console in real-time using process.stdout.write()
-- Send prompt to stdin, then call stdin.end() to signal completion
+- Do NOT write to child.stdin - args contain the prompt for non-interactive mode
 - Handle 'error' event for spawn failures (e.g., command not found)
 - Handle 'close' event for exit code (treat null as 1)
 - Use 'which' command to check if agent binary exists in PATH

@@ -21,14 +21,18 @@ export interface SpawnAgentResult {
 export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgentResult> {
   const { agent, prompt, workingDir = process.cwd() } = options;
   
-  // Build command based on agent type
+  // Build command and args based on agent type
+  // claude: claude -p "prompt text"
+  // opencode: opencode run "prompt text"
   const command = agent === 'opencode' ? 'opencode' : 'claude';
-  const args: string[] = [];
+  const args: string[] = agent === 'opencode' 
+    ? ['run', prompt]
+    : ['-p', prompt];
   
   return new Promise((resolve, reject) => {
     const child: ChildProcess = spawn(command, args, {
       cwd: workingDir,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['inherit', 'pipe', 'pipe'],
       shell: true
     });
     
@@ -52,12 +56,6 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
         process.stderr.write(text);
         stderr += text;
       });
-    }
-    
-    // Send prompt to stdin and close
-    if (child.stdin) {
-      child.stdin.write(prompt);
-      child.stdin.end();
     }
     
     // Handle SIGINT (ctrl+c) and SIGTERM to kill child process
