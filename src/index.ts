@@ -115,13 +115,18 @@ program
   .requiredOption('-i, --iterations <number>', 'Number of iterations to run')
   .option('--skip <phase>', 'Skip a phase (e.g., review)')
   .action(async (tasksFile: string, options: { iterations: string; skip?: string }) => {
-    const agent = await resolveAgent(program.opts().agent);
-    console.log(`Using agent: ${agent}`);
-    console.log('Task execution - not yet implemented');
-    console.log(`Tasks file: ${tasksFile}`);
-    console.log(`Iterations: ${options.iterations}`);
-    if (options.skip) {
-      console.log(`Skip: ${options.skip}`);
+    try {
+      const agent = await resolveAgent(program.opts().agent);
+      const { executeTasks } = await import('./do');
+      await executeTasks({
+        tasksFile,
+        iterations: parseInt(options.iterations, 10),
+        agent,
+        skipPhase: options.skip as 'review' | undefined
+      });
+    } catch (error) {
+      console.error('\n✗ Error executing tasks:', error instanceof Error ? error.message : error);
+      process.exit(1);
     }
   });
 

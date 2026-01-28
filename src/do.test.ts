@@ -1,0 +1,68 @@
+import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs';
+import { join } from 'path';
+import { executeTasks } from './do';
+
+describe('do module', () => {
+  const testWorkspace = join(process.cwd(), '.test-workspace-do');
+  const plansDir = join(testWorkspace, '.plans');
+  
+  beforeEach(() => {
+    // Create test workspace
+    if (existsSync(testWorkspace)) {
+      rmSync(testWorkspace, { recursive: true, force: true });
+    }
+    mkdirSync(plansDir, { recursive: true });
+  });
+  
+  afterEach(() => {
+    // Clean up
+    if (existsSync(testWorkspace)) {
+      rmSync(testWorkspace, { recursive: true, force: true });
+    }
+  });
+  
+  describe('executeTasks', () => {
+    it('should reject when tasks file does not exist', async () => {
+      await expect(executeTasks({
+        tasksFile: join(plansDir, 'tasks-nonexistent.yml'),
+        iterations: 1,
+        agent: 'claude',
+      })).rejects.toThrow('Tasks file not found');
+    });
+    
+    it('should reject when iterations is not a positive integer', async () => {
+      const tasksFile = join(plansDir, 'tasks-test.yml');
+      writeFileSync(tasksFile, 'feature: test\ntasks: []');
+      
+      await expect(executeTasks({
+        tasksFile,
+        iterations: 0,
+        agent: 'claude',
+      })).rejects.toThrow('Iterations must be a positive integer');
+      
+      await expect(executeTasks({
+        tasksFile,
+        iterations: -5,
+        agent: 'claude',
+      })).rejects.toThrow('Iterations must be a positive integer');
+    });
+    
+    it('should reject when feature name cannot be extracted from file path', async () => {
+      const tasksFile = join(plansDir, 'invalid-name.yml');
+      writeFileSync(tasksFile, 'feature: test\ntasks: []');
+      
+      await expect(executeTasks({
+        tasksFile,
+        iterations: 1,
+        agent: 'claude',
+      })).rejects.toThrow('Could not extract feature name');
+    });
+    
+    // Note: We don't test actual agent spawning here since that would require
+    // mocking the agent or having an interactive agent available, which would
+    // hang in tests. Integration tests would cover the full workflow.
+    // The remaining logic (file name extraction, loop structure, phase execution)
+    // is covered by the acceptance criteria and can be manually verified.
+  });
+});

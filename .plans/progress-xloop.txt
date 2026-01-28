@@ -305,9 +305,38 @@ Key Decisions:
 Next Task: task-010 (Implement --do command basic structure)
 
 ================================================================================
-TASK-009-1: Don't read files and add to prompt, reference them
-Date: 2026-01-28T16:30:00Z
+TASK-010: Implement --do command basic structure
+Date: 2026-01-28T17:00:00Z
 ================================================================================
+
+Summary:
+Created do.ts module with executeTasks() function that implements the full
+iteration workflow. Accepts tasks file path, required -i/--iterations flag,
+and optional --skip flag to skip review phase. Main loop executes exactly n
+iterations, each with 3 phases: implement, review (unless skipped), finalize.
+Validates inputs, checks agent availability, extracts feature name from file
+path, constructs phase-specific prompts, spawns agent for each phase, tracks
+task completion via output markers. Added comprehensive unit tests for error
+cases.
+
+Files Changed:
+- src/do.ts (created with executeTasks and helper functions)
+- src/do.test.ts (created with 3 validation tests)
+- src/index.ts (integrated executeTasks into do command action)
+
+Key Decisions:
+- Feature name extracted from tasks-<feature>.yml pattern
+- Validates iterations is positive integer before starting
+- Checks agent availability before first spawn
+- Each iteration prints clear phase headers with separators
+- Task ID extraction from TASK_COMPLETED: and FINALIZED: markers
+- Stops early if <promise>COMPLETE</promise> detected
+- Review phase skipped if --skip=review specified
+- Exit with error if any phase fails
+- Tests avoid spawning real agents (would hang)
+
+Next Task: task-011 (Implement iteration workflow - Invocation 1)
+
 
 Summary:
 Refactored prompt construction to use @<file_path> references instead of 
