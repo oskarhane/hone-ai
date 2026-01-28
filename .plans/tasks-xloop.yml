@@ -454,6 +454,18 @@ tasks:
       - "All tests pass"
     completed_at: 2026-01-28T17:00:00Z
 
+  - id: task-019-1
+    title: "git ignore integration test directories"
+    description: |
+      let's not pollute the repo with test data
+    status: pending
+    dependencies:
+      - task-019
+    acceptance_criteria:
+      - "add the integration test directories to .gitignore"
+      - "All tests pass"
+    completed_at: null
+
   - id: task-020
     title: "Final polish and documentation"
     description: |
