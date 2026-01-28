@@ -516,11 +516,11 @@ tasks:
     title: "running feedback loops too often"
     description: |
       it seems like the agent is running feedback loops too often. Often before it's even string to implement.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "only runs feedback loops when necessary, to verify changes"
-    completed_at: null
+    completed_at: 2026-01-28T16:50:00Z
 
   - id: task-025
     title: "add init command"

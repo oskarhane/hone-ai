@@ -74,6 +74,8 @@ Learnings and patterns for future agents working on xloop.
 - Prompts tell agent to update task status, progress file, AGENTS.md, and commit
 - constructPrompt() is synchronous - only checks file existence, doesn't read content
 - Git commits ONLY happen in finalize phase - implement phase explicitly forbids commits
+- Feedback loops should ONLY run after task implementation complete, not during exploration
+- Finalize phase runs feedback loops only if changes made to address review feedback
 
 ## Error Handling & Failure Recovery
 

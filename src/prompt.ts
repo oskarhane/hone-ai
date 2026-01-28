@@ -127,9 +127,12 @@ If you find that the task is larger than you expected (for instance, requires a 
 
 Then, find a way to break it into a smaller chunk and only do that chunk (i.e. complete the smaller refactor).
 
+IMPORTANT: Do NOT run tests or feedback loops during exploration or incremental development.
+Only run feedback loops AFTER you have fully completed implementing the task.
+
 # FEEDBACK LOOPS
 
-When task completed run the feedback loops and fix any issues:
+Run feedback loops ONLY when the task implementation is complete:
 
 - Run: ${feedbackCommand}`;
 
@@ -216,10 +219,10 @@ ${reviewFeedback || 'No review feedback provided (review was skipped or approved
 
 1. **Apply Feedback** (if any)
    - Address all critical and high priority feedback
-   - Run feedback loops to verify fixes
+   - Only run feedback loops if you made changes to address feedback
 
-2. **Run Final Feedback Loops**
-   - Run: ${feedbackCommand}`;
+2. **Run Final Feedback Loops** (if needed)
+   - If you applied feedback or made any changes, run: ${feedbackCommand}`;
 
   if (lintCommand) {
     instructions += `\n   - Run: ${lintCommand}`;

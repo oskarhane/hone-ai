@@ -770,3 +770,26 @@ Key Decisions:
 
 Next Task: task-024 (Running feedback loops too often)
 
+================================================================================
+TASK-024: Running feedback loops too often
+Date: 2026-01-28T16:50:00Z
+================================================================================
+
+Summary:
+Updated prompt instructions in implement phase to clarify that feedback loops should
+ONLY be run after task implementation is complete, not during exploration or incremental
+development. Added explicit warning before feedback loops section. Also updated finalize
+phase to only run feedback loops if changes were made to address review feedback.
+
+Files Changed:
+- src/prompt.ts (added warnings about when to run feedback loops in both phases)
+
+Key Decisions:
+- Added "Do NOT run tests during exploration or incremental development" warning
+- Changed "When task completed" to "ONLY when the task implementation is complete"
+- Finalize phase now says "if needed" and "if you made changes"
+- Maintains clarity while preventing premature test runs
+- All 108 tests pass
+
+Next Task: task-025 (add init command)
+
