@@ -111,6 +111,21 @@ tasks:
       - "Feature name slugified: lowercase, hyphens, max 50 chars"
     completed_at: 2026-01-28T17:00:00Z
 
+  - id: task-006-1
+    title: "fix error and write hardening tests for --prd feature"
+    description: |
+      the prd command is not working as expected. fix the error and write hardening tests for the --prd feature.
+      output:
+        I have a few questions to refine this PRD:
+        ✗ Error generating PRD: 404 {type:error,error:{type:not_found_error,message:model: claude-sonnet-4},request_id:req_011CXZqdXc5Ny33XqQsbDaTh}
+    status: pending
+    dependencies:
+      - task-006
+    acceptance_criteria:
+      - 'bun src/index.ts prd "email validation feature" should work, including followup questions'
+      - "verified to work, not assumed"
+    completed_at: null
+
   # Phase 3: Task Generation
   - id: task-007
     title: "Implement --prd-to-tasks command"
