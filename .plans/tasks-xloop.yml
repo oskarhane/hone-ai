@@ -490,7 +490,7 @@ tasks:
     acceptance_criteria:
       - "--status handles counting cancelled tasks"
       - "--prds handles counting cancelled tasks"
-    completed_at: 2026-01-28T16:00:00Z
+    completed_at: 2026-01-28T18:25:00Z
 
   - id: task-022
     title: "script for single executable build"
