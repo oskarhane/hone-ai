@@ -793,3 +793,28 @@ Key Decisions:
 
 Next Task: task-025 (add init command)
 
+================================================================================
+TASK-025: Add init command
+Date: 2026-01-28T21:00:00Z
+================================================================================
+
+Summary:
+Verified init command already fully implemented. Command creates .plans/ directory
+and xloop.config.json config file. Idempotent behavior: if already initialized,
+reports status and exits 0. Comprehensive unit and integration tests exist
+covering fresh init, already initialized, and partial initialization scenarios.
+All 114 tests pass.
+
+Files Changed:
+- src/config.ts (initProject function at lines 103-129)
+- src/index.ts (init command at lines 30-70)
+- src/config.test.ts (3 unit tests for initProject)
+- src/index.integration.test.ts (3 integration tests for init command)
+
+Key Decisions:
+- Auto-init disabled for 'init' command (line 13-19 of index.ts)
+- InitResult interface returns {plansCreated, configCreated} for output
+- User feedback differentiates between created/existing items
+- Next steps guidance provided after successful initialization
+
+Next Task: All tasks complete ✓

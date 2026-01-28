@@ -31,12 +31,22 @@ This creates a `xloop` binary that can be moved anywhere (e.g., `/usr/local/bin/
 
 ## Setup
 
-1. Create `.env` file in project root:
+1. Initialize xloop in your project:
+```bash
+bun src/index.ts init
+# or if installed globally: xloop init
+```
+
+This creates:
+- `.plans/` directory for storing PRDs, tasks, and progress
+- `.plans/xloop.config.json` with default configuration
+
+2. Create `.env` file in project root:
 ```bash
 ANTHROPIC_API_KEY=your_api_key_here
 ```
 
-2. First run will create `.plans/` directory and `xloop.config.json` with defaults.
+Note: Other commands will auto-initialize if you skip the `init` step.
 
 ## Configuration
 
@@ -56,6 +66,14 @@ Configuration is stored in `.plans/xloop.config.json`:
 ```
 
 ## Usage
+
+### Initialize Project
+
+```bash
+bun src/index.ts init
+```
+
+Creates `.plans/` directory and config file. Safe to run multiple times — won't overwrite existing setup.
 
 ### List PRDs
 

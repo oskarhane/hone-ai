@@ -7,6 +7,8 @@ Learnings and patterns for future agents working on xloop.
 - Using commander.js for CLI parsing
 - Entry point: src/index.ts with shebang for direct execution
 - All commands follow pattern: xloop <command> [options]
+- Auto-initialization: All commands except 'init' auto-create .plans/ and config
+- Init command: Explicit initialization with user feedback, idempotent
 
 ## Dependencies
 

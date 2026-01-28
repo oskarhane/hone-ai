@@ -99,3 +99,31 @@ export async function resolveAgent(flagAgent?: string): Promise<AgentType> {
   const config = await loadConfig();
   return config.defaultAgent;
 }
+
+export interface InitResult {
+  plansCreated: boolean;
+  configCreated: boolean;
+}
+
+export async function initProject(): Promise<InitResult> {
+  const plansDir = getPlansDir();
+  const configPath = getConfigPath();
+  
+  const plansExisted = existsSync(plansDir);
+  const configExisted = existsSync(configPath);
+  
+  // Ensure .plans directory exists
+  if (!plansExisted) {
+    mkdirSync(plansDir, { recursive: true });
+  }
+  
+  // Create config file if it doesn't exist
+  if (!configExisted) {
+    await writeFile(configPath, JSON.stringify(DEFAULT_CONFIG, null, 2));
+  }
+  
+  return {
+    plansCreated: !plansExisted,
+    configCreated: !configExisted
+  };
+}

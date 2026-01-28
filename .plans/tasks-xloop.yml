@@ -526,9 +526,9 @@ tasks:
     title: "add init command"
     description: |
       create a command to initialize a new project. This creates the .plans directory and the config file
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "xloop init creates a new project (.plans folder and config file)"
       - "existing .plans folder and config file remains untouched and user is being feedbacked that it's already is initialized. Still exit 0."
-    completed_at: null
+    completed_at: 2026-01-28T21:00:00Z

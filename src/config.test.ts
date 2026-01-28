@@ -10,6 +10,7 @@ import {
   getApiKey,
   isValidAgent,
   resolveAgent,
+  initProject,
   type XLoopConfig 
 } from './config';
 
@@ -167,5 +168,44 @@ describe('Config Management', () => {
     // Don't create config, should use default
     const agent = await resolveAgent();
     expect(agent).toBe('claude'); // Default from DEFAULT_CONFIG
+  });
+
+  test('initProject creates .plans directory and config file', async () => {
+    const plansDir = getPlansDir();
+    const configPath = getConfigPath();
+    
+    expect(existsSync(plansDir)).toBe(false);
+    expect(existsSync(configPath)).toBe(false);
+    
+    const result = await initProject();
+    
+    expect(result.plansCreated).toBe(true);
+    expect(result.configCreated).toBe(true);
+    expect(existsSync(plansDir)).toBe(true);
+    expect(existsSync(configPath)).toBe(true);
+  });
+
+  test('initProject is idempotent when already initialized', async () => {
+    // First init
+    await initProject();
+    
+    // Second init
+    const result = await initProject();
+    
+    expect(result.plansCreated).toBe(false);
+    expect(result.configCreated).toBe(false);
+    expect(existsSync(getPlansDir())).toBe(true);
+    expect(existsSync(getConfigPath())).toBe(true);
+  });
+
+  test('initProject creates only missing parts', async () => {
+    // Create .plans directory manually
+    ensurePlansDir();
+    
+    const result = await initProject();
+    
+    expect(result.plansCreated).toBe(false);
+    expect(result.configCreated).toBe(true);
+    expect(existsSync(getConfigPath())).toBe(true);
   });
 });

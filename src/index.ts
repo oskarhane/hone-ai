@@ -1,19 +1,22 @@
 #!/usr/bin/env bun
 import { Command } from 'commander';
-import { loadConfig, ensurePlansDir, resolveAgent, validateApiKey } from './config';
+import { loadConfig, ensurePlansDir, resolveAgent, validateApiKey, initProject } from './config';
 import type { AgentType } from './config';
 import { listPrds } from './prds';
 import { listIncompleteTaskFiles } from './status';
 import { generatePRD } from './prd-generator';
 import { generateTasksFromPRD } from './task-generator';
 
-// Ensure .plans directory exists on startup
-ensurePlansDir();
-
-// Load config to create default if not exists (but don't await in top level)
-loadConfig().catch(console.error);
-
 const program = new Command();
+
+// Get command name to avoid auto-init on 'init' command
+const isInitCommand = process.argv[2] === 'init';
+
+// Auto-initialize for all commands except 'init'
+if (!isInitCommand) {
+  ensurePlansDir();
+  loadConfig().catch(console.error);
+}
 
 program
   .name('xloop')
@@ -24,6 +27,48 @@ program
 program.option('--agent <type>', 'Override default agent (opencode or claude)');
 
 // Commands
+program
+  .command('init')
+  .description('Initialize xloop in current directory')
+  .action(async () => {
+    try {
+      const result = await initProject();
+      
+      if (!result.plansCreated && !result.configCreated) {
+        console.log('xloop is already initialized in this directory.');
+        console.log('');
+        console.log('  .plans/ directory: exists');
+        console.log('  config file: exists');
+        return;
+      }
+      
+      console.log('Initialized xloop successfully!');
+      console.log('');
+      
+      if (result.plansCreated) {
+        console.log('  ✓ Created .plans/ directory');
+      } else {
+        console.log('  • .plans/ directory already exists');
+      }
+      
+      if (result.configCreated) {
+        console.log('  ✓ Created .plans/xloop.config.json');
+      } else {
+        console.log('  • .plans/xloop.config.json already exists');
+      }
+      
+      console.log('');
+      console.log('Next steps:');
+      console.log('  1. Set ANTHROPIC_API_KEY in your environment or .env file');
+      console.log('  2. Generate a PRD: xloop prd "your feature description"');
+      console.log('  3. Generate tasks: xloop prd-to-tasks .plans/prd-<feature>.md');
+      console.log('  4. Execute tasks: xloop do .plans/tasks-<feature>.yml -i 5');
+    } catch (error) {
+      console.error('\n✗ Error initializing xloop:', error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  });
+
 program
   .command('prds')
   .description('List all PRDs in .plans/ directory')

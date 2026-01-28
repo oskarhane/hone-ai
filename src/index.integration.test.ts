@@ -298,4 +298,48 @@ describe('CLI Integration Tests', () => {
       expect(result.stderr).toContain('Error executing tasks');
     });
   });
+
+  describe('init command', () => {
+    test('creates .plans directory and config file in fresh directory', () => {
+      const result = runCli(['init']);
+      
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Initialized xloop successfully!');
+      expect(result.stdout).toContain('✓ Created .plans/ directory');
+      expect(result.stdout).toContain('✓ Created .plans/xloop.config.json');
+      expect(result.stdout).toContain('Next steps:');
+      
+      // Verify files were created
+      expect(existsSync(join(TEST_CWD, '.plans'))).toBe(true);
+      expect(existsSync(join(TEST_CWD, '.plans', 'xloop.config.json'))).toBe(true);
+    });
+
+    test('detects when already initialized', () => {
+      // First init
+      runCli(['init']);
+      
+      // Second init
+      const result = runCli(['init']);
+      
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('xloop is already initialized');
+      expect(result.stdout).toContain('.plans/ directory: exists');
+      expect(result.stdout).toContain('config file: exists');
+    });
+
+    test('creates only missing parts when partially initialized', () => {
+      // Create .plans directory manually
+      mkdirSync(join(TEST_CWD, '.plans'), { recursive: true });
+      
+      const result = runCli(['init']);
+      
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Initialized xloop successfully!');
+      expect(result.stdout).toContain('• .plans/ directory already exists');
+      expect(result.stdout).toContain('✓ Created .plans/xloop.config.json');
+      
+      // Verify config was created
+      expect(existsSync(join(TEST_CWD, '.plans', 'xloop.config.json'))).toBe(true);
+    });
+  });
 });
