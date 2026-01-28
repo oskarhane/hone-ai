@@ -665,3 +665,29 @@ Key Decisions:
 
 Next Task: task-020 (Final polish and documentation)
 
+================================================================================
+TASK-020: Final polish and documentation
+Date: 2026-01-28T15:33:59Z
+================================================================================
+
+Summary:
+Created comprehensive README with installation, setup, usage examples for all
+commands, and full workflow examples. Verified all PRD acceptance criteria met:
+CLI foundation (help/version/config), PRD management (list/generate), task 
+management (status/generate), execution (do with iterations/skip/agent), agent
+integration (opencode/claude, flag override, real-time streaming). All output
+formatting matches PRD spec. Package ready for use.
+
+Files Changed:
+- README.md (replaced with comprehensive documentation)
+- .plans/tasks-xloop.yml (marked task-020 completed)
+- .plans/progress-xloop.txt (added task-020 entry)
+
+Key Decisions:
+- README includes quick start, configuration, all commands with examples
+- Verified output format matches PRD spec (prds, status commands)
+- All 104 tests pass
+- All 26 acceptance criteria from PRD verified and met
+
+Next Task: All tasks completed ✓
+
