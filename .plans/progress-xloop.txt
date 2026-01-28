@@ -430,3 +430,27 @@ Key Decisions:
 
 Next Task: task-013 (Implement iteration workflow - Invocation 3 (Finalize))
 
+================================================================================
+TASK-012-2: Fix prompt file reference paths to be relative from project root
+Date: 2026-01-28T20:00:00Z
+================================================================================
+
+Summary:
+Fixed prompt construction to use relative file paths instead of absolute paths.
+Agents (opencode/claude) require @ references to be relative from project root.
+Changed from join(getPlansDir(), ...) to relative(cwd, ...) for proper path refs.
+Updated all unit tests to verify relative paths in prompts. All 66 tests pass.
+
+Files Changed:
+- src/prompt.ts (import relative, compute relative paths from cwd for @ refs)
+- src/prompt.test.ts (updated 4 tests to check for relative paths)
+
+Key Decisions:
+- Use path.relative() to compute paths relative to process.cwd()
+- AGENTS.md stays as @AGENTS.md (already at root)
+- Task files: @.plans/tasks-<feature>.yml
+- Progress files: @.plans/progress-<feature>.txt
+- Matches pattern from old-loop/once.sh
+
+Next Task: task-013 (Implement iteration workflow - Invocation 3 (Finalize))
+

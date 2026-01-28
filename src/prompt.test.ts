@@ -69,7 +69,7 @@ describe('constructPrompt', () => {
     });
     
     expect(prompt).toContain('# CONTEXT FILES');
-    expect(prompt).toContain('@' + join(TEST_WORKSPACE, 'AGENTS.md'));
+    expect(prompt).toContain('@AGENTS.md');
   });
   
   test('includes task file reference', () => {
@@ -85,7 +85,7 @@ describe('constructPrompt', () => {
     });
     
     expect(prompt).toContain('# CONTEXT FILES');
-    expect(prompt).toContain('@' + join(TEST_PLANS_DIR, 'tasks-test.yml'));
+    expect(prompt).toContain('@.plans/tasks-test.yml');
   });
   
   test('includes progress file reference if exists', () => {
@@ -105,7 +105,7 @@ describe('constructPrompt', () => {
     });
     
     expect(prompt).toContain('# CONTEXT FILES');
-    expect(prompt).toContain('@' + join(TEST_PLANS_DIR, 'progress-test.txt'));
+    expect(prompt).toContain('@.plans/progress-test.txt');
   });
   
   test('implement phase includes task selection instructions', () => {
@@ -206,7 +206,7 @@ describe('constructPrompt', () => {
       config: mockConfig
     });
     
-    expect(prompt).not.toContain('@' + join(TEST_WORKSPACE, 'AGENTS.md'));
+    expect(prompt).not.toContain('@AGENTS.md');
     expect(prompt).toContain('# TASK SELECTION');
   });
   

@@ -63,6 +63,7 @@ Learnings and patterns for future agents working on xloop.
 
 - Three phases: implement, review, finalize - each with specific instructions
 - Reference context files using @<file_path> syntax instead of reading content
+- File paths MUST be relative to project root (use path.relative(cwd, path))
 - File references: @.plans/tasks-<feature>.yml, @.plans/progress-<feature>.txt, @AGENTS.md
 - All context files optional - gracefully handle missing files
 - Feedback and lint commands configurable in config (feedbackCommand, lintCommand)

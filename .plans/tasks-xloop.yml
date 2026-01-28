@@ -295,12 +295,12 @@ tasks:
         ✗ Implement phase failed
 
         ✗ Error executing tasks: Agent exited with code 2
-    status: pending
+    status: completed
     dependencies:
       - task-012
     acceptance_criteria:
       - "file reference paths in prompt are relative from doc root"
-    completed_at: null
+    completed_at: 2026-01-28T20:00:00Z
 
   - id: task-013
     title: "Implement iteration workflow - Invocation 3 (Finalize)"

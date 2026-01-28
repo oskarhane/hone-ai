@@ -1,5 +1,5 @@
 import { existsSync } from 'fs';
-import { join } from 'path';
+import { join, relative } from 'path';
 import { getPlansDir, type XLoopConfig } from './config';
 
 export type PromptPhase = 'implement' | 'review' | 'finalize';
@@ -21,25 +21,28 @@ export function constructPrompt(options: PromptOptions): string {
   
   const parts: string[] = [];
   
-  // Build list of file references
+  // Build list of file references (relative to project root)
   const fileRefs: string[] = [];
+  const cwd = process.cwd();
   
   // Add task file reference (required)
   const taskPath = join(getPlansDir(), `tasks-${featureName}.yml`);
   if (existsSync(taskPath)) {
-    fileRefs.push(`@${taskPath}`);
+    const relPath = relative(cwd, taskPath);
+    fileRefs.push(`@${relPath}`);
   }
   
   // Add progress file reference if exists
   const progressPath = join(getPlansDir(), `progress-${featureName}.txt`);
   if (existsSync(progressPath)) {
-    fileRefs.push(`@${progressPath}`);
+    const relPath = relative(cwd, progressPath);
+    fileRefs.push(`@${relPath}`);
   }
   
   // Add AGENTS.md reference if exists
-  const agentsPath = join(process.cwd(), 'AGENTS.md');
+  const agentsPath = join(cwd, 'AGENTS.md');
   if (existsSync(agentsPath)) {
-    fileRefs.push(`@${agentsPath}`);
+    fileRefs.push(`@AGENTS.md`);
   }
   
   // Add phase-specific header with file references
