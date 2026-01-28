@@ -22,3 +22,4 @@ Learnings and patterns for future agents working on xloop.
 - PRD files: `.plans/prd-<feature>.md`
 - Progress logs: `.plans/progress-<feature>.txt`
 - Config: `.plans/xloop.config.json`
+- Tests: add unit tests in x.test.ts files next to the source file being tested
