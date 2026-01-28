@@ -11,7 +11,7 @@ import {
   isValidAgent,
   resolveAgent,
   type XLoopConfig 
-} from '../config';
+} from './config';
 
 const TEST_CWD = join(process.cwd(), 'test-workspace');
 

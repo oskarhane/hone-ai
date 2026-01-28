@@ -70,3 +70,25 @@ Key Decisions:
 
 Next Task: task-004 (Implement --prds command)
 
+================================================================================
+TASK-004-1: Refactor unit tests structure
+Date: 2026-01-28T15:00:00Z
+================================================================================
+
+Summary:
+Moved unit tests from src/__tests__/ to next to implementation files following
+pattern in AGENTS.md. Tests now at src/config.test.ts next to src/config.ts.
+Updated import paths. All tests pass.
+
+Files Changed:
+- src/__tests__/config.test.ts (moved to src/config.test.ts)
+- src/config.test.ts (updated import from '../config' to './config')
+- src/__tests__/ (removed empty directory)
+
+Key Decisions:
+- Tests use pattern x.test.ts next to x.ts per AGENTS.md
+- No __tests__ directory needed, cleaner structure
+- All 12 tests pass after refactor
+
+Next Task: task-004 (Implement --prds command)
+
