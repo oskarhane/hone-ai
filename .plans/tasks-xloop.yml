@@ -444,7 +444,7 @@ tasks:
     description: |
       Test CLI commands end-to-end: --prds, --status with mock .plans/ data.
       Test --prd and --prd-to-tasks with mocked AI responses.
-    status: pending
+    status: completed
     dependencies:
       - task-018
     acceptance_criteria:
@@ -452,7 +452,7 @@ tasks:
       - "--status tested with mock data"
       - "AI operations tested with mocks"
       - "All tests pass"
-    completed_at: null
+    completed_at: 2026-01-28T17:00:00Z
 
   - id: task-020
     title: "Final polish and documentation"

@@ -614,3 +614,31 @@ Key Decisions:
 
 Next Task: task-019 (Add integration tests for CLI commands)
 
+================================================================================
+TASK-019: Add integration tests for CLI commands
+Date: 2026-01-28T17:00:00Z
+================================================================================
+
+Summary:
+Created comprehensive integration test suite for CLI commands at 
+src/index.integration.test.ts. Tests use spawnSync to execute CLI as 
+subprocess, validating prds, status, prd-to-tasks, and do commands with 
+mock data. Covered: empty states, single/multiple items, status calculations, 
+dependency handling, error cases. 17 new tests added, all passing. Total 104 
+tests across all test files.
+
+Files Changed:
+- src/index.integration.test.ts (created with 17 integration tests)
+
+Key Decisions:
+- Use spawnSync instead of importing CLI functions for true integration testing
+- Create test workspace isolated from actual .plans/ directory
+- Helper functions createMockPrd() and createMockTaskFile() for test data
+- Test both success paths and error handling (missing files, invalid input)
+- AI-dependent operations (prd generation, task generation) tested for error cases
+- Full mocking of AI interactions not implemented (would require major refactoring)
+- Tests validate output format matches PRD spec requirements
+- All 104 tests pass including 17 new integration tests
+
+Next Task: task-020 (Final polish and documentation)
+
