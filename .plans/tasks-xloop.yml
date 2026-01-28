@@ -501,3 +501,33 @@ tasks:
     acceptance_criteria:
       - "bun build would build a single executable for macos"
     completed_at: 2026-01-28T20:30:00Z
+
+  - id: task-023
+    title: "git commit only in the finalize phase"
+    description: |
+      it seems like the agent sometimes is committing at the implementation phase. It should wait until the finalize phase to commit.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "git commit always happens, but only at the very end of the finalize phase"
+    completed_at: null
+
+  - id: task-024
+    title: "running feedback loops too often"
+    description: |
+      it seems like the agent is running feedback loops too often. Often before it's even string to implement.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "only runs feedback loops when necessary, to verify changes"
+    completed_at: null
+
+  - id: task-025
+    title: "add init command"
+    description: |
+      create a command to initialize a new project. This creates the .plans directory and the config file
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "xloop init creates a new project (.plans folder and config file)"
+    completed_at: null
