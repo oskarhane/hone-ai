@@ -380,3 +380,28 @@ Key Decisions:
 
 Next Task: task-012 (Implement iteration workflow - Invocation 2 (Review))
 
+================================================================================
+TASK-012: Implement iteration workflow - Invocation 2 (Review)
+Date: 2026-01-28T18:00:00Z
+================================================================================
+
+Summary:
+Verified review phase implementation in do.ts (lines 96-122) and prompt.ts 
+(lines 153-183). Review phase constructs review prompt with task ID, spawns 
+agent with checklist for correctness/tests/security/performance, captures 
+feedback, and passes to finalize phase. Skipped if --skip=review flag set.
+All acceptance criteria met and tests pass.
+
+Files Changed:
+- .plans/tasks-xloop.yml (updated task-012 status to completed)
+- .plans/progress-xloop.txt (added task-012 completion entry)
+
+Key Decisions:
+- Review phase already implemented as part of task-010 work
+- Prompt instructs agent to use git diff commands to review changes
+- Structured feedback format (Issue/Suggestion/Priority) provided in prompt
+- reviewFeedback captured and passed to finalize phase for application
+- All 12 prompt tests pass including review phase tests
+
+Next Task: task-013 (Implement iteration workflow - Invocation 3 (Finalize))
+
