@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { loadConfig, ensurePlansDir, resolveAgent } from './config';
 import type { AgentType } from './config';
 import { listPrds } from './prds';
+import { listIncompleteTaskFiles } from './status';
 
 // Ensure .plans directory exists on startup
 ensurePlansDir();
@@ -54,9 +55,30 @@ program
   .command('status')
   .description('Show task status for incomplete task lists')
   .action(async () => {
-    const agent = await resolveAgent(program.opts().agent);
-    console.log(`Using agent: ${agent}`);
-    console.log('Status display - not yet implemented');
+    const taskFiles = await listIncompleteTaskFiles();
+    
+    if (taskFiles.length === 0) {
+      console.log('No incomplete task lists found.');
+      console.log('');
+      console.log('All tasks completed! 🎉');
+      return;
+    }
+    
+    console.log('Incomplete task lists:');
+    console.log('');
+    
+    for (const taskFile of taskFiles) {
+      console.log(`  ${taskFile.filename}`);
+      console.log(`    Feature: ${taskFile.feature}`);
+      console.log(`    Progress: ${taskFile.completedCount}/${taskFile.totalCount} tasks completed`);
+      
+      if (taskFile.nextTask) {
+        console.log(`    Next: ${taskFile.nextTask.id} - ${taskFile.nextTask.title}`);
+      } else {
+        console.log(`    Next: (waiting for dependencies)`);
+      }
+      console.log('');
+    }
   });
 
 program

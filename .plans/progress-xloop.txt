@@ -116,3 +116,29 @@ Key Decisions:
 
 Next Task: task-005 (Implement --status command)
 
+================================================================================
+TASK-005: Implement --status command (task status)
+Date: 2026-01-28T16:00:00Z
+================================================================================
+
+Summary:
+Created status.ts module with functions to list incomplete task files and find
+next task respecting dependencies. Implemented status command to display task
+files with uncompleted tasks, progress counts, and next available task. Added
+comprehensive unit tests for findNextTask with 6 test cases covering all edge
+cases.
+
+Files Changed:
+- src/status.ts (created with task listing and next-task logic)
+- src/status.test.ts (created with 6 test cases)
+- src/index.ts (implemented status command action)
+
+Key Decisions:
+- Separate module for status operations matching prds.ts pattern
+- findNextTask() checks all dependencies completed before returning task
+- Returns null if no tasks available (all pending blocked by deps)
+- Excludes fully completed task files from output
+- Output format matches PRD spec with feature, progress, next task
+
+Next Task: task-006 (Implement --prd command)
+

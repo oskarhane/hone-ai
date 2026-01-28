@@ -23,3 +23,9 @@ Learnings and patterns for future agents working on xloop.
 - Progress logs: `.plans/progress-<feature>.txt`
 - Config: `.plans/xloop.config.json`
 - Tests: add unit tests in x.test.ts files next to the source file being tested
+
+## Task Dependency Logic
+
+- Next task = first pending task where all dependencies have status 'completed'
+- Tasks blocked by incomplete deps return null from findNextTask
+- Status calculated: not started (0 done), in progress (some done), completed (all done)

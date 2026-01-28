@@ -83,7 +83,7 @@ tasks:
     description: |
       List all task files with uncompleted tasks. Exclude fully completed files.
       Show progress count and next task based on dependencies.
-    status: pending
+    status: completed
     dependencies:
       - task-004
     acceptance_criteria:
@@ -91,7 +91,7 @@ tasks:
       - "Shows X/Y tasks completed count"
       - "Shows next task respecting dependencies"
       - "Formatted output matching PRD spec"
-    completed_at: null
+    completed_at: 2026-01-28T13:03:32Z
 
   - id: task-006
     title: "Implement --prd command (generate PRD)"
