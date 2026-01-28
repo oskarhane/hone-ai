@@ -1,11 +1,22 @@
 {
   "name": "xloop",
+  "version": "0.1.0",
   "module": "src/index.ts",
   "type": "module",
+  "bin": {
+    "xloop": "./src/index.ts"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/js-yaml": "^4.0.9"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "ai": "^6.0.57",
+    "commander": "^14.0.2",
+    "js-yaml": "^4.1.1"
   }
 }

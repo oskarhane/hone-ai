@@ -11,14 +11,14 @@ tasks:
       Initialize Bun project with package.json, tsconfig, and CLI entry point.
       Install dependencies: commander (CLI), js-yaml, ai-sdk with anthropic provider.
       Create basic CLI structure with --help and --version flags.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "bun init completed with proper package.json"
       - "CLI entry point at src/index.ts or src/cli.ts"
       - "xloop --help displays usage"
       - "xloop --version displays version"
-    completed_at: null
+    completed_at: 2026-01-28T13:30:00Z
 
   - id: task-002
     title: "Implement .plans directory and config management"
