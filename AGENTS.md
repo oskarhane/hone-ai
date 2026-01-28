@@ -43,3 +43,14 @@ Learnings and patterns for future agents working on xloop.
 - Extract JSON using regex pattern: `/```(?:json)?\s*(\[[\s\S]*\])\s*```/`
 - Always validate task structure before saving (id, title, description, status, dependencies, acceptance_criteria)
 - YAML formatting done manually to ensure consistent indentation and structure
+
+## Agent Subprocess Spawning
+
+- Use child_process.spawn for spawning opencode/claude
+- Set stdio: ['pipe', 'pipe', 'pipe'] for full control over streams
+- Stream stdout/stderr to console in real-time using process.stdout.write()
+- Send prompt to stdin, then call stdin.end() to signal completion
+- Handle 'error' event for spawn failures (e.g., command not found)
+- Handle 'close' event for exit code (treat null as 1)
+- Use 'which' command to check if agent binary exists in PATH
+- Avoid testing with real agent spawns (interactive CLIs hang in tests)
