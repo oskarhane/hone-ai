@@ -4,6 +4,7 @@ import { readFile, writeFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import * as readline from 'readline';
+import { retryWithBackoff, exitWithError, ErrorMessages } from './errors';
 
 export function slugify(text: string): string {
   return text
@@ -106,14 +107,20 @@ Feature description: ${featureDescription}
 
 ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`;
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: 500,
-    messages: [{
-      role: 'user',
-      content: 'What is your next clarifying question, or respond with "DONE" if you have enough information?'
-    }],
-    system: systemPrompt
+  const response = await retryWithBackoff(
+    () => client.messages.create({
+      model,
+      max_tokens: 500,
+      messages: [{
+        role: 'user',
+        content: 'What is your next clarifying question, or respond with "DONE" if you have enough information?'
+      }],
+      system: systemPrompt
+    })
+  ).catch(error => {
+    const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
+    exitWithError(message, details);
+    throw error; // Never reached but satisfies TypeScript
   });
   
   const content = response.content[0];
@@ -187,14 +194,20 @@ ${qaHistory ? `\n- Q&A Session:\n${qaHistory}` : ''}
 
 Write a complete, detailed PRD following the structure above.`;
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: 4000,
-    messages: [{
-      role: 'user',
-      content: 'Generate the PRD now.'
-    }],
-    system: systemPrompt
+  const response = await retryWithBackoff(
+    () => client.messages.create({
+      model,
+      max_tokens: 4000,
+      messages: [{
+        role: 'user',
+        content: 'Generate the PRD now.'
+      }],
+      system: systemPrompt
+    })
+  ).catch(error => {
+    const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
+    exitWithError(message, details);
+    throw error; // Never reached but satisfies TypeScript
   });
   
   const content = response.content[0];

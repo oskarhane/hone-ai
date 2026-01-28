@@ -1,5 +1,6 @@
 import { spawn, type ChildProcess } from 'child_process';
 import type { AgentType } from './config';
+import { exitWithError, ErrorMessages } from './errors';
 
 export interface SpawnAgentOptions {
   agent: AgentType;

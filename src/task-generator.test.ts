@@ -1,8 +1,17 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, test, expect, beforeEach, afterEach, beforeAll, afterAll } from 'bun:test';
 import { generateTasksFromPRD } from './task-generator';
 import { writeFile, mkdir, rm } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+
+// Set test environment
+const originalEnv = process.env.BUN_ENV;
+beforeAll(() => {
+  process.env.BUN_ENV = 'test';
+});
+afterAll(() => {
+  process.env.BUN_ENV = originalEnv;
+});
 
 const TEST_WORKSPACE = join(process.cwd(), '.test-task-generator');
 const TEST_PLANS_DIR = join(TEST_WORKSPACE, '.plans');
@@ -31,7 +40,7 @@ describe('task-generator', () => {
   test('throws error if PRD file does not exist', async () => {
     const nonExistentPath = join(TEST_PLANS_DIR, 'prd-nonexistent.md');
     
-    await expect(generateTasksFromPRD(nonExistentPath)).rejects.toThrow('PRD file not found');
+    await expect(generateTasksFromPRD(nonExistentPath)).rejects.toThrow('File not found');
   });
   
   test('throws error if PRD filename format is invalid', async () => {

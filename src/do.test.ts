@@ -1,7 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'bun:test';
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { executeTasks } from './do';
+
+// Set test environment
+const originalEnv = process.env.BUN_ENV;
+beforeAll(() => {
+  process.env.BUN_ENV = 'test';
+});
+afterAll(() => {
+  process.env.BUN_ENV = originalEnv;
+});
 
 describe('do module', () => {
   const testWorkspace = join(process.cwd(), '.test-workspace-do');
@@ -28,7 +37,7 @@ describe('do module', () => {
         tasksFile: join(plansDir, 'tasks-nonexistent.yml'),
         iterations: 1,
         agent: 'claude',
-      })).rejects.toThrow('Tasks file not found');
+      })).rejects.toThrow('File not found');
     });
     
     it('should reject when iterations is not a positive integer', async () => {

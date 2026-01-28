@@ -4,6 +4,7 @@ import type { AgentType } from './config';
 import { loadConfig } from './config';
 import { spawnAgent, isAgentAvailable } from './agent';
 import { constructPrompt, type PromptPhase } from './prompt';
+import { exitWithError, ErrorMessages } from './errors';
 
 export interface ExecuteTasksOptions {
   tasksFile: string;
@@ -22,7 +23,8 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
   // Validate tasks file exists
   const tasksPath = resolve(tasksFile);
   if (!existsSync(tasksPath)) {
-    throw new Error(`Tasks file not found: ${tasksFile}`);
+    const { message, details } = ErrorMessages.FILE_NOT_FOUND(tasksPath);
+    exitWithError(message, details);
   }
   
   // Validate iterations is a positive integer
@@ -33,7 +35,8 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
   // Check if agent is available
   const available = await isAgentAvailable(agent);
   if (!available) {
-    throw new Error(`Agent "${agent}" is not available. Please install it first.`);
+    const { message, details } = ErrorMessages.AGENT_NOT_FOUND(agent);
+    exitWithError(message, details);
   }
   
   // Extract feature name from tasks file name

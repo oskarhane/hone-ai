@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+import { exitWithError, ErrorMessages } from './errors';
 
 export interface XLoopConfig {
   defaultAgent: 'opencode' | 'claude';
@@ -72,9 +73,8 @@ export function getApiKey(): string | undefined {
 export function validateApiKey(): void {
   const apiKey = getApiKey();
   if (!apiKey) {
-    console.error('Error: ANTHROPIC_API_KEY not found in environment');
-    console.error('Please set ANTHROPIC_API_KEY in your .env file or environment');
-    process.exit(1);
+    const { message, details } = ErrorMessages.MISSING_API_KEY;
+    exitWithError(message, details);
   }
 }
 
@@ -88,8 +88,10 @@ export async function resolveAgent(flagAgent?: string): Promise<AgentType> {
   // Priority: flag > config > default
   if (flagAgent) {
     if (!isValidAgent(flagAgent)) {
-      console.error(`Error: Invalid agent "${flagAgent}". Must be "opencode" or "claude".`);
-      process.exit(1);
+      exitWithError(
+        'Error: Invalid agent',
+        `Agent "${flagAgent}" is not valid. Must be "opencode" or "claude".`
+      );
     }
     return flagAgent;
   }

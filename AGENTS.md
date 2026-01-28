@@ -82,3 +82,14 @@ Learnings and patterns for future agents working on xloop.
 - Review phase: if fails, finalize never runs so task file never updated
 - Finalize phase: more complex - may need manual recovery if partial work done
 - Warning displayed if TASK_COMPLETED marker not found in agent output
+
+## Error Module (src/errors.ts)
+
+- XLoopError extends Error with exitCode property for structured errors
+- formatError() uses ✗ symbol matching PRD spec for consistent error display
+- exitWithError() throws in test mode (NODE_ENV/BUN_ENV=test) to allow testing
+- isNetworkError() detects common network errors (ECONNREFUSED, ETIMEDOUT, etc.)
+- retryWithBackoff() implements exponential backoff: delay = min(initial * 2^attempt, maxDelay)
+- Default retry: 3 attempts, 1s initial delay, 10s max delay
+- ErrorMessages object provides structured message/details for common scenarios
+- Network retry integrated into prd-generator and task-generator API calls

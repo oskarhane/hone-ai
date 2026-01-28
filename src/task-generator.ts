@@ -3,6 +3,7 @@ import { getApiKey, loadConfig } from './config';
 import { readFile, writeFile } from 'fs/promises';
 import { join, basename } from 'path';
 import { existsSync } from 'fs';
+import { retryWithBackoff, exitWithError, ErrorMessages } from './errors';
 
 interface Task {
   id: string;
@@ -25,7 +26,8 @@ interface TasksFile {
 export async function generateTasksFromPRD(prdFilePath: string): Promise<string> {
   // Validate PRD file exists
   if (!existsSync(prdFilePath)) {
-    throw new Error(`PRD file not found: ${prdFilePath}`);
+    const { message, details } = ErrorMessages.FILE_NOT_FOUND(prdFilePath);
+    exitWithError(message, details);
   }
   
   // Read PRD content
@@ -138,14 +140,20 @@ Example output:
 
 Now analyze this PRD and generate tasks:`;
 
-  const response = await client.messages.create({
-    model,
-    max_tokens: 8000,
-    messages: [{
-      role: 'user',
-      content: prdContent
-    }],
-    system: systemPrompt
+  const response = await retryWithBackoff(
+    () => client.messages.create({
+      model,
+      max_tokens: 8000,
+      messages: [{
+        role: 'user',
+        content: prdContent
+      }],
+      system: systemPrompt
+    })
+  ).catch(error => {
+    const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
+    exitWithError(message, details);
+    throw error; // Never reached but satisfies TypeScript
   });
   
   const content = response.content[0];

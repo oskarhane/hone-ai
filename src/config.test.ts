@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, test, expect, beforeEach, afterEach, beforeAll, afterAll } from 'bun:test';
 import { existsSync, rmSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { 
@@ -12,6 +12,15 @@ import {
   resolveAgent,
   type XLoopConfig 
 } from './config';
+
+// Set test environment
+const originalEnv = process.env.BUN_ENV;
+beforeAll(() => {
+  process.env.BUN_ENV = 'test';
+});
+afterAll(() => {
+  process.env.BUN_ENV = originalEnv;
+});
 
 const TEST_CWD = join(process.cwd(), 'test-workspace');
 

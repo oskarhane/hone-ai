@@ -381,7 +381,7 @@ tasks:
       Handle all common errors: missing API key, invalid paths, agent not found,
       git not initialized, network errors. Implement retry with exponential backoff
       for network errors (3 retries).
-    status: pending
+    status: completed
     dependencies:
       - task-014
     acceptance_criteria:
@@ -390,7 +390,7 @@ tasks:
       - "Missing agent shows install instructions"
       - "Network errors retry 3x with backoff"
       - "Error format matches PRD spec"
-    completed_at: null
+    completed_at: 2026-01-28T16:30:00Z
 
   - id: task-016
     title: "Add progress file management"
