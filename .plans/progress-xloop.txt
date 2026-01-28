@@ -273,3 +273,34 @@ Key Decisions:
 
 Next Task: task-009 (Implement agent prompt construction)
 
+================================================================================
+TASK-009: Implement agent prompt construction
+Date: 2026-01-28T15:30:00Z
+================================================================================
+
+Summary:
+Created prompt.ts module with constructPrompt() function that builds structured 
+prompts for 3 phases: implement, review, finalize. Each phase has specific 
+instructions. Prompts include AGENTS.md (if exists), task file content, progress 
+file (if exists), and configurable feedback commands. Extended XLoopConfig with 
+feedbackCommand and lintCommand fields. Added comprehensive unit tests.
+
+Files Changed:
+- src/prompt.ts (created with phase-specific prompt construction)
+- src/prompt.test.ts (created with 12 test cases)
+- src/config.ts (added feedbackCommand and lintCommand to interface)
+- src/config.test.ts (updated test to include new config fields)
+- .plans/xloop.config.json (added feedbackCommand and lintCommand)
+
+Key Decisions:
+- Three separate prompt phases: implement, review, finalize
+- Implement phase: task selection, exploration, execution, feedback loops
+- Review phase: checklist for correctness, tests, security, performance
+- Finalize phase: apply feedback, update files, git commit
+- Feedback and lint commands configurable via config (defaults: bun test, none)
+- Prompts include context from AGENTS.md, tasks, and progress files
+- All context files optional - graceful handling if missing
+- Output format: TASK_COMPLETED: <id> for implement, FINALIZED: <id> for finalize
+
+Next Task: task-010 (Implement --do command basic structure)
+

@@ -9,6 +9,8 @@ export interface XLoopConfig {
     claude: string;
   };
   commitPrefix: string;
+  feedbackCommand?: string;
+  lintCommand?: string;
 }
 
 const DEFAULT_CONFIG: XLoopConfig = {
@@ -17,7 +19,9 @@ const DEFAULT_CONFIG: XLoopConfig = {
     opencode: 'claude-sonnet-4-20250514',
     claude: 'claude-sonnet-4-20250514'
   },
-  commitPrefix: 'xloop'
+  commitPrefix: 'xloop',
+  feedbackCommand: 'bun test',
+  lintCommand: undefined
 };
 
 export function getPlansDir(): string {

@@ -87,10 +87,12 @@ describe('Config Management', () => {
     const config: XLoopConfig = {
       defaultAgent: 'opencode',
       models: {
-        opencode: 'test-model',
+        opencode: 'test-opencode',
         claude: 'test-claude'
       },
-      commitPrefix: 'test'
+      commitPrefix: 'test',
+      feedbackCommand: 'npm test',
+      lintCommand: 'npm run lint'
     };
     
     await saveConfig(config);

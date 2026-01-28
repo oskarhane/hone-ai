@@ -186,7 +186,7 @@ tasks:
       What's not ideal in that example is in the old-loop/prompt.md that project specific things are hardcoded. xloop is
       meant to be language and framework agnostic, so the prompt should be generic and adaptable to different contexts.
       So parts of the prompt (how to run tests, linting etc to get feedback) should be configurable via the config file.
-    status: pending
+    status: completed
     dependencies:
       - task-008
     acceptance_criteria:
@@ -195,7 +195,7 @@ tasks:
       - "Prompt includes progress file if exists"
       - "Different prompts for each phase"
       - "Parts of the prompt is configurable via config file"
-    completed_at: null
+    completed_at: 2026-01-28T15:30:00Z
 
   # Phase 5: --do Command
   - id: task-010

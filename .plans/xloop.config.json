@@ -4,5 +4,7 @@
     "opencode": "claude-sonnet-4-20250514",
     "claude": "claude-sonnet-4-20250514"
   },
-  "commitPrefix": "xloop"
+  "commitPrefix": "xloop",
+  "feedbackCommand": "bun test",
+  "lintCommand": null
 }
