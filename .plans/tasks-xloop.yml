@@ -397,7 +397,7 @@ tasks:
     description: |
       Create/update progress-feature.txt with iteration summaries.
       Format: iteration header, summary, files changed, review notes, commit hash.
-    status: pending
+    status: cancelled
     dependencies:
       - task-013
     acceptance_criteria:
@@ -413,7 +413,7 @@ tasks:
       Read AGENTS.md from project root if exists. Agent instructed to update
       with useful learnings during finalize phase. Create if doesn't exist.
       Append under fitting heading or create new heading.
-    status: pending
+    status: cancelled
     dependencies:
       - task-013
     acceptance_criteria:
