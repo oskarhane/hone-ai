@@ -8,6 +8,8 @@ import {
   loadConfig, 
   saveConfig,
   getApiKey,
+  isValidAgent,
+  resolveAgent,
   type XLoopConfig 
 } from '../config';
 
@@ -112,5 +114,47 @@ describe('Config Management', () => {
     if (originalKey) {
       process.env.ANTHROPIC_API_KEY = originalKey;
     }
+  });
+
+  test('isValidAgent returns true for valid agents', () => {
+    expect(isValidAgent('opencode')).toBe(true);
+    expect(isValidAgent('claude')).toBe(true);
+  });
+
+  test('isValidAgent returns false for invalid agents', () => {
+    expect(isValidAgent('invalid')).toBe(false);
+    expect(isValidAgent('gpt4')).toBe(false);
+    expect(isValidAgent('')).toBe(false);
+  });
+
+  test('resolveAgent prioritizes flag over config', async () => {
+    // Set config default to claude
+    await saveConfig({
+      defaultAgent: 'claude',
+      models: { opencode: 'test', claude: 'test' },
+      commitPrefix: 'test'
+    });
+    
+    // Flag should override
+    const agent = await resolveAgent('opencode');
+    expect(agent).toBe('opencode');
+  });
+
+  test('resolveAgent uses config when no flag provided', async () => {
+    // Set config default to opencode
+    await saveConfig({
+      defaultAgent: 'opencode',
+      models: { opencode: 'test', claude: 'test' },
+      commitPrefix: 'test'
+    });
+    
+    const agent = await resolveAgent();
+    expect(agent).toBe('opencode');
+  });
+
+  test('resolveAgent uses default when no flag and no config', async () => {
+    // Don't create config, should use default
+    const agent = await resolveAgent();
+    expect(agent).toBe('claude'); // Default from DEFAULT_CONFIG
   });
 });

@@ -46,3 +46,27 @@ Key Decisions:
 
 Next Task: task-003 (Implement --agent global flag)
 
+================================================================================
+TASK-003: Implement --agent global flag
+Date: 2026-01-28T12:41:44Z
+================================================================================
+
+Summary:
+Added --agent global flag to CLI with validation for opencode/claude values.
+Implemented resolveAgent() with priority: flag > config > default. All commands
+now use resolveAgent() to determine agent. Added isValidAgent() validator and
+comprehensive unit tests for agent selection logic.
+
+Files Changed:
+- src/config.ts (added AgentType, isValidAgent, resolveAgent functions)
+- src/index.ts (added type import, updated all commands to use resolveAgent)
+- src/__tests__/config.test.ts (added 3 new tests for agent selection)
+
+Key Decisions:
+- Agent type restricted to 'opencode' | 'claude' via TypeScript type
+- Invalid agent values exit with error message immediately
+- resolveAgent() is async to support config loading
+- All commands display "Using agent: <name>" for transparency
+
+Next Task: task-004 (Implement --prds command)
+

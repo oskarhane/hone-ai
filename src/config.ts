@@ -73,3 +73,23 @@ export function validateApiKey(): void {
     process.exit(1);
   }
 }
+
+export type AgentType = 'opencode' | 'claude';
+
+export function isValidAgent(agent: string): agent is AgentType {
+  return agent === 'opencode' || agent === 'claude';
+}
+
+export async function resolveAgent(flagAgent?: string): Promise<AgentType> {
+  // Priority: flag > config > default
+  if (flagAgent) {
+    if (!isValidAgent(flagAgent)) {
+      console.error(`Error: Invalid agent "${flagAgent}". Must be "opencode" or "claude".`);
+      process.exit(1);
+    }
+    return flagAgent;
+  }
+  
+  const config = await loadConfig();
+  return config.defaultAgent;
+}

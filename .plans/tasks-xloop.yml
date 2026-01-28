@@ -41,14 +41,14 @@ tasks:
     description: |
       Add --agent flag with opencode or claude options to override default agent.
       Implement agent selection priority: flag then config then fallback to claude.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
       - "--agent flag accepts opencode or claude"
       - "Flag overrides config default"
       - "Invalid agent values show error"
-    completed_at: null
+    completed_at: 2026-01-28T12:41:44Z
 
   # Phase 2: PRD Commands
   - id: task-004
