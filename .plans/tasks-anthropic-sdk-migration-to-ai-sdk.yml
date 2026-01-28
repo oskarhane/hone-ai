@@ -1,0 +1,185 @@
+feature: anthropic-sdk-migration-to-ai-sdk
+prd: ./prd-anthropic-sdk-migration-to-ai-sdk.md
+created_at: 2026-01-28T14:14:34.919Z
+updated_at: 2026-01-28T14:14:34.919Z
+
+tasks:
+  - id: task-001
+    title: "Audit current Anthropic SDK usage and create migration plan"
+    description: |
+      Analyze the codebase to identify all direct Anthropic SDK imports, usage patterns, and integration points. Document current configuration patterns, error handling, and response structures to create a comprehensive migration mapping.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "Complete inventory of all @anthropic-ai/sdk usage locations"
+      - "Documentation of current configuration patterns and environment variables"
+      - "Mapping of Anthropic SDK methods to ai-sdk equivalents"
+      - "Identification of all streaming and function calling implementations"
+      - "Risk assessment for potential breaking changes"
+    completed_at: null
+
+  - id: task-002
+    title: "Update package dependencies and project configuration"
+    description: |
+      Remove @anthropic-ai/sdk dependency and add ai and @ai-sdk/anthropic packages. Update TypeScript configurations, build scripts, and any tooling that references the old SDK.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Package.json updated with new dependencies and old ones removed"
+      - "TypeScript compilation succeeds with new packages"
+      - "Build scripts execute without errors"
+      - "No references to old SDK remain in configuration files"
+      - "All development tools work with new dependencies"
+    completed_at: null
+
+  - id: task-003
+    title: "Create ai-sdk configuration and client initialization"
+    description: |
+      Implement the new client initialization using @ai-sdk/anthropic provider. Map existing environment variables and configuration options to ai-sdk format while preserving all current settings.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "Anthropic client initializes successfully with existing API key"
+      - "All existing configuration options are preserved"
+      - "Environment variable mapping works correctly"
+      - "Client configuration is centralized and reusable"
+      - "Error handling for initialization failures is implemented"
+    completed_at: null
+
+  - id: task-004
+    title: "Migrate basic chat completion functionality"
+    description: |
+      Replace direct Anthropic SDK chat completion calls with ai-sdk's generateText() function. Ensure request parameters, model settings, and response structures remain identical to maintain API compatibility.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "All chat completions use ai-sdk generateText() function"
+      - "Request parameters map correctly to ai-sdk format"
+      - "Response structures are identical to previous implementation"
+      - "Model configuration (temperature, max_tokens) is preserved"
+      - "Error responses maintain same format and information"
+    completed_at: null
+
+  - id: task-005
+    title: "Migrate streaming response implementations"
+    description: |
+      Convert all streaming chat implementations to use ai-sdk's streamText() function. Ensure streaming behavior, chunk formatting, and error handling remain consistent with existing patterns.
+    status: pending
+    dependencies:
+      - task-004
+    acceptance_criteria:
+      - "All streaming responses use ai-sdk streamText() function"
+      - "Stream chunk format remains identical"
+      - "Streaming performance matches previous implementation"
+      - "Error handling during streams works correctly"
+      - "Stream termination and cleanup functions properly"
+    completed_at: null
+
+  - id: task-006
+    title: "Migrate function calling and tool usage"
+    description: |
+      Convert all function calling implementations to use ai-sdk's tool calling interface. Map existing function definitions and ensure tool execution results maintain the same structure and behavior.
+    status: pending
+    dependencies:
+      - task-004
+    acceptance_criteria:
+      - "All function calls use ai-sdk tool interface"
+      - "Function definitions map correctly to ai-sdk format"
+      - "Tool execution results maintain identical structure"
+      - "Multiple tool calls work as expected"
+      - "Tool error handling preserves existing behavior"
+    completed_at: null
+
+  - id: task-007
+    title: "Update error handling and retry logic"
+    description: |
+      Replace custom error handling with ai-sdk's built-in mechanisms. Ensure error messages provide equivalent or better debugging information while maintaining consistent error response formats.
+    status: pending
+    dependencies:
+      - task-005
+      - task-006
+    acceptance_criteria:
+      - "All error types are properly handled by ai-sdk patterns"
+      - "Error messages provide equivalent debugging information"
+      - "Retry logic uses ai-sdk's built-in mechanisms"
+      - "Rate limiting errors are handled appropriately"
+      - "Error response formats match previous implementation"
+    completed_at: null
+
+  - id: task-008
+    title: "Update TypeScript types and interfaces"
+    description: |
+      Modify all TypeScript interfaces and type definitions to work with ai-sdk types. Ensure type safety is maintained while preserving existing API contracts and preventing breaking changes.
+    status: pending
+    dependencies:
+      - task-007
+    acceptance_criteria:
+      - "All TypeScript compilation errors are resolved"
+      - "Type definitions accurately reflect ai-sdk response types"
+      - "Existing API contracts are preserved through type compatibility"
+      - "Generic types work correctly with new SDK"
+      - "Import statements use correct ai-sdk type exports"
+    completed_at: null
+
+  - id: task-009
+    title: "Update and verify all unit tests"
+    description: |
+      Modify unit tests to work with ai-sdk while ensuring test expectations remain unchanged. Update mocking strategies and test utilities to work with the new SDK structure.
+    status: pending
+    dependencies:
+      - task-008
+    acceptance_criteria:
+      - "All existing unit tests pass without changing expectations"
+      - "Mock implementations work correctly with ai-sdk"
+      - "Test coverage remains at or above current levels"
+      - "New SDK-specific edge cases are tested"
+      - "Test utilities are updated for ai-sdk patterns"
+    completed_at: null
+
+  - id: task-010
+    title: "Run integration tests and performance validation"
+    description: |
+      Execute comprehensive integration tests to verify end-to-end functionality works identically. Run performance benchmarks to ensure response times remain within acceptable ranges.
+    status: pending
+    dependencies:
+      - task-009
+    acceptance_criteria:
+      - "All integration tests pass with identical behavior"
+      - "API response structures are unchanged"
+      - "Performance benchmarks show no significant degradation"
+      - "Streaming performance matches previous implementation"
+      - "Function calling integration works end-to-end"
+    completed_at: null
+
+  - id: task-011
+    title: "Update documentation and code comments"
+    description: |
+      Update all documentation, code comments, and developer guides to reflect ai-sdk usage patterns. Ensure examples and usage instructions are accurate for the new implementation.
+    status: pending
+    dependencies:
+      - task-010
+    acceptance_criteria:
+      - "All code comments reference correct ai-sdk patterns"
+      - "Developer documentation is updated with new examples"
+      - "API documentation reflects any changes in behavior"
+      - "Migration notes are documented for future reference"
+      - "Configuration examples use ai-sdk format"
+    completed_at: null
+
+  - id: task-012
+    title: "Final validation and cleanup"
+    description: |
+      Perform final end-to-end testing, remove any remaining references to old SDK, and prepare the migration for production deployment. Verify rollback procedures are in place.
+    status: pending
+    dependencies:
+      - task-011
+    acceptance_criteria:
+      - "No references to @anthropic-ai/sdk remain in codebase"
+      - "All functionality works identically to previous version"
+      - "Rollback procedure is documented and tested"
+      - "Production deployment checklist is completed"
+      - "Performance monitoring is in place for post-deployment"
+    completed_at: null
