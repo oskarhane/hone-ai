@@ -154,5 +154,61 @@ describe('status', () => {
       const next = findNextTask(taskFile);
       expect(next).toBeNull();
     });
+
+    test('treats cancelled tasks as satisfied dependencies', () => {
+      const taskFile: TaskFile = {
+        feature: 'test',
+        prd: './prd-test.md',
+        created_at: '2026-01-28',
+        updated_at: '2026-01-28',
+        tasks: [
+          {
+            id: 'task-1',
+            title: 'Task 1',
+            description: 'First task',
+            status: 'cancelled',
+            dependencies: []
+          },
+          {
+            id: 'task-2',
+            title: 'Task 2',
+            description: 'Second task',
+            status: 'pending',
+            dependencies: ['task-1']
+          }
+        ]
+      };
+      
+      const next = findNextTask(taskFile);
+      expect(next?.id).toBe('task-2');
+    });
+
+    test('skips cancelled tasks when searching for next', () => {
+      const taskFile: TaskFile = {
+        feature: 'test',
+        prd: './prd-test.md',
+        created_at: '2026-01-28',
+        updated_at: '2026-01-28',
+        tasks: [
+          {
+            id: 'task-1',
+            title: 'Task 1',
+            description: 'First task',
+            status: 'cancelled',
+            dependencies: []
+          },
+          {
+            id: 'task-2',
+            title: 'Task 2',
+            description: 'Second task',
+            status: 'pending',
+            dependencies: []
+          }
+        ]
+      };
+      
+      const next = findNextTask(taskFile);
+      expect(next?.id).toBe('task-2');
+    });
   });
 });

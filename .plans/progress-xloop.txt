@@ -691,3 +691,31 @@ Key Decisions:
 
 Next Task: All tasks completed ✓
 
+================================================================================
+TASK-021: Handle cancelled tasks
+Date: 2026-01-28T16:00:00Z
+================================================================================
+
+Summary:
+Implemented cancelled task handling in status and prds commands. Updated Task
+interface to include 'cancelled' status. Modified calculateStatus() to count
+cancelled tasks as completed (alongside completed tasks). Updated findNextTask()
+to treat cancelled dependencies as satisfied. Added comprehensive tests covering
+cancelled task scenarios. All 108 tests pass.
+
+Files Changed:
+- src/prds.ts (updated Task interface, modified calculateStatus to count cancelled)
+- src/status.ts (updated findNextTask to treat cancelled as satisfied deps)
+- src/prds.test.ts (added 2 tests for cancelled task counting)
+- src/status.test.ts (added 2 tests for cancelled dependency handling)
+- AGENTS.md (documented cancelled task behavior)
+
+Key Decisions:
+- Cancelled tasks count towards completion (same as completed)
+- Cancelled dependencies treated as satisfied for next task selection
+- Task status enum: 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled'
+- Both --status and --prds commands now properly handle cancelled tasks
+- Progress counts include both completed and cancelled in completion totals
+
+Next Task: task-022 (script for single executable build)
+

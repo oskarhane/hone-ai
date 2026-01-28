@@ -87,4 +87,39 @@ describe('calculateStatus', () => {
     expect(result.completedCount).toBe(2);
     expect(result.totalCount).toBe(2);
   });
+
+  test('counts cancelled tasks as completed', () => {
+    const taskFile: TaskFile = {
+      feature: 'test',
+      prd: 'prd-test.md',
+      created_at: '2026-01-28T12:00:00Z',
+      updated_at: '2026-01-28T12:00:00Z',
+      tasks: [
+        { id: 'task-001', title: 'Task 1', description: 'Desc', status: 'completed' },
+        { id: 'task-002', title: 'Task 2', description: 'Desc', status: 'cancelled' },
+        { id: 'task-003', title: 'Task 3', description: 'Desc', status: 'pending' }
+      ]
+    };
+    const result = calculateStatus(taskFile);
+    expect(result.status).toBe('in progress');
+    expect(result.completedCount).toBe(2);
+    expect(result.totalCount).toBe(3);
+  });
+
+  test('returns "completed" when all tasks are completed or cancelled', () => {
+    const taskFile: TaskFile = {
+      feature: 'test',
+      prd: 'prd-test.md',
+      created_at: '2026-01-28T12:00:00Z',
+      updated_at: '2026-01-28T12:00:00Z',
+      tasks: [
+        { id: 'task-001', title: 'Task 1', description: 'Desc', status: 'completed' },
+        { id: 'task-002', title: 'Task 2', description: 'Desc', status: 'cancelled' }
+      ]
+    };
+    const result = calculateStatus(taskFile);
+    expect(result.status).toBe('completed');
+    expect(result.completedCount).toBe(2);
+    expect(result.totalCount).toBe(2);
+  });
 });

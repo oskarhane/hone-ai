@@ -8,7 +8,7 @@ export interface Task {
   id: string;
   title: string;
   description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
   dependencies?: string[];
   acceptance_criteria?: string[];
   completed_at?: string | null;
@@ -74,6 +74,7 @@ export async function loadTaskFile(taskFilename: string): Promise<TaskFile | nul
 
 /**
  * Calculate status from task file
+ * Cancelled tasks are counted towards completion
  */
 export function calculateStatus(taskFile: TaskFile | null): {
   status: 'not started' | 'in progress' | 'completed';
@@ -85,7 +86,7 @@ export function calculateStatus(taskFile: TaskFile | null): {
   }
   
   const totalCount = taskFile.tasks.length;
-  const completedCount = taskFile.tasks.filter(t => t.status === 'completed').length;
+  const completedCount = taskFile.tasks.filter(t => t.status === 'completed' || t.status === 'cancelled').length;
   
   if (completedCount === 0) {
     return { status: 'not started', completedCount, totalCount };

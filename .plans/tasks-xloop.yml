@@ -485,12 +485,12 @@ tasks:
     title: "handle cancelled tasks"
     description: |
       tasks can have three states: pending, completed, or cancelled.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "--status handles counting cancelled tasks"
       - "--prds handles counting cancelled tasks"
-    completed_at: null
+    completed_at: 2026-01-28T16:00:00Z
 
   - id: task-022
     title: "script for single executable build"

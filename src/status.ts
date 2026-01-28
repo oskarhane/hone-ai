@@ -27,7 +27,7 @@ export function listTaskFiles(): string[] {
 
 /**
  * Find next task respecting dependencies
- * Returns first pending task where all dependencies are completed
+ * Returns first pending task where all dependencies are completed or cancelled
  */
 export function findNextTask(taskFile: TaskFile): Task | null {
   if (!taskFile.tasks || taskFile.tasks.length === 0) {
@@ -37,11 +37,11 @@ export function findNextTask(taskFile: TaskFile): Task | null {
   // Find first pending task where all dependencies are satisfied
   for (const task of taskFile.tasks) {
     if (task.status === 'pending') {
-      // Check if all dependencies are completed
+      // Check if all dependencies are completed or cancelled
       const dependencies = task.dependencies || [];
       const allDepsCompleted = dependencies.every(depId => {
         const depTask = taskFile.tasks.find(t => t.id === depId);
-        return depTask && depTask.status === 'completed';
+        return depTask && (depTask.status === 'completed' || depTask.status === 'cancelled');
       });
       
       if (allDepsCompleted) {

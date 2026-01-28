@@ -26,9 +26,11 @@ Learnings and patterns for future agents working on xloop.
 
 ## Task Dependency Logic
 
-- Next task = first pending task where all dependencies have status 'completed'
+- Next task = first pending task where all dependencies have status 'completed' or 'cancelled'
 - Tasks blocked by incomplete deps return null from findNextTask
 - Status calculated: not started (0 done), in progress (some done), completed (all done)
+- Cancelled tasks count as completed for status calculation and dependency resolution
+- Task status can be: 'pending', 'in_progress', 'completed', 'failed', or 'cancelled'
 
 ## Anthropic API
 
