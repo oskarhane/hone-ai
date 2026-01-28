@@ -50,6 +50,17 @@ tasks:
       - "Invalid agent values show error"
     completed_at: 2026-01-28T12:41:44Z
 
+  # refactor unit tests structure
+  - id: task-004-1
+    title: "Refactor unit tests structure"
+    description: |
+      Refactor unit tests structure to improve readability and maintainability.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "Tests located right next to their implementation laid out in @AGENTS.md"
+    completed_at: null
+
   # Phase 2: PRD Commands
   - id: task-004
     title: "Implement --prds command (list PRDs)"
