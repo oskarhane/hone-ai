@@ -143,6 +143,11 @@ When task completed run the feedback loops and fix any issues:
 If tests fail or there are errors you cannot fix, DO NOT output TASK_COMPLETED.
 Instead, exit with an error. The task will remain pending and be retried on the next run.
 
+# IMPORTANT: DO NOT COMMIT YET
+
+DO NOT create a git commit during this phase. All commits happen in the finalize phase.
+Your changes should remain uncommitted at this point.
+
 # OUTPUT
 
 At the end, output on a single line:
@@ -200,6 +205,9 @@ function getFinalizeInstructions(
   let instructions = `# FINALIZE OBJECTIVE
 
 Finalize the task by applying review feedback and updating all tracking files.
+
+IMPORTANT: This is the ONLY phase where git commits are allowed. If you already committed in 
+the implement phase, you did it wrong - but continue with finalization anyway.
 
 # REVIEW FEEDBACK
 ${reviewFeedback || 'No review feedback provided (review was skipped or approved).'}

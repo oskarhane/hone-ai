@@ -506,11 +506,11 @@ tasks:
     title: "git commit only in the finalize phase"
     description: |
       it seems like the agent sometimes is committing at the implementation phase. It should wait until the finalize phase to commit.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "git commit always happens, but only at the very end of the finalize phase"
-    completed_at: null
+    completed_at: 2026-01-28T16:45:00Z
 
   - id: task-024
     title: "running feedback loops too often"

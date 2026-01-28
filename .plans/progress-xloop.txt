@@ -744,3 +744,29 @@ Key Decisions:
 - Documented installation of binary to /usr/local/bin or other PATH location
 
 Next Task: All tasks complete
+================================================================================
+TASK-023: Git commit only in the finalize phase
+Date: 2026-01-28T16:45:00Z
+================================================================================
+
+Summary:
+Added explicit instructions to implement phase prompt to NOT commit during that phase.
+All git commits should only happen in the finalize phase. Added clear warning in 
+implement phase: "DO NOT create a git commit during this phase. All commits happen 
+in the finalize phase." Also strengthened finalize phase instructions to clarify 
+this is the ONLY phase where commits are allowed.
+
+Files Changed:
+- src/prompt.ts (added "IMPORTANT: DO NOT COMMIT YET" section to implement phase)
+- src/prompt.ts (strengthened finalize phase objective clarification)
+- .plans/tasks-xloop.yml (marked task-023 as completed)
+- .plans/progress-xloop.txt (added this entry)
+
+Key Decisions:
+- Explicit instruction prevents agents from committing during implement phase
+- Finalize phase already had strong commit instructions, added clarification
+- If agent already committed wrongly, finalize phase continues anyway
+- Tests still pass (108 tests)
+
+Next Task: task-024 (Running feedback loops too often)
+

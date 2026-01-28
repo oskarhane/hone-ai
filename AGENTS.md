@@ -73,6 +73,7 @@ Learnings and patterns for future agents working on xloop.
 - Output markers: TASK_COMPLETED: <id> for implement, FINALIZED: <id> for finalize
 - Prompts tell agent to update task status, progress file, AGENTS.md, and commit
 - constructPrompt() is synchronous - only checks file existence, doesn't read content
+- Git commits ONLY happen in finalize phase - implement phase explicitly forbids commits
 
 ## Error Handling & Failure Recovery
 
