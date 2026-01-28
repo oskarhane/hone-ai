@@ -83,6 +83,9 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
     
     // Extract task ID from output
     const completedTaskId = extractTaskId(implementResult.stdout, 'TASK_COMPLETED');
+    if (completedTaskId) {
+      console.log(`\n✓ Task ${completedTaskId} implementation complete`);
+    }
     
     // Check if all tasks are complete
     if (implementResult.stdout.includes('<promise>COMPLETE</promise>')) {

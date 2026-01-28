@@ -232,7 +232,7 @@ tasks:
       First agent invocation: send context and prompt agent to pick most important
       uncompleted task respecting dependencies and implement it. Capture which
       task was selected.
-    status: pending
+    status: completed
     dependencies:
       - task-010
     acceptance_criteria:
@@ -240,7 +240,7 @@ tasks:
       - "Agent selects task based on priority/dependencies"
       - "Task selection captured from output"
       - "Progress displayed to user"
-    completed_at: null
+    completed_at: 2026-01-28T14:47:04Z
 
   - id: task-012
     title: "Implement iteration workflow - Invocation 2 (Review)"
