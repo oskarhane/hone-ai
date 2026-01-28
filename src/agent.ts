@@ -32,8 +32,7 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
   return new Promise((resolve, reject) => {
     const child: ChildProcess = spawn(command, args, {
       cwd: workingDir,
-      stdio: ['inherit', 'pipe', 'pipe'],
-      shell: true
+      stdio: ['inherit', 'pipe', 'pipe']
     });
     
     let stdout = '';

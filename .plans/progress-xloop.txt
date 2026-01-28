@@ -454,3 +454,28 @@ Key Decisions:
 
 Next Task: task-013 (Implement iteration workflow - Invocation 3 (Finalize))
 
+================================================================================
+TASK-012-2: Fix prompt file reference and working directory
+Date: 2026-01-28T15:01:36Z
+================================================================================
+
+Summary:
+Fixed agent subprocess spawning issue where shell was interpreting @ file 
+references as shell commands. Removed `shell: true` from spawn() call in 
+agent.ts. Without shell, args are passed directly to process, allowing @ 
+references like @.plans/tasks-xloop.yml to be correctly interpreted by 
+opencode/claude agents. Verified prompt construction outputs correct relative 
+paths and all 66 tests pass.
+
+Files Changed:
+- src/agent.ts (removed shell: true from spawn options on line 36)
+- .plans/tasks-xloop.yml (marked task-012-2 as completed)
+
+Key Decisions:
+- Removed shell: true to prevent shell interpretation of special chars
+- Prompts contain @ references that are passed as-is to agent commands
+- Working directory already correctly set to process.cwd()
+- File paths in prompts already relative via path.relative(cwd, path)
+
+Next Task: task-013 (Implement iteration workflow - Invocation 3 (Finalize))
+

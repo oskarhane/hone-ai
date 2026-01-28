@@ -48,6 +48,7 @@ Learnings and patterns for future agents working on xloop.
 
 - Use child_process.spawn for spawning opencode/claude
 - Non-interactive mode: claude uses `-p "prompt"`, opencode uses `run "prompt"`
+- CRITICAL: Do NOT use `shell: true` - causes shell to interpret special chars like @
 - Set stdio: ['inherit', 'pipe', 'pipe'] - inherit stdin, capture stdout/stderr
 - Stream stdout/stderr to console in real-time using process.stdout.write()
 - Do NOT write to child.stdin - args contain the prompt for non-interactive mode
