@@ -15,7 +15,7 @@ Pick the next single task that's not completed yet. Prioritize from this list (w
 1. Standard features
 1. Polish and quick wins
 
-If there are no tasks left with `completed_at: null`, exit with `<promise>COMPLETE</promise>`
+If there are no tasks left with `status: pending`, exit with `<promise>COMPLETE</promise>`
 
 # EXPLORATION
 
@@ -51,7 +51,7 @@ After completing, append to progress-<prd-name>.txt:
 
 ## MARK COMPLETION
 
-After completed, update task list file by updating `completed_at: <date-time>` on that task.
+After completed, update task list file by updating `status: completed` and `completed_at: <date-time>` on that task.
 
 ## UPDATE LEARNINGS
 
@@ -71,7 +71,7 @@ If the task is complete, print "Task #<nr> complete"
 # FINAL RULES
 
 -   ONLY WORK ON A SINGLE TASK. THEN STOP.
--   If there are no tasks left with `completed_at: null`, exit with `<promise>COMPLETE</promise>`
+-   If there are no tasks left with `status: pending`, exit with `<promise>COMPLETE</promise>`
 -   Add unit tests where it makes sense.
 -   Always commit to git on completion.
 
