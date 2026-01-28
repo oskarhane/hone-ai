@@ -197,6 +197,19 @@ tasks:
       - "Parts of the prompt is configurable via config file"
     completed_at: 2026-01-28T15:30:00Z
 
+  - id: task-009-1
+    title: "don't read te files and add to prompt, reference them"
+    description: |
+      the agents (opencode, claude) can take references to AGENTS.md, tasks-<feature>.yml, progress-<feature>.txt etc
+      instead of reading the files and adding their content to the prompt, they can reference them in the prompt.
+      This reduces the prompt size and improves performance. Just add @<file_path> in the prompt.
+    status: pending
+    dependencies:
+      - task-008
+    acceptance_criteria:
+      - "References @AGENTS.md, @.plans/tasks-<feature>.yml, @.plans/progress-<feature>.txt etc"
+    completed_at: null
+
   # Phase 5: --do Command
   - id: task-010
     title: "Implement --do command basic structure"
