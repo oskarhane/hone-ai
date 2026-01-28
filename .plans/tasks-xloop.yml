@@ -269,6 +269,39 @@ tasks:
       - "invocation commands non-interactive"
     completed_at: 2026-01-28T19:00:00Z
 
+  - id: task-012-2
+    title: "fix prompt file reference paths to be relative from project root"
+    description: |
+      Update the prompt file reference paths to be relative from the project root. See error:
+
+        bun src/index.ts do .plans/tasks-xloop.yml -i 1 --agent opencode
+        Using agent: opencode
+        Tasks file: .plans/tasks-xloop.yml
+        Feature: xloop
+        Iterations: 1
+
+
+        ================================================================================
+        ITERATION 1/1
+        ================================================================================
+
+        Phase 1: Implement
+        --------------------------------------------------------------------------------
+        Error: You must provide a message or a command
+        /bin/sh: line 4: @/Users/oskarhane/Development/tmp/xloop/.plans/tasks-xloop.yml: No such file or directory
+        /bin/sh: -c: line 8: unexpected EOF while looking for matching `''
+        /bin/sh: -c: line 44: syntax error: unexpected end of file
+
+        ✗ Implement phase failed
+
+        ✗ Error executing tasks: Agent exited with code 2
+    status: pending
+    dependencies:
+      - task-012
+    acceptance_criteria:
+      - "file reference paths in prompt are relative from doc root"
+    completed_at: null
+
   - id: task-013
     title: "Implement iteration workflow - Invocation 3 (Finalize)"
     description: |
