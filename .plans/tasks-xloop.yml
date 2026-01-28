@@ -68,7 +68,7 @@ tasks:
       List all PRD files in .plans/ directory. For each PRD display filename,
       associated task file (if exists), and status derived from task file
       (not started, in progress, completed).
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
@@ -76,7 +76,7 @@ tasks:
       - "Shows associated tasks-*.yml if exists"
       - "Status calculated from task completion states"
       - "Formatted output matching PRD spec"
-    completed_at: null
+    completed_at: 2026-01-28T15:30:00Z
 
   - id: task-005
     title: "Implement --status command (task status)"

@@ -2,6 +2,7 @@
 import { Command } from 'commander';
 import { loadConfig, ensurePlansDir, resolveAgent } from './config';
 import type { AgentType } from './config';
+import { listPrds } from './prds';
 
 // Ensure .plans directory exists on startup
 ensurePlansDir();
@@ -24,9 +25,29 @@ program
   .command('prds')
   .description('List all PRDs in .plans/ directory')
   .action(async () => {
-    const agent = await resolveAgent(program.opts().agent);
-    console.log(`Using agent: ${agent}`);
-    console.log('PRD listing - not yet implemented');
+    const prds = await listPrds();
+    
+    if (prds.length === 0) {
+      console.log('No PRDs found in .plans/');
+      console.log('');
+      console.log('Create a PRD with: xloop prd "your feature description"');
+      return;
+    }
+    
+    console.log('PRDs in .plans/');
+    console.log('');
+    
+    for (const prd of prds) {
+      console.log(`  ${prd.filename}`);
+      console.log(`    Tasks: ${prd.taskFile || 'none'}`);
+      
+      if (prd.status === 'in progress' && prd.completedCount !== undefined && prd.totalCount !== undefined) {
+        console.log(`    Status: ${prd.status} (${prd.completedCount}/${prd.totalCount} completed)`);
+      } else {
+        console.log(`    Status: ${prd.status}`);
+      }
+      console.log('');
+    }
   });
 
 program

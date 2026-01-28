@@ -92,3 +92,27 @@ Key Decisions:
 
 Next Task: task-004 (Implement --prds command)
 
+================================================================================
+TASK-004: Implement --prds command (list PRDs)
+Date: 2026-01-28T15:30:00Z
+================================================================================
+
+Summary:
+Created prds.ts module with functions to list PRDs, load task files, and calculate
+status. Implemented prds command to display all PRDs with associated task files and
+completion status. Status calculated from task completion states: not started (0 done),
+in progress (some done), completed (all done). Added comprehensive unit tests.
+
+Files Changed:
+- src/prds.ts (created with PRD listing logic)
+- src/prds.test.ts (created with 5 test cases)
+- src/index.ts (implemented prds command action)
+
+Key Decisions:
+- js-yaml load() method used for YAML parsing
+- Separate module for PRD operations for better organization
+- Status calculation in calculateStatus() with explicit counts
+- Output format matches PRD spec exactly
+
+Next Task: task-005 (Implement --status command)
+
