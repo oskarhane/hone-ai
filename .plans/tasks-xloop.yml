@@ -428,16 +428,16 @@ tasks:
     description: |
       Write tests using bun test for: config management, file naming/slugify,
       task status calculation, YAML parsing, prompt construction.
-    status: pending
+    status: completed
     dependencies:
-      - task-017
+      - task-015
     acceptance_criteria:
       - "Config read/write tested"
       - "Slugify function tested"
       - "Status calculation tested"
       - "YAML parsing tested"
       - "All tests pass with bun test"
-    completed_at: null
+    completed_at: 2026-01-28T16:45:00Z
 
   - id: task-019
     title: "Add integration tests for CLI commands"

@@ -591,3 +591,26 @@ Key Decisions:
 
 Next Task: task-016 (Add progress file management)
 
+================================================================================
+TASK-018: Add unit tests for core utilities
+Date: 2026-01-28T16:45:00Z
+================================================================================
+
+Summary:
+Verified all unit tests already exist and pass. Updated task-018 dependencies
+to remove reference to cancelled task-017 (changed to task-015). All acceptance
+criteria met: config tests, slugify tests, status calculation tests, YAML parsing
+tests, prompt construction tests all present and passing. Total 87 tests pass.
+
+Files Changed:
+- .plans/tasks-xloop.yml (updated task-018 status and dependencies)
+- .plans/progress-xloop.txt (added task-018 completion entry)
+
+Key Decisions:
+- Task was already complete from prior work, only needed status update
+- Dependencies updated from cancelled task-017 to task-015
+- All 10 test files verified: config, prds, status, prompt, agent, do, errors,
+  task-generator, prd-generator (unit + integration)
+
+Next Task: task-019 (Add integration tests for CLI commands)
+
