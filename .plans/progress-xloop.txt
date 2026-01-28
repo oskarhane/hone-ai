@@ -642,3 +642,26 @@ Key Decisions:
 
 Next Task: task-020 (Final polish and documentation)
 
+
+================================================================================
+TASK-019-1: Git ignore integration test directories
+Date: 2026-01-28T17:30:00Z
+================================================================================
+
+Summary:
+Added integration test directories to .gitignore to prevent polluting repo
+with test data. Identified two directories created by integration tests:
+test-cli-integration and .plans-test. All 104 tests pass.
+
+Files Changed:
+- .gitignore (added test-cli-integration and .plans-test)
+- .plans/tasks-xloop.yml (marked task-019-1 as completed)
+
+Key Decisions:
+- test-cli-integration created by index.integration.test.ts
+- .plans-test created by prd-generator.integration.test.ts
+- Both directories cleaned up after tests via afterEach/afterAll hooks
+- Tests verified to pass after changes
+
+Next Task: task-020 (Final polish and documentation)
+

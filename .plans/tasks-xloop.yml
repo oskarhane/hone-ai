@@ -458,13 +458,13 @@ tasks:
     title: "git ignore integration test directories"
     description: |
       let's not pollute the repo with test data
-    status: pending
+    status: completed
     dependencies:
       - task-019
     acceptance_criteria:
       - "add the integration test directories to .gitignore"
       - "All tests pass"
-    completed_at: null
+    completed_at: 2026-01-28T17:30:00Z
 
   - id: task-020
     title: "Final polish and documentation"
