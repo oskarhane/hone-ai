@@ -181,6 +181,11 @@ tasks:
       Build structured prompts for agent invocations including AGENTS.md content,
       task file content, progress file content. Different prompts for implement,
       review, and finalize phases.
+      Good prompt and agent invocations can be found in old-loop/once.sh. There it's referencing files, which in turn
+      tell the agent what to do. But this prompt is not separated into phases, so keep that in mind, we want separated in xloop.
+      What's not ideal in that example is in the old-loop/prompt.md that project specific things are hardcoded. xloop is
+      meant to be language and framework agnostic, so the prompt should be generic and adaptable to different contexts.
+      So parts of the prompt (how to run tests, linting etc to get feedback) should be configurable via the config file.
     status: pending
     dependencies:
       - task-008
@@ -189,6 +194,7 @@ tasks:
       - "Prompt includes task file content"
       - "Prompt includes progress file if exists"
       - "Different prompts for each phase"
+      - "Parts of the prompt is configurable via config file"
     completed_at: null
 
   # Phase 5: --do Command
