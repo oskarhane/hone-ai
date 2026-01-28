@@ -161,6 +161,20 @@ tasks:
       - "Working directory inherited"
     completed_at: 2026-01-28T14:17:47Z
 
+  - id: task-008-1
+    title: "fix exit and output streams from agents"
+    description: |
+      The agents kept streaming data to the console even after a ctrl+c command.
+      Ensure proper handling of exit codes and output streams.
+    status: pending
+    dependencies:
+      - task-008
+    acceptance_criteria:
+      - "Agents stop streaming data after ctrl+c"
+      - "Exit codes captured correctly"
+      - "Output streams handled properly"
+    completed_at: null
+
   - id: task-009
     title: "Implement agent prompt construction"
     description: |
