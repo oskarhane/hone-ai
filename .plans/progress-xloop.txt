@@ -171,9 +171,32 @@ Key Decisions:
 Next Task: task-007 (Implement --prd-to-tasks command)
 
 ================================================================================
-TASK-006-1: Fix error and write hardening tests for --prd feature
-Date: 2026-01-28T14:25:00Z
+TASK-007: Implement --prd-to-tasks command
+Date: 2026-01-28T13:35:00Z
 ================================================================================
+
+Summary:
+Created task-generator.ts module with functions to parse PRD files and generate
+task lists using Anthropic API. Implemented generateTasksFromPRD() that reads
+PRD, extracts feature name from filename, uses AI to generate tasks with proper
+structure (id, title, description, dependencies, acceptance_criteria), and saves
+to tasks-<feature>.yml. Added comprehensive unit tests for error cases.
+
+Files Changed:
+- src/task-generator.ts (created with PRD parsing and AI task generation)
+- src/task-generator.test.ts (created with 4 test cases)
+- src/index.ts (integrated generateTasksFromPRD into prd-to-tasks command)
+
+Key Decisions:
+- Feature name extracted from PRD filename pattern: prd-<feature-name>.md
+- AI prompt requests JSON array with full task schema in single response
+- YAML formatting done manually to ensure consistent structure
+- Handles AI responses wrapped in markdown code blocks
+- Validates all task objects have required fields before saving
+- Tasks always initialized with status: pending, completed_at: null
+
+Next Task: task-008 (Implement agent subprocess spawning)
+
 
 Summary:
 Fixed 404 model error by updating model names from 'claude-sonnet-4' to 

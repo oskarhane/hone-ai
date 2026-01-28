@@ -133,7 +133,7 @@ tasks:
       Accept PRD file path. Use AI-SDK to parse PRD and generate ordered task list.
       Tasks ordered by dependency. Save to .plans/tasks-feature-name.yml with
       full schema: id, title, description, status, dependencies, acceptance_criteria.
-    status: pending
+    status: completed
     dependencies:
       - task-006
     acceptance_criteria:
@@ -142,7 +142,7 @@ tasks:
       - "Tasks have all schema fields"
       - "Dependencies correctly identified"
       - "YAML saved with correct naming"
-    completed_at: null
+    completed_at: 2026-01-28T13:35:00Z
 
   # Phase 4: Agent Integration
   - id: task-008

@@ -36,3 +36,10 @@ Learnings and patterns for future agents working on xloop.
 - Short names like `claude-sonnet-4` return 404 errors
 - Model config in `.plans/xloop.config.json` should always use full version names
 - When updating API calls, ensure both default config and fallback values use correct format
+
+## Task Generation
+
+- AI may wrap JSON responses in markdown code blocks (```json)
+- Extract JSON using regex pattern: `/```(?:json)?\s*(\[[\s\S]*\])\s*```/`
+- Always validate task structure before saving (id, title, description, status, dependencies, acceptance_criteria)
+- YAML formatting done manually to ensure consistent indentation and structure

@@ -5,6 +5,7 @@ import type { AgentType } from './config';
 import { listPrds } from './prds';
 import { listIncompleteTaskFiles } from './status';
 import { generatePRD } from './prd-generator';
+import { generateTasksFromPRD } from './task-generator';
 
 // Ensure .plans directory exists on startup
 ensurePlansDir();
@@ -99,10 +100,13 @@ program
   .command('prd-to-tasks <prd-file>')
   .description('Generate task list from PRD file')
   .action(async (prdFile: string) => {
-    const agent = await resolveAgent(program.opts().agent);
-    console.log(`Using agent: ${agent}`);
-    console.log('Task generation - not yet implemented');
-    console.log(`PRD file: ${prdFile}`);
+    try {
+      validateApiKey();
+      await generateTasksFromPRD(prdFile);
+    } catch (error) {
+      console.error('\n✗ Error generating tasks:', error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
   });
 
 program
