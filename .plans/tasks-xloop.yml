@@ -334,7 +334,7 @@ tasks:
       Third agent invocation: apply review feedback, update tasks YAML (mark completed),
       append to progress file, optionally update AGENTS.md, commit with proper message
       format: feature-taskid followed by descriptive message.
-    status: pending
+    status: completed
     dependencies:
       - task-012
     acceptance_criteria:
@@ -343,7 +343,7 @@ tasks:
       - "progress-*.txt updated with iteration summary"
       - "AGENTS.md updated if useful learnings"
       - "Git commit with proper message format"
-    completed_at: null
+    completed_at: 2026-01-28T19:30:00Z
 
   - id: task-014
     title: "Implement failure handling for --do"
