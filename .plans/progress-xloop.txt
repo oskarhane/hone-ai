@@ -222,3 +222,31 @@ Key Decisions:
 
 Next Task: task-007 (Implement --prd-to-tasks command)
 
+================================================================================
+TASK-008: Implement agent subprocess spawning
+Date: 2026-01-28T14:20:00Z
+================================================================================
+
+Summary:
+Created agent.ts module with spawnAgent() and isAgentAvailable() functions.
+spawnAgent() spawns opencode or claude as subprocess, streams stdout/stderr
+in real-time to console, captures output, handles exit codes, inherits working
+directory. isAgentAvailable() checks if agent command exists in PATH using
+which. Added unit tests for availability checks.
+
+Files Changed:
+- src/agent.ts (created with spawn and availability functions)
+- src/agent.test.ts (created with 3 test cases)
+
+Key Decisions:
+- Using child_process.spawn with stdio pipes for real-time streaming
+- Prompt sent to stdin, then stdin closed to signal completion
+- Both stdout and stderr captured and streamed to console
+- Error event handles spawn failures (command not found)
+- Close event captures exit code (null treated as 1)
+- Working directory inherited via cwd option
+- isAgentAvailable uses 'which' command to check PATH
+- Tests avoid spawning interactive agents (would hang)
+
+Next Task: task-009 (Implement agent prompt construction)
+

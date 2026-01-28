@@ -151,7 +151,7 @@ tasks:
       Create utilities to spawn opencode or claude as subprocesses.
       Stream stdout/stderr to console in real-time. Handle exit codes.
       Agent inherits current working directory.
-    status: pending
+    status: completed
     dependencies:
       - task-003
     acceptance_criteria:
@@ -159,7 +159,7 @@ tasks:
       - "Output streams in real-time"
       - "Exit codes captured correctly"
       - "Working directory inherited"
-    completed_at: null
+    completed_at: 2026-01-28T14:17:47Z
 
   - id: task-009
     title: "Implement agent prompt construction"
