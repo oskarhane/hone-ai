@@ -118,13 +118,13 @@ tasks:
       output:
         I have a few questions to refine this PRD:
         ✗ Error generating PRD: 404 {type:error,error:{type:not_found_error,message:model: claude-sonnet-4},request_id:req_011CXZqdXc5Ny33XqQsbDaTh}
-    status: pending
+    status: completed
     dependencies:
       - task-006
     acceptance_criteria:
       - 'bun src/index.ts prd "email validation feature" should work, including followup questions'
       - "verified to work, not assumed"
-    completed_at: null
+    completed_at: 2026-01-28T14:25:00Z
 
   # Phase 3: Task Generation
   - id: task-007

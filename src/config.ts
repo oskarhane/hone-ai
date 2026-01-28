@@ -14,8 +14,8 @@ export interface XLoopConfig {
 const DEFAULT_CONFIG: XLoopConfig = {
   defaultAgent: 'claude',
   models: {
-    opencode: 'claude-sonnet-4',
-    claude: 'claude-sonnet-4'
+    opencode: 'claude-sonnet-4-20250514',
+    claude: 'claude-sonnet-4-20250514'
   },
   commitPrefix: 'xloop'
 };

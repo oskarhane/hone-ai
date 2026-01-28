@@ -29,3 +29,10 @@ Learnings and patterns for future agents working on xloop.
 - Next task = first pending task where all dependencies have status 'completed'
 - Tasks blocked by incomplete deps return null from findNextTask
 - Status calculated: not started (0 done), in progress (some done), completed (all done)
+
+## Anthropic API
+
+- Model names must use full version format: `claude-sonnet-4-YYYYMMDD` (e.g., `claude-sonnet-4-20250514`)
+- Short names like `claude-sonnet-4` return 404 errors
+- Model config in `.plans/xloop.config.json` should always use full version names
+- When updating API calls, ensure both default config and fallback values use correct format

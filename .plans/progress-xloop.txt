@@ -170,3 +170,32 @@ Key Decisions:
 
 Next Task: task-007 (Implement --prd-to-tasks command)
 
+================================================================================
+TASK-006-1: Fix error and write hardening tests for --prd feature
+Date: 2026-01-28T14:25:00Z
+================================================================================
+
+Summary:
+Fixed 404 model error by updating model names from 'claude-sonnet-4' to 
+'claude-sonnet-4-20250514' in config.ts, xloop.config.json, and prd-generator.ts.
+Created comprehensive integration tests for slugify function and model config.
+Verified end-to-end prd command functionality with interactive Q&A.
+
+Files Changed:
+- src/config.ts (updated DEFAULT_CONFIG model names)
+- .plans/xloop.config.json (updated model names)
+- src/prd-generator.ts (updated fallback model names)
+- src/config.test.ts (updated test expectations)
+- src/prd-generator.integration.test.ts (created with 13 tests)
+- test-prd-e2e.sh (created e2e test script)
+- AGENTS.md (documented Anthropic API model naming requirement)
+
+Key Decisions:
+- Anthropic API requires full version format: claude-sonnet-4-YYYYMMDD
+- Short names like 'claude-sonnet-4' cause 404 errors
+- Updated all config references and fallback values
+- Added comprehensive slugify tests covering edge cases
+- Verified working with manual tests: bun src/index.ts prd "feature"
+
+Next Task: task-007 (Implement --prd-to-tasks command)
+

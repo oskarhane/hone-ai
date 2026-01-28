@@ -55,10 +55,10 @@ describe('Config Management', () => {
 
   test('loadConfig creates default config if not exists', async () => {
     const config = await loadConfig();
-    
+
     expect(config.defaultAgent).toBe('claude');
-    expect(config.models.opencode).toBe('claude-sonnet-4');
-    expect(config.models.claude).toBe('claude-sonnet-4');
+    expect(config.models.opencode).toBe('claude-sonnet-4-20250514');
+    expect(config.models.claude).toBe('claude-sonnet-4-20250514');
     expect(config.commitPrefix).toBe('xloop');
     
     // Verify file was created
