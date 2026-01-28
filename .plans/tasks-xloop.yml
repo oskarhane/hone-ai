@@ -345,6 +345,19 @@ tasks:
       - "Git commit with proper message format"
     completed_at: 2026-01-28T19:30:00Z
 
+  - id: task-013-1
+    title: "Implement iteration workflow - Invocation 3 (Finalize) - hardening git commit"
+    description: |
+      The git commit in this phase is not always performed. Instruct the agent in a better way to make sure it's done properly.
+    status: pending
+    dependencies:
+      - task-013
+    acceptance_criteria:
+      - "git commit is performed"
+      - "git commit message is formatted correctly"
+      - "git commit message includes task ID and description"
+    completed_at: null
+
   - id: task-014
     title: "Implement failure handling for --do"
     description: |
