@@ -480,3 +480,24 @@ tasks:
       - "All PRD acceptance criteria verified"
       - "Package ready for use"
     completed_at: 2026-01-28T15:33:59Z
+
+  - id: task-021
+    title: "handle cancelled tasks"
+    description: |
+      tasks can have three states: pending, completed, or cancelled.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "--status handles counting cancelled tasks"
+      - "--prds handles counting cancelled tasks"
+    completed_at: null
+
+  - id: task-022
+    title: "script for single executable build"
+    description: |
+      add a bun command to build a single executable. see https://bun.com/docs/bundler/executables
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "bun build would build a single executable for macos"
+    completed_at: null
