@@ -142,3 +142,31 @@ Key Decisions:
 
 Next Task: task-006 (Implement --prd command)
 
+================================================================================
+TASK-006: Implement --prd command (generate PRD)
+Date: 2026-01-28T17:00:00Z
+================================================================================
+
+Summary:
+Created prd-generator.ts module with functions to analyze codebase, conduct
+interactive Q&A sessions (max 5 rounds), and generate PRDs using Anthropic API.
+Implemented slugify function for feature name normalization. User can type
+'done' to skip questions. Generated PRD saved to .plans/prd-<feature>.md.
+Added comprehensive unit tests for slugify function.
+
+Files Changed:
+- src/prd-generator.ts (created with codebase analysis, Q&A, PRD generation)
+- src/prd-generator.test.ts (created with 7 test cases for slugify)
+- src/index.ts (integrated generatePRD into prd command action)
+
+Key Decisions:
+- Using Anthropic SDK directly for AI operations (not ai-sdk)
+- Codebase analysis detects package.json dependencies and directory structure
+- Interactive Q&A uses readline for user input, max 5 rounds
+- AI can respond with "DONE" to end Q&A early
+- Feature name extracted from PRD heading or falls back to description
+- Slugify: lowercase, hyphens, strip special chars, trim to 50, remove edge hyphens
+- API key validation via validateApiKey() before generation
+
+Next Task: task-007 (Implement --prd-to-tasks command)
+

@@ -1,9 +1,10 @@
 #!/usr/bin/env bun
 import { Command } from 'commander';
-import { loadConfig, ensurePlansDir, resolveAgent } from './config';
+import { loadConfig, ensurePlansDir, resolveAgent, validateApiKey } from './config';
 import type { AgentType } from './config';
 import { listPrds } from './prds';
 import { listIncompleteTaskFiles } from './status';
+import { generatePRD } from './prd-generator';
 
 // Ensure .plans directory exists on startup
 ensurePlansDir();
@@ -85,10 +86,13 @@ program
   .command('prd <description>')
   .description('Generate PRD interactively from feature description')
   .action(async (description: string) => {
-    const agent = await resolveAgent(program.opts().agent);
-    console.log(`Using agent: ${agent}`);
-    console.log('PRD generation - not yet implemented');
-    console.log(`Feature: ${description}`);
+    try {
+      validateApiKey();
+      await generatePRD(description);
+    } catch (error) {
+      console.error('\n✗ Error generating PRD:', error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
   });
 
 program
