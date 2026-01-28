@@ -351,7 +351,7 @@ tasks:
       If task fails (agent cannot complete, tests fail), immediately exit.
       Don't mark failed task as completed. Display error with details.
       On next run, same task will be selected.
-    status: pending
+    status: completed
     dependencies:
       - task-013
     acceptance_criteria:
@@ -359,7 +359,7 @@ tasks:
       - "Failed task not marked completed"
       - "Error details displayed"
       - "Task remains pending for next run"
-    completed_at: null
+    completed_at: 2026-01-28T20:00:00Z
 
   # Phase 6: Error Handling & Polish
   - id: task-015

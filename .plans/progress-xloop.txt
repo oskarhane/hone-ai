@@ -503,3 +503,32 @@ Key Decisions:
 
 Next Task: task-014 (Implement failure handling for --do)
 
+================================================================================
+TASK-014: Implement failure handling for --do
+Date: 2026-01-28T15:10:16Z
+================================================================================
+
+Summary:
+Implemented comprehensive failure handling for all three phases of --do workflow.
+Each phase (implement, review, finalize) now checks exit code and throws immediately
+on failure, preventing task completion updates. Error messages display phase info,
+exit code, stderr (if present), and guidance. Prompt instructs agent to not output
+TASK_COMPLETED if tests fail. Removed placeholder tests from do.test.ts.
+
+Files Changed:
+- src/do.ts (added error handling lines 79-89, 124-134, 159-169)
+- src/prompt.ts (added failure instructions lines 143-144)
+- src/do.test.ts (removed placeholder tests, 4 tests removed)
+- AGENTS.md (documented failure recovery patterns)
+
+Key Decisions:
+- All three phases check exitCode !== 0 and throw immediately
+- Error messages include phase name, exit code, conditional stderr
+- Finalize error message acknowledges partial work may exist
+- Failed tasks remain pending, not marked completed
+- Next run retries same task from beginning
+- Warning if TASK_COMPLETED marker missing in implement phase
+- Removed placeholder tests that had no assertions
+
+Next Task: task-015 (Implement comprehensive error handling)
+
