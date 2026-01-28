@@ -257,6 +257,18 @@ tasks:
       - "Feedback captured for next phase"
     completed_at: 2026-01-28T18:00:00Z
 
+  - id: task-012-1
+    title: "Fix invocation for agents"
+    description: |
+      Follow the agent invocation commands in old-loop/once.sh for the different agent types. It's important because it
+      run the agents in non interactive mode.
+    status: pending
+    dependencies:
+      - task-012
+    acceptance_criteria:
+      - "invocation commands non-interactive"
+    completed_at: null
+
   - id: task-013
     title: "Implement iteration workflow - Invocation 3 (Finalize)"
     description: |
