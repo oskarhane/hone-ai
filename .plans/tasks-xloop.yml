@@ -1,0 +1,327 @@
+feature: xloop-ai-orchestrator
+prd: ./prd-xloop.md
+created_at: 2026-01-28T12:00:00Z
+updated_at: 2026-01-28T12:00:00Z
+
+tasks:
+  # Phase 1: CLI Foundation
+  - id: task-001
+    title: "Setup project with Bun and CLI framework"
+    description: |
+      Initialize Bun project with package.json, tsconfig, and CLI entry point.
+      Install dependencies: commander (CLI), js-yaml, ai-sdk with anthropic provider.
+      Create basic CLI structure with --help and --version flags.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "bun init completed with proper package.json"
+      - "CLI entry point at src/index.ts or src/cli.ts"
+      - "xloop --help displays usage"
+      - "xloop --version displays version"
+    completed_at: null
+
+  - id: task-002
+    title: "Implement .plans directory and config management"
+    description: |
+      Create utilities to manage .plans/ directory at project root.
+      Auto-create directory on first use. Implement config file reading/writing
+      at .plans/xloop.config.json with defaults for defaultAgent, models, commitPrefix.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - ".plans/ directory auto-created if not present"
+      - "Config file created with defaults on first run"
+      - "Config can be read and parsed correctly"
+      - "ANTHROPIC_API_KEY loaded from .env"
+    completed_at: null
+
+  - id: task-003
+    title: "Implement --agent global flag"
+    description: |
+      Add --agent flag with opencode or claude options to override default agent.
+      Implement agent selection priority: flag then config then fallback to claude.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "--agent flag accepts opencode or claude"
+      - "Flag overrides config default"
+      - "Invalid agent values show error"
+    completed_at: null
+
+  # Phase 2: PRD Commands
+  - id: task-004
+    title: "Implement --prds command (list PRDs)"
+    description: |
+      List all PRD files in .plans/ directory. For each PRD display filename,
+      associated task file (if exists), and status derived from task file
+      (not started, in progress, completed).
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "Lists all prd-*.md files in .plans/"
+      - "Shows associated tasks-*.yml if exists"
+      - "Status calculated from task completion states"
+      - "Formatted output matching PRD spec"
+    completed_at: null
+
+  - id: task-005
+    title: "Implement --status command (task status)"
+    description: |
+      List all task files with uncompleted tasks. Exclude fully completed files.
+      Show progress count and next task based on dependencies.
+    status: pending
+    dependencies:
+      - task-004
+    acceptance_criteria:
+      - "Lists only incomplete task files"
+      - "Shows X/Y tasks completed count"
+      - "Shows next task respecting dependencies"
+      - "Formatted output matching PRD spec"
+    completed_at: null
+
+  - id: task-006
+    title: "Implement --prd command (generate PRD)"
+    description: |
+      Accept feature description text. Use AI-SDK to analyze codebase and generate
+      PRD interactively with up to 5 rounds of clarifying questions. User can type
+      done to proceed. Save to .plans/prd-feature-name.md.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "Accepts feature description as argument"
+      - "Analyzes codebase structure"
+      - "Interactive Q&A (max 5 rounds)"
+      - "Typing done proceeds with current info"
+      - "PRD saved with all required sections"
+      - "Feature name slugified: lowercase, hyphens, max 50 chars"
+    completed_at: null
+
+  # Phase 3: Task Generation
+  - id: task-007
+    title: "Implement --prd-to-tasks command"
+    description: |
+      Accept PRD file path. Use AI-SDK to parse PRD and generate ordered task list.
+      Tasks ordered by dependency. Save to .plans/tasks-feature-name.yml with
+      full schema: id, title, description, status, dependencies, acceptance_criteria.
+    status: pending
+    dependencies:
+      - task-006
+    acceptance_criteria:
+      - "Accepts PRD file path argument"
+      - "Generates tasks from PRD content"
+      - "Tasks have all schema fields"
+      - "Dependencies correctly identified"
+      - "YAML saved with correct naming"
+    completed_at: null
+
+  # Phase 4: Agent Integration
+  - id: task-008
+    title: "Implement agent subprocess spawning"
+    description: |
+      Create utilities to spawn opencode or claude as subprocesses.
+      Stream stdout/stderr to console in real-time. Handle exit codes.
+      Agent inherits current working directory.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "Can spawn both opencode and claude"
+      - "Output streams in real-time"
+      - "Exit codes captured correctly"
+      - "Working directory inherited"
+    completed_at: null
+
+  - id: task-009
+    title: "Implement agent prompt construction"
+    description: |
+      Build structured prompts for agent invocations including AGENTS.md content,
+      task file content, progress file content. Different prompts for implement,
+      review, and finalize phases.
+    status: pending
+    dependencies:
+      - task-008
+    acceptance_criteria:
+      - "Prompt includes AGENTS.md if exists"
+      - "Prompt includes task file content"
+      - "Prompt includes progress file if exists"
+      - "Different prompts for each phase"
+    completed_at: null
+
+  # Phase 5: --do Command
+  - id: task-010
+    title: "Implement --do command basic structure"
+    description: |
+      Accept tasks file path and required -i/--iterations flag.
+      Optional --skip=review flag. Loop for n iterations.
+    status: pending
+    dependencies:
+      - task-009
+    acceptance_criteria:
+      - "Accepts tasks file path"
+      - "-i/--iterations required"
+      - "--skip=review optional flag"
+      - "Loops correct number of iterations"
+    completed_at: null
+
+  - id: task-011
+    title: "Implement iteration workflow - Invocation 1 (Implement)"
+    description: |
+      First agent invocation: send context and prompt agent to pick most important
+      uncompleted task respecting dependencies and implement it. Capture which
+      task was selected.
+    status: pending
+    dependencies:
+      - task-010
+    acceptance_criteria:
+      - "Sends correct context to agent"
+      - "Agent selects task based on priority/dependencies"
+      - "Task selection captured from output"
+      - "Progress displayed to user"
+    completed_at: null
+
+  - id: task-012
+    title: "Implement iteration workflow - Invocation 2 (Review)"
+    description: |
+      Second agent invocation: review changes just made. Check for correctness,
+      tests, security, performance. Skipped if --skip=review flag.
+    status: pending
+    dependencies:
+      - task-011
+    acceptance_criteria:
+      - "Reviews git diff/changes"
+      - "Provides specific feedback"
+      - "Skipped when --skip=review"
+      - "Feedback captured for next phase"
+    completed_at: null
+
+  - id: task-013
+    title: "Implement iteration workflow - Invocation 3 (Finalize)"
+    description: |
+      Third agent invocation: apply review feedback, update tasks YAML (mark completed),
+      append to progress file, optionally update AGENTS.md, commit with proper message
+      format: feature-taskid followed by descriptive message.
+    status: pending
+    dependencies:
+      - task-012
+    acceptance_criteria:
+      - "Review feedback applied"
+      - "tasks-*.yml updated with completed status"
+      - "progress-*.txt updated with iteration summary"
+      - "AGENTS.md updated if useful learnings"
+      - "Git commit with proper message format"
+    completed_at: null
+
+  - id: task-014
+    title: "Implement failure handling for --do"
+    description: |
+      If task fails (agent cannot complete, tests fail), immediately exit.
+      Don't mark failed task as completed. Display error with details.
+      On next run, same task will be selected.
+    status: pending
+    dependencies:
+      - task-013
+    acceptance_criteria:
+      - "Failures exit immediately"
+      - "Failed task not marked completed"
+      - "Error details displayed"
+      - "Task remains pending for next run"
+    completed_at: null
+
+  # Phase 6: Error Handling & Polish
+  - id: task-015
+    title: "Implement comprehensive error handling"
+    description: |
+      Handle all common errors: missing API key, invalid paths, agent not found,
+      git not initialized, network errors. Implement retry with exponential backoff
+      for network errors (3 retries).
+    status: pending
+    dependencies:
+      - task-014
+    acceptance_criteria:
+      - "Missing API key shows setup instructions"
+      - "Invalid paths show File not found"
+      - "Missing agent shows install instructions"
+      - "Network errors retry 3x with backoff"
+      - "Error format matches PRD spec"
+    completed_at: null
+
+  - id: task-016
+    title: "Add progress file management"
+    description: |
+      Create/update progress-feature.txt with iteration summaries.
+      Format: iteration header, summary, files changed, review notes, commit hash.
+    status: pending
+    dependencies:
+      - task-013
+    acceptance_criteria:
+      - "Progress file created on first iteration"
+      - "Each iteration appended with separator"
+      - "Contains all required fields"
+      - "Commit hash recorded"
+    completed_at: null
+
+  - id: task-017
+    title: "Implement AGENTS.md management"
+    description: |
+      Read AGENTS.md from project root if exists. Agent instructed to update
+      with useful learnings during finalize phase. Create if doesn't exist.
+      Append under fitting heading or create new heading.
+    status: pending
+    dependencies:
+      - task-013
+    acceptance_criteria:
+      - "AGENTS.md read if exists"
+      - "Created by agent if not present"
+      - "Learnings appended under headings"
+      - "Format matches PRD examples"
+    completed_at: null
+
+  - id: task-018
+    title: "Add unit tests for core utilities"
+    description: |
+      Write tests using bun test for: config management, file naming/slugify,
+      task status calculation, YAML parsing, prompt construction.
+    status: pending
+    dependencies:
+      - task-017
+    acceptance_criteria:
+      - "Config read/write tested"
+      - "Slugify function tested"
+      - "Status calculation tested"
+      - "YAML parsing tested"
+      - "All tests pass with bun test"
+    completed_at: null
+
+  - id: task-019
+    title: "Add integration tests for CLI commands"
+    description: |
+      Test CLI commands end-to-end: --prds, --status with mock .plans/ data.
+      Test --prd and --prd-to-tasks with mocked AI responses.
+    status: pending
+    dependencies:
+      - task-018
+    acceptance_criteria:
+      - "--prds tested with mock data"
+      - "--status tested with mock data"
+      - "AI operations tested with mocks"
+      - "All tests pass"
+    completed_at: null
+
+  - id: task-020
+    title: "Final polish and documentation"
+    description: |
+      Ensure all output formatting matches PRD spec. Add README with usage
+      examples. Verify all acceptance criteria from PRD met.
+    status: pending
+    dependencies:
+      - task-019
+    acceptance_criteria:
+      - "Output formatting matches spec"
+      - "README with examples"
+      - "All PRD acceptance criteria verified"
+      - "Package ready for use"
+    completed_at: null
