@@ -161,10 +161,10 @@ jobs:
           
       - name: Sync with remote before committing
         run: |
-          git fetch origin main
-          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+          git fetch origin master
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/master)" ]; then
             echo "🔄 Remote has changes, pulling latest..."
-            git pull --rebase origin main || (echo "❌ Failed to sync with remote" && exit 1)
+            git pull --rebase origin master || (echo "❌ Failed to sync with remote" && exit 1)
           fi
         timeout-minutes: 2
           
@@ -177,8 +177,8 @@ jobs:
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.version }}"
           git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
-          git push origin "v$NEW_VERSION"
-          git push origin main
+           git push origin "v$NEW_VERSION"
+           git push origin master
         timeout-minutes: 2
           
       - name: Create GitHub Release with binary

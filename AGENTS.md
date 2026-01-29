@@ -180,3 +180,8 @@ Learnings and patterns for future agents working on hone.
 - Binary existence verification after build prevents uploading missing artifacts
 - Size logging provides transparency in build process
 - Consistent implementation across major/minor release workflows
+
+## GitHub Actions Troubleshooting
+
+- When workflows don't appear: Check branch name mismatch (workflows configured for 'main' vs repo using 'master')
+- Git remote 'oskarhane' instead of 'origin' is valid configuration pattern for this project

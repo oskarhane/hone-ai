@@ -308,4 +308,25 @@ NPM Publishing Features:
 - User-friendly progress indicators and success messages
 - Error handling for version conflicts and permission issues
 
+Next Task: task-011
+
+================================================================================
+TASK-011: actions not showing up on github
+Date: 2026-01-29T23:15:00.000Z
+================================================================================
+
+Summary:
+Fixed GitHub Actions not appearing by updating branch references from 'main' to 'master' across all workflow files. The repository uses 'master' as default branch, but workflows were configured for 'main', preventing trigger activation.
+
+Files Changed:
+- .github/workflows/ci.yml (modified - changed branch references from main to master)
+- .github/workflows/release-major.yml (modified - updated git operations to use master instead of main)
+- .github/workflows/release-minor.yml (modified - updated git operations to use master instead of main)
+
+Key Decisions:
+- Identified branch name mismatch as root cause of missing GitHub Actions
+- Updated all three workflow files consistently to reference 'master' branch
+- Maintained existing workflow functionality while fixing branch references
+- Applied targeted fix without unnecessary changes to working code
+
 Next Task: All tasks complete

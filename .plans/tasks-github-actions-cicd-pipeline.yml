@@ -150,8 +150,8 @@ tasks:
     title: "actions not showing up on github"
     description: |
       the github actions are not showing up on github
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "the github actions are showing up on github"
-    completed_at: null
+    completed_at: 2026-01-29T23:15:00.000Z
