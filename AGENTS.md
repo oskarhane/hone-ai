@@ -40,6 +40,9 @@ Learnings and patterns for future agents working on hone.
 - Short names like `claude-sonnet-4` return 404 errors
 - Model config in `.plans/hone.config.yml` should always use full version names
 - When updating API calls, ensure both default config and fallback values use correct format
+- Current direct API usage: prd-generator.ts (2 calls), task-generator.ts (1 call)
+- Phase-specific operations (implement/review/finalize) already use agent subprocess spawning
+- Non-phase operations (PRD/task generation) still use direct Anthropic API via SDK
 
 ## Task Generation
 

@@ -85,7 +85,7 @@ async function generateClarifyingQuestion(
   }
   
   const config = await loadConfig();
-  const model = config.models?.claude || 'claude-sonnet-4';
+  const model = config.models?.claude || 'claude-sonnet-4-20250514';
   
   const client = new Anthropic({ apiKey });
   

@@ -1,0 +1,21 @@
+================================================================================
+TASK-001: Audit existing Anthropic API usage in codebase
+Date: 2026-01-29T10:15:00.000Z
+================================================================================
+
+Summary:
+Completed comprehensive audit of all direct Anthropic API usage. Found 2 files (prd-generator.ts, task-generator.ts) with 3 total API calls. Documented model selection patterns, streaming implementations (none found), error handling (retryWithBackoff), and phase-specific patterns (phase ops use agent subprocess spawning, non-phase ops use direct API).
+
+Files Changed:
+- .plans/anthropic-api-audit.md (created - comprehensive audit documentation)
+- .plans/tasks-replace-direct-anthropic-communication-with-agent-.yml (modified - marked task-001 completed)
+- src/prd-generator.ts (modified - fixed model name inconsistency claude-sonnet-4 → claude-sonnet-4-20250514)
+
+Key Decisions:
+- Catalogued all API usage into dedicated audit document for reference
+- Identified model name inconsistency requiring immediate fix
+- Confirmed phase-specific operations already use agent subprocess spawning
+- Non-phase operations (PRD generation, task generation) still use direct API
+- Next phase will focus on analyzing agent service interfaces
+
+Next Task: task-002
