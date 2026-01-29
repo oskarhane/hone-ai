@@ -9,6 +9,7 @@ export interface SpawnAgentOptions {
   workingDir?: string;
   model?: string;
   silent?: boolean;
+  timeout?: number; // Timeout in milliseconds
 }
 
 export interface SpawnAgentResult {
@@ -23,7 +24,7 @@ export interface SpawnAgentResult {
  * @returns Promise resolving to exit code and captured output
  */
 export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgentResult> {
-  const { agent, prompt, workingDir = process.cwd(), model, silent = false } = options;
+  const { agent, prompt, workingDir = process.cwd(), model, silent = false, timeout } = options;
   
   // Log agent spawn initiation
   logVerbose(`[Agent] Spawning ${agent} agent${model ? ` with model ${model}` : ''}`);
@@ -61,6 +62,7 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
     let stdout = '';
     let stderr = '';
     let isKilled = false;
+    let timeoutId: NodeJS.Timeout | undefined;
     
     // Stream stdout to console and capture
     if (child.stdout) {
@@ -84,10 +86,29 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
       });
     }
     
+    // Set up timeout if specified
+    if (timeout && timeout > 0) {
+      timeoutId = setTimeout(() => {
+        if (!isKilled && child.pid) {
+          logVerboseError(`[Agent] Process timed out after ${timeout}ms, killing...`);
+          isKilled = true;
+          try {
+            process.kill(-child.pid, 'SIGTERM');
+          } catch (err) {
+            child.kill('SIGTERM');
+          }
+        }
+      }, timeout);
+    }
+
     // Handle SIGINT (ctrl+c) and SIGTERM to kill child process
     const handleSignal = (signal: NodeJS.Signals) => {
       if (!isKilled && child.pid) {
         isKilled = true;
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = undefined;
+        }
         // Kill the child process group
         try {
           process.kill(-child.pid, signal);
@@ -103,11 +124,26 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
     
     // Handle process exit
     child.on('close', (code: number | null) => {
-      // Clean up signal handlers
+      // Clean up signal handlers and timeout
       process.off('SIGINT', handleSignal);
       process.off('SIGTERM', handleSignal);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
+      }
       
       const exitCode = code ?? 1;
+      
+      // Check if process was killed due to timeout
+      if (isKilled && timeout) {
+        logVerboseError(`[Agent] Process was terminated due to timeout (${timeout}ms)`);
+        resolve({
+          exitCode: 124, // Standard timeout exit code
+          stdout,
+          stderr: stderr + '\nProcess timed out'
+        });
+        return;
+      }
       
       // Log completion status
       if (exitCode === 0) {
@@ -125,9 +161,13 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
     
     // Handle spawn errors (e.g., command not found)
     child.on('error', (error: Error) => {
-      // Clean up signal handlers
+      // Clean up signal handlers and timeout
       process.off('SIGINT', handleSignal);
       process.off('SIGTERM', handleSignal);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
+      }
       
       logVerboseError(`[Agent] Spawn error: ${error.message}`);
       reject(new Error(`Failed to spawn ${agent}: ${error.message}`));

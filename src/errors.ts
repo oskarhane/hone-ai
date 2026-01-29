@@ -103,7 +103,7 @@ export function isModelUnavailableError(errorText: string): boolean {
  * Parse structured error information from agent stderr
  */
 export interface AgentErrorInfo {
-  type: 'network' | 'rate_limit' | 'model_unavailable' | 'spawn_failed' | 'unknown';
+  type: 'network' | 'rate_limit' | 'model_unavailable' | 'spawn_failed' | 'timeout' | 'unknown';
   retryable: boolean;
   retryAfter?: number;
 }
@@ -122,6 +122,11 @@ export function parseAgentError(stderr: string, exitCode?: number): AgentErrorIn
   
   if (isModelUnavailableError(stderr)) {
     return { type: 'model_unavailable', retryable: false };
+  }
+  
+  // Check for timeout (exit code 124 or timeout in stderr)
+  if (exitCode === 124 || stderr.toLowerCase().includes('timed out')) {
+    return { type: 'timeout', retryable: false };
   }
   
   // Check for spawn-related failures (typically exit code undefined or ENOENT)
@@ -276,6 +281,21 @@ Consider:
     };
   },
   
+  AGENT_TIMEOUT: (agent: string, timeout: number) => ({
+    message: `Error: ${agent} agent timed out`,
+    details: `The ${agent} agent did not respond within ${Math.round(timeout / 1000)} seconds.
+
+This may indicate:
+  • Network connectivity issues
+  • Agent server overload
+  • Very large or complex request
+
+Try:
+  • Simplifying your request
+  • Checking your internet connection
+  • Retrying in a few minutes`
+  }),
+
   AGENT_ERROR: (agent: string, exitCode: number, stderr: string) => ({
     message: `Error: ${agent} agent failed`,
     details: `The ${agent} agent exited with code ${exitCode}.

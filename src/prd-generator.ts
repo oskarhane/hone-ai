@@ -164,6 +164,9 @@ async function generateClarifyingQuestion(
     model 
   });
   
+  // Show progress indicator for question generation
+  process.stdout.write(`Generating question ${roundNumber}... `);
+  
   const qaHistory = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
   
   // Read AGENTS.md for context about the project
@@ -214,15 +217,18 @@ ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`;
     const content = response.content[0];
     const text = content && content.type === 'text' ? content.text.trim() : '';
     
+    // Clear progress indicator
+    process.stdout.write('✓\n');
+    
     if (text.toUpperCase().includes('DONE') || text === '') {
       return { question: null, shouldContinue: false };
     }
     
     return { question: text, shouldContinue: true };
   } catch (error) {
-    const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
-    exitWithError(message, details);
-    throw error; // Never reached but satisfies TypeScript
+    // Clear progress indicator with error
+    process.stdout.write('✗\n');
+    throw error;
   }
 }
 
@@ -238,6 +244,9 @@ async function generatePRDContent(
     agent: config.defaultAgent,
     model
   });
+  
+  // Show progress indicator for PRD generation
+  process.stdout.write('Writing PRD document... ');
   
   const qaHistory = qa.map(q => `Q: ${q.question}\nA: ${q.answer}`).join('\n\n');
   
@@ -310,12 +319,21 @@ documentation to inform technical decisions and ensure the PRD aligns with the e
     const content = response.content[0];
     const prdContent = content && content.type === 'text' ? content.text : '';
     
+    if (!prdContent.trim()) {
+      throw new Error('Agent returned empty PRD content');
+    }
+    
     // Extract feature name from the first heading
     const match = prdContent.match(/# PRD: (.+)/);
     const featureName = match && match[1] ? match[1].trim() : featureDescription;
     
+    // Clear progress indicator
+    process.stdout.write('✓\n');
+    
     return { content: prdContent, featureName };
   } catch (error) {
+    // Clear progress indicator with error
+    process.stdout.write('✗\n');
     const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
     exitWithError(message, details);
     throw error; // Never reached but satisfies TypeScript
@@ -333,42 +351,54 @@ export async function generatePRD(featureDescription: string): Promise<string> {
   console.log('I have a few questions to refine this PRD:\n');
   
   for (let round = 1; round <= maxRounds; round++) {
-    const { question, shouldContinue } = await generateClarifyingQuestion(
-      featureDescription,
-      codebaseAnalysis,
-      qa,
-      round
-    );
-    
-    if (!shouldContinue || !question) {
+    try {
+      const { question, shouldContinue } = await generateClarifyingQuestion(
+        featureDescription,
+        codebaseAnalysis,
+        qa,
+        round
+      );
+      
+      if (!shouldContinue || !question) {
+        break;
+      }
+      
+      console.log(`${round}. ${question}`);
+      const answer = await askQuestion('> ');
+      
+      if (answer.toLowerCase() === 'done') {
+        break;
+      }
+      
+      qa.push({ question, answer });
+      console.log('');
+    } catch (error) {
+      console.error(`\nError generating clarifying question for round ${round}: ${error instanceof Error ? error.message : String(error)}`);
+      console.log('Continuing with available information...\n');
       break;
     }
-    
-    console.log(`${round}. ${question}`);
-    const answer = await askQuestion('> ');
-    
-    if (answer.toLowerCase() === 'done') {
-      break;
-    }
-    
-    qa.push({ question, answer });
-    console.log('');
   }
   
   console.log('\nGenerating PRD...');
-  const { content, featureName } = await generatePRDContent(
-    featureDescription,
-    codebaseAnalysis,
-    qa
-  );
-  
-  const slug = slugify(featureName);
-  const filename = `prd-${slug}.md`;
-  const filepath = join(process.cwd(), '.plans', filename);
-  
-  await writeFile(filepath, content, 'utf-8');
-  
-  console.log(`✓ Saved to .plans/${filename}\n`);
-  
-  return filename;
+  try {
+    const { content, featureName } = await generatePRDContent(
+      featureDescription,
+      codebaseAnalysis,
+      qa
+    );
+    
+    const slug = slugify(featureName);
+    const filename = `prd-${slug}.md`;
+    const filepath = join(process.cwd(), '.plans', filename);
+    
+    await writeFile(filepath, content, 'utf-8');
+    
+    console.log(`✓ Saved to .plans/${filename}\n`);
+    
+    return filename;
+  } catch (error) {
+    const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
+    exitWithError(message, details);
+    throw error; // Never reached but satisfies TypeScript
+  }
 }

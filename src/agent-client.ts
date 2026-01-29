@@ -65,7 +65,8 @@ export class AgentClient {
               prompt,
               workingDir: this.config.workingDir || process.cwd(),
               model,
-              silent: true
+              silent: true,
+              timeout: 120000 // 2 minute timeout for PRD questions
             });
             
             // Only retry network errors, throw immediately for other failures
@@ -83,6 +84,10 @@ export class AgentClient {
                 exitWithError(message, details);
               } else if (errorInfo.type === 'spawn_failed') {
                 const { message, details } = ErrorMessages.AGENT_SPAWN_FAILED(this.config.agent, spawnResult.stderr);
+                exitWithError(message, details);
+              } else if (errorInfo.type === 'timeout') {
+                const timeoutMs = 120000; // Default timeout
+                const { message, details } = ErrorMessages.AGENT_TIMEOUT(this.config.agent, timeoutMs);
                 exitWithError(message, details);
               }
               
