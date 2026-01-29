@@ -110,6 +110,19 @@ tasks:
       - "Error handling maintains current user experience"
     completed_at: 2026-01-29T14:00:00.000Z
 
+  - id: task-007-1
+    title: "verify agent tests files in right place"
+    description: |
+      test files for agent are in wrong place.
+      move them.
+      Integration tests for agent service should be placed in the same directory as the agent service implementation.
+    status: pending
+    dependencies:
+      - task-007
+    acceptance_criteria:
+      - "Agent tests files moved to correct place"
+    completed_at: null
+
   - id: task-008
     title: "Implement error handling and user feedback"
     description: |
@@ -129,7 +142,7 @@ tasks:
     title: "Add logging for agent service interactions"
     description: |
       Implement comprehensive logging for all agent service interactions to support debugging. Log requests, responses, model selections, and error conditions while maintaining existing logging patterns.
-    status: completed
+    status: pending
     dependencies:
       - task-005
     acceptance_criteria:
@@ -138,7 +151,7 @@ tasks:
       - "Response handling logged for debugging"
       - "Error conditions logged with context"
       - "Logging follows existing application patterns"
-    completed_at: 2026-01-29T09:55:57.000Z
+    completed_at: null
 
   - id: task-010
     title: "Clean up unused Anthropic dependencies"
