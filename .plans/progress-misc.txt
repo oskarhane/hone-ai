@@ -176,4 +176,27 @@ Key Decisions:
 - Added VS Code settings for automatic formatting on save for better DX
 - Excluded .github/, node_modules/ and other generated dirs from formatting
 
+Next Task: task-008
+
+================================================================================
+TASK-008: Fix GitHub Actions CI/CD test error
+Date: 2026-01-29T20:30:00Z
+================================================================================
+
+Summary:
+Fixed CI test failure by adding proper mocking of isAgentAvailable function in run.test.ts.
+The tests were failing in CI because they expected specific validation errors but instead
+got "agent not found" errors when the claude command wasn't available.
+
+Files Changed:
+- src/run.test.ts (added mock import, agentModule import, mock.restore() in afterEach, 
+  and mock.module() calls in each test to mock isAgentAvailable as returning true)
+
+Key Decisions:
+- Used mock.module() to mock the entire agent module with isAgentAvailable returning true
+- Added mock.restore() in afterEach to clean up mocks between tests
+- Each test now focuses on its specific validation logic without being blocked by agent availability
+- Follows existing mocking patterns used in errors.test.ts and logger.test.ts
+- All 156 tests now pass including the problematic CI test
+
 Next Task: All tasks complete

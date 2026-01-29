@@ -121,8 +121,8 @@ tasks:
               at <anonymous> (/home/runner/work/hone-ai/hone-ai/src/run.test.ts:68:19)
               at <anonymous> (/home/runner/work/hone-ai/hone-ai/src/run.test.ts:60:78)
         (fail) run module > executeTasks > should reject when feature name cannot be extracted from file path [3.00ms]
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "CI tests pass consistently"
-    completed_at: null
+    completed_at: 2026-01-29T20:30:00Z
