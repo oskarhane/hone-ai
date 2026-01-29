@@ -29,7 +29,15 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: "1.1.42"
+          
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
           
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -129,18 +137,49 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NEW_VERSION="${{ steps.new_version.outputs.version }}"
-          
-          # Create GitHub release
-          gh release create "v$NEW_VERSION" \
-            --title "Release v$NEW_VERSION" \
-            --notes "Major release v$NEW_VERSION - automatically generated from commit history." \
-            --latest
-          
-          # Attach binary to release
-          gh release upload "v$NEW_VERSION" ./hone --clobber
-          
-          echo "✅ GitHub release created with binary attachment"
+           NEW_VERSION="${{ steps.new_version.outputs.version }}"
+           CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
+           
+           # Generate release notes from commit history
+           echo "Generating release notes from commit history..."
+           
+           # Get the previous tag to generate changelog from
+           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+           
+           if [ -n "$PREVIOUS_TAG" ]; then
+             echo "Generating changelog from $PREVIOUS_TAG to current commit..."
+             CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG"..HEAD | head -20)
+             if [ -z "$CHANGELOG" ]; then
+               CHANGELOG="No significant changes found in commit history."
+             fi
+           else
+             echo "No previous tag found, generating changelog from first commit..."
+             CHANGELOG=$(git log --pretty=format:"- %s (%h)" --max-count=20)
+             if [ -z "$CHANGELOG" ]; then
+               CHANGELOG="Initial release."
+             fi
+           fi
+           
+           # Create release notes with changelog
+           RELEASE_NOTES="## Major Release v$NEW_VERSION
+           
+           This is a major version release with breaking changes.
+           
+           ### What's Changed
+           $CHANGELOG
+           
+           **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG:-$(git rev-list --max-parents=0 HEAD)}...v$NEW_VERSION"
+           
+           # Create GitHub release with auto-generated notes
+           gh release create "v$NEW_VERSION" \
+             --title "Release v$NEW_VERSION" \
+             --notes "$RELEASE_NOTES" \
+             --latest
+           
+           # Attach binary to release
+           gh release upload "v$NEW_VERSION" ./hone --clobber
+           
+           echo "✅ GitHub release created with auto-generated notes and binary attachment"
           
       - name: Release summary
         run: |

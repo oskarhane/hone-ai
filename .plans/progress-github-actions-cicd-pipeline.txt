@@ -186,3 +186,26 @@ Review Feedback Applied:
 - Code quality, security, and performance standards met
 
 Next Task: task-007
+
+================================================================================
+TASK-007: Configure Bun runtime environment for all workflows
+Date: 2026-01-29T17:25:14.000Z
+================================================================================
+
+Summary:
+Configured consistent Bun runtime environment across all GitHub Actions workflows using oven-sh/setup-bun action. Added dependency caching with proper cache keys and restore fallbacks for performance optimization.
+
+Files Changed:
+- .github/workflows/ci.yml (modified - added Bun setup and dependency caching)
+- .github/workflows/release-major.yml (modified - added Bun setup and dependency caching)
+- .github/workflows/release-minor.yml (modified - added Bun setup and dependency caching)
+
+Key Decisions:
+- Pinned Bun version to "1.1.42" across all workflows for consistency
+- Used actions/cache@v4 with bun.lockb hash for cache key generation
+- Configured restore-keys for partial cache hits optimization
+- Used ~/.bun/install/cache as cache path for Bun dependency cache
+- Positioned Bun setup step before dependency installation in all workflows
+- Consistent configuration pattern applied to all three workflow files
+
+Next Task: task-008
