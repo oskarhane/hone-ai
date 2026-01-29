@@ -12,7 +12,7 @@
     "claude",
     "opencode"
   ],
-  "author": "Oskar Hane",
+  "author": "Oskar Hane <oskar.hane@gmail.com>",
   "license": "MIT",
   "files": [
     "src/",
@@ -21,7 +21,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/oskarhane/hone-ai.git"
+    "url": "git+https://github.com/oskarhane/hone-ai.git"
   },
   "bugs": {
     "url": "https://github.com/oskarhane/hone-ai/issues"
@@ -30,7 +30,7 @@
   "module": "src/index.ts",
   "type": "module",
   "bin": {
-    "hone": "./src/index.ts"
+    "hone": "src/index.ts"
   },
   "scripts": {
     "build": "bun build --compile --minify --sourcemap ./src/index.ts --outfile hone",
