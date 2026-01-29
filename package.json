@@ -2,10 +2,23 @@
   "name": "hone-ai",
   "version": "0.1.0",
   "description": "AI coding agent orchestrator - orchestrate AI agents to implement features based on PRDs",
-  "keywords": ["ai", "agent", "orchestrator", "automation", "prd", "development", "claude", "opencode"],
+  "keywords": [
+    "ai",
+    "agent",
+    "orchestrator",
+    "automation",
+    "prd",
+    "development",
+    "claude",
+    "opencode"
+  ],
   "author": "Oskar Hane",
   "license": "MIT",
-  "files": ["src/", "README.md", "package.json"],
+  "files": [
+    "src/",
+    "README.md",
+    "package.json"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/oskarhane/hone-ai.git"
@@ -20,11 +33,16 @@
     "hone": "./src/index.ts"
   },
   "scripts": {
-    "build": "bun build --compile --minify --sourcemap ./src/index.ts --outfile hone"
+    "build": "bun build --compile --minify --sourcemap ./src/index.ts --outfile hone",
+    "format:yaml": "prettier --write \"**/*.yml\" \"**/*.yaml\"",
+    "lint:yaml": "yamllint -c .yamllint.yml **/*.yml **/*.yaml",
+    "check:yaml": "bun run lint:yaml && prettier --check \"**/*.yml\" \"**/*.yaml\""
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/js-yaml": "^4.0.9"
+    "@types/js-yaml": "^4.0.9",
+    "prettier": "^3.8.1",
+    "yaml-lint": "^1.7.0"
   },
   "peerDependencies": {
     "typescript": "^5"

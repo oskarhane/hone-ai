@@ -1,0 +1,25 @@
+# YAML Lint configuration
+extends: default
+
+rules:
+  # Allow longer lines for readability
+  line-length:
+    max: 120
+    level: warning
+
+  # Allow documents without explicit start marker
+  document-start: disable
+
+  # Allow truthy values like 'yes', 'no', 'on', 'off'
+  truthy:
+    allowed-values: ["true", "false", "yes", "no", "on", "off"]
+    check-keys: true
+
+  # Be more lenient with comments
+  comments:
+    min-spaces-from-content: 1
+
+  # Allow empty values
+  empty-values:
+    forbid-in-block-mappings: false
+    forbid-in-flow-mappings: false

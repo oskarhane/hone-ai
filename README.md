@@ -7,6 +7,7 @@ Transform feature ideas into working code through autonomous development with hu
 ## Quick Start
 
 1. **Install hone**
+
    ```bash
    npm install -g hone-ai
    ```
@@ -14,6 +15,7 @@ Transform feature ideas into working code through autonomous development with hu
 2. **Install an AI agent** ([OpenCode](https://opencode.ai) or [Claude Code](https://docs.anthropic.com/claude/docs/claude-code))
 
 3. **Initialize in your project**
+
    ```bash
    hone init
    ```
@@ -63,19 +65,22 @@ cp hone /usr/local/bin/
 ## Common Commands
 
 ### Create and implement a feature
+
 ```bash
 hone prd "Feature description"              # Generate requirements
-hone prd-to-tasks .plans/prd-feature.md     # Generate tasks  
+hone prd-to-tasks .plans/prd-feature.md     # Generate tasks
 hone run .plans/tasks-feature.yml -i 5      # Implement tasks
 ```
 
 ### Check progress
+
 ```bash
 hone status                                 # See incomplete tasks
 hone prds                                  # List all features
 ```
 
 ### Advanced options
+
 ```bash
 hone run tasks.yml -i 3 --agent opencode   # Use specific agent
 hone run tasks.yml -i 5 --skip=review      # Skip code review
@@ -94,6 +99,7 @@ feedbackInstructions: 'test: bun test, type check: bun run tsc'
 ```
 
 **Advanced model configuration:**
+
 - Use phase-specific models (prd, implement, review, finalize)
 - Model names need full version: `claude-sonnet-4-YYYYMMDD`
 - Check available models: `opencode --help` or `claude --help`
@@ -123,6 +129,7 @@ project-root/
 ## Troubleshooting
 
 **Agent not found**
+
 ```bash
 # Install OpenCode
 npm install -g @opencode/cli
@@ -132,6 +139,7 @@ npm install -g @opencode/cli
 ```
 
 **Task fails**
+
 - Failed tasks remain pending and retry on next run
 - Check `.plans/progress-<feature>.txt` for error details
 - Network errors retry automatically (3 attempts)
@@ -143,6 +151,19 @@ git clone https://github.com/oskarhane/hone-ai.git
 cd hone-ai
 bun install
 bun test
+```
+
+### Development Scripts
+
+```bash
+# Format YAML files
+bun run format:yaml
+
+# Lint YAML files
+bun run lint:yaml
+
+# Check YAML formatting and linting
+bun run check:yaml
 ```
 
 ## License

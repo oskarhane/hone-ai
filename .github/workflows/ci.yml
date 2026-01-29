@@ -2,9 +2,9 @@ name: CI Validation
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   test:
@@ -16,16 +16,16 @@ jobs:
     env:
       CI: true
       BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.1.42"
-          
+
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
@@ -33,7 +33,7 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
           restore-keys: |
             ${{ runner.os }}-bun-
-          
+
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies..."
@@ -44,7 +44,7 @@ jobs:
           }
           echo "✅ Dependencies installed successfully"
         timeout-minutes: 2
-        
+
       - name: Run type checking
         run: |
           echo "🔍 Running TypeScript type checking..."
@@ -55,7 +55,7 @@ jobs:
           }
           echo "✅ Type checking passed"
         timeout-minutes: 3
-        
+
       - name: Run tests
         run: |
           echo "🧪 Running test suite..."
@@ -66,7 +66,7 @@ jobs:
           }
           echo "✅ All tests passed"
         timeout-minutes: 5
-        
+
       - name: Build validation
         run: |
           echo "🔨 Validating build process..."

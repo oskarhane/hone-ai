@@ -88,8 +88,8 @@ tasks:
     description: |
       we have issues with yaml formatting and linting.
       Install a yaml formatter and linting tool to ensure consistency and quality.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "editing yaml files are faster and more consistent"
-    completed_at: null
+    completed_at: 2026-01-29T19:45:00Z

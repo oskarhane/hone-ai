@@ -1,0 +1,14 @@
+# Build outputs
+hone
+hone.map
+*.tgz
+
+# Dependencies
+node_modules
+
+# Generated files
+coverage
+*.log
+
+# Binary files
+.DS_Store

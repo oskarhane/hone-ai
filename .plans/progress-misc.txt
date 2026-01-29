@@ -149,4 +149,31 @@ Key Decisions:
 - Created clear 4-step process for getting started
 - Simplified tagline to "Automatically implement features from requirements"
 
+Next Task: task-007
+
+================================================================================
+TASK-007: install yaml formatter and linting tool
+Date: 2026-01-29T19:45:00Z
+================================================================================
+
+Summary:
+Installed and configured YAML formatting and linting tools (yamllint, prettier, editorconfig) 
+with npm scripts for consistent YAML file editing and validation. Added VS Code integration.
+
+Files Changed:
+- package.json (added prettier, yamllint dependencies and format:yaml, lint:yaml, check:yaml scripts)
+- bun.lock (updated dependencies)
+- .yamllint.yml (created with configuration for 120 char line limit, allows truthy values)
+- .prettierrc.yml (created with YAML-specific overrides for 2-space indentation)
+- .prettierignore (created to exclude certain directories from formatting)
+- .editorconfig (created for consistent formatting across editors)
+- .vscode/settings.json (created for automatic formatting on save)
+
+Key Decisions:
+- Used yamllint for linting with sensible defaults (120 char line limit, allows truthy values)
+- Configured prettier specifically for YAML with 2-space indentation
+- Added npm scripts: format:yaml, lint:yaml, check:yaml for workflow integration
+- Added VS Code settings for automatic formatting on save for better DX
+- Excluded .github/, node_modules/ and other generated dirs from formatting
+
 Next Task: All tasks complete

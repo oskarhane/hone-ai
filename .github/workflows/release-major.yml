@@ -6,7 +6,7 @@ on:
       confirm:
         description: 'Type "CONFIRM" to proceed with major release'
         required: true
-        default: ''
+        default: ""
 
 jobs:
   release-major:
@@ -16,7 +16,7 @@ jobs:
     env:
       CI: true
       BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
-    
+
     steps:
       - name: Validate confirmation
         if: ${{ github.event.inputs.confirm != 'CONFIRM' }}
@@ -25,18 +25,18 @@ jobs:
           echo "ℹ️  This is a safety check to prevent accidental major releases."
           echo "ℹ️  Major releases contain breaking changes and increment the major version number."
           exit 1
-          
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.1.42"
-          
+
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
@@ -44,7 +44,7 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
           restore-keys: |
             ${{ runner.os }}-bun-
-          
+
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies for build..."
@@ -55,7 +55,7 @@ jobs:
           }
           echo "✅ Dependencies installed successfully"
         timeout-minutes: 2
-        
+
       - name: Validate git repository
         run: |
           if ! git status > /dev/null 2>&1; then
@@ -64,14 +64,14 @@ jobs:
             exit 1
           fi
           echo "✅ Git repository validated"
-          
+
       - name: Get current version
         id: current_version
         run: |
           CURRENT_VERSION=$(bun --print 'JSON.parse(require("fs").readFileSync("package.json", "utf8")).version')
           echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           echo "Current version: $CURRENT_VERSION"
-          
+
       - name: Validate version format
         run: |
           CURRENT="${{ steps.current_version.outputs.current }}"
@@ -80,7 +80,7 @@ jobs:
             exit 1
           fi
           echo "✅ Version format validated"
-          
+
       - name: Calculate new major version
         id: new_version
         run: |
@@ -91,7 +91,7 @@ jobs:
           NEW_VERSION="${NEW_MAJOR}.0.0"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version will be: $NEW_VERSION"
-          
+
       - name: Update package.json version
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.version }}"
@@ -103,7 +103,7 @@ jobs:
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
             console.log('Updated package.json to version $NEW_VERSION');
           "
-          
+
       - name: Verify version update
         run: |
           UPDATED_VERSION=$(bun --print 'JSON.parse(require("fs").readFileSync("package.json", "utf8")).version')
@@ -114,13 +114,13 @@ jobs:
             exit 1
           fi
           echo "✅ Version update verified successfully"
-          
+
       - name: Build standalone binary
         run: |
           echo "Building standalone binary..."
           bun run build
         timeout-minutes: 3
-          
+
       - name: Verify binary build
         run: |
           if [ ! -f "./hone" ]; then
@@ -133,15 +133,15 @@ jobs:
           echo "✅ Binary build successful"
           ls -la ./hone
           echo "Binary size: $(du -h ./hone | cut -f1)"
-          
+
       - name: Prepare macOS binary for release
         run: |
           echo "🍎 Preparing macOS binary for release..."
-          
+
           # Rename binary following macOS conventions
           mv ./hone ./hone-macos
           chmod +x ./hone-macos
-          
+
           # Create zip file with proper naming
           VERSION="${{ steps.new_version.outputs.version }}"
           ZIP_NAME="hone-v${VERSION}-macos.zip"
@@ -152,12 +152,12 @@ jobs:
            echo "  Archive: $ZIP_NAME"
            ls -la ./hone-macos "./$ZIP_NAME"
            echo "Archive size: $(du -h "./$ZIP_NAME" | cut -f1)"
-          
+
       - name: Configure Git
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-           
+
       - name: Sync with remote before committing
         run: |
           git fetch origin master
@@ -166,12 +166,12 @@ jobs:
             git pull --rebase origin master || (echo "❌ Failed to sync with remote" && exit 1)
           fi
         timeout-minutes: 2
-          
+
       - name: Commit version bump
         run: |
           git add package.json
           git commit -m "chore: bump version to ${{ steps.new_version.outputs.version }}"
-          
+
       - name: Create and push git tag
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.version }}"
@@ -179,106 +179,106 @@ jobs:
            git push origin "v$NEW_VERSION"
            git push origin master
         timeout-minutes: 2
-          
+
       - name: Create GitHub Release with binary
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         timeout-minutes: 3
         run: |
-           NEW_VERSION="${{ steps.new_version.outputs.version }}"
-           CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
-           
-           # Generate release notes from commit history
-           echo "Generating release notes from commit history..."
-           
-           # Get the previous tag to generate changelog from
-           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-           
-           if [ -n "$PREVIOUS_TAG" ]; then
-             echo "Generating changelog from $PREVIOUS_TAG to current commit..."
-             CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG"..HEAD | head -20)
-             if [ -z "$CHANGELOG" ]; then
-               CHANGELOG="No significant changes found in commit history."
-             fi
-           else
-             echo "No previous tag found, generating changelog from first commit..."
-             CHANGELOG=$(git log --pretty=format:"- %s (%h)" --max-count=20)
-             if [ -z "$CHANGELOG" ]; then
-               CHANGELOG="Initial release."
-             fi
-           fi
-           
-           # Create release notes with changelog
-           RELEASE_NOTES="## Major Release v$NEW_VERSION
-           
-           This is a major version release with breaking changes.
-           
-           ### What's Changed
-           $CHANGELOG
-           
-           **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG:-$(git rev-list --max-parents=0 HEAD)}...v$NEW_VERSION"
-           
-           # Create GitHub release with auto-generated notes
-           echo "🚀 Creating GitHub release..."
-           if ! gh release create "v$NEW_VERSION" \
-             --title "Release v$NEW_VERSION" \
-             --notes "$RELEASE_NOTES" \
-             --latest; then
-             echo "❌ Failed to create GitHub release"
-             echo "ℹ️  Check GitHub token permissions and repository access"
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
+
+          # Generate release notes from commit history
+          echo "Generating release notes from commit history..."
+
+          # Get the previous tag to generate changelog from
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "Generating changelog from $PREVIOUS_TAG to current commit..."
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG"..HEAD | head -20)
+            if [ -z "$CHANGELOG" ]; then
+              CHANGELOG="No significant changes found in commit history."
+            fi
+          else
+            echo "No previous tag found, generating changelog from first commit..."
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --max-count=20)
+            if [ -z "$CHANGELOG" ]; then
+              CHANGELOG="Initial release."
+            fi
+          fi
+
+          # Create release notes with changelog
+          RELEASE_NOTES="## Major Release v$NEW_VERSION
+
+          This is a major version release with breaking changes.
+
+          ### What's Changed
+          $CHANGELOG
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG:-$(git rev-list --max-parents=0 HEAD)}...v$NEW_VERSION"
+
+          # Create GitHub release with auto-generated notes
+          echo "🚀 Creating GitHub release..."
+          if ! gh release create "v$NEW_VERSION" \
+            --title "Release v$NEW_VERSION" \
+            --notes "$RELEASE_NOTES" \
+            --latest; then
+            echo "❌ Failed to create GitHub release"
+            echo "ℹ️  Check GitHub token permissions and repository access"
+            exit 1
+          fi
+
+           # Attach macOS binary archive to release
+           echo "📎 Attaching macOS binary archive to release..."
+           ZIP_NAME="hone-v$NEW_VERSION-macos.zip"
+           if ! gh release upload "v$NEW_VERSION" "./$ZIP_NAME" --clobber; then
+             echo "❌ Failed to upload binary archive to release"
+             echo "ℹ️  Release created but binary attachment failed"
+             echo "ℹ️  You may need to manually attach the binary archive"
              exit 1
            fi
            
-            # Attach macOS binary archive to release
-            echo "📎 Attaching macOS binary archive to release..."
-            ZIP_NAME="hone-v$NEW_VERSION-macos.zip"
-            if ! gh release upload "v$NEW_VERSION" "./$ZIP_NAME" --clobber; then
-              echo "❌ Failed to upload binary archive to release"
-              echo "ℹ️  Release created but binary attachment failed"
-              echo "ℹ️  You may need to manually attach the binary archive"
-              exit 1
-            fi
-            
-            echo "✅ GitHub release created with auto-generated notes and macOS binary archive"
-           
+           echo "✅ GitHub release created with auto-generated notes and macOS binary archive"
+
       - name: Publish to NPM
         run: |
-           echo "📦 Publishing to NPM..."
-           
-           # Configure npm registry authentication
-           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-           
-           # Verify authentication
-           if ! npm whoami; then
-             echo "❌ NPM authentication failed"
-             echo "ℹ️  Please ensure NPM_TOKEN secret is configured with a valid npm access token"
-             exit 1
-           fi
-           
-           # Publish to npm
-           if ! npm publish; then
-             echo "❌ NPM publishing failed"
-             echo "ℹ️  Check package.json configuration and npm registry permissions"
-             echo "ℹ️  Version may already exist or package name may be taken"
-             exit 1
-           fi
-           
-           echo "✅ Successfully published to NPM"
-           echo "NPM package: https://www.npmjs.com/package/hone-ai"
+          echo "📦 Publishing to NPM..."
+
+          # Configure npm registry authentication
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+          # Verify authentication
+          if ! npm whoami; then
+            echo "❌ NPM authentication failed"
+            echo "ℹ️  Please ensure NPM_TOKEN secret is configured with a valid npm access token"
+            exit 1
+          fi
+
+          # Publish to npm
+          if ! npm publish; then
+            echo "❌ NPM publishing failed"
+            echo "ℹ️  Check package.json configuration and npm registry permissions"
+            echo "ℹ️  Version may already exist or package name may be taken"
+            exit 1
+          fi
+
+          echo "✅ Successfully published to NPM"
+          echo "NPM package: https://www.npmjs.com/package/hone-ai"
         timeout-minutes: 2
-           
+
       - name: Clean up build artifacts
         run: |
-           echo "🧹 Cleaning up build artifacts..."
-           rm -f ./hone-macos ./hone-v${{ steps.new_version.outputs.version }}-macos.zip ./hone.map 2>/dev/null || true
-           echo "✅ Build artifacts cleaned up"
-           
+          echo "🧹 Cleaning up build artifacts..."
+          rm -f ./hone-macos ./hone-v${{ steps.new_version.outputs.version }}-macos.zip ./hone.map 2>/dev/null || true
+          echo "✅ Build artifacts cleaned up"
+
       - name: Release summary
         run: |
-           echo "✅ Major release completed successfully!"
-           echo "Version: ${{ steps.current_version.outputs.current }} → ${{ steps.new_version.outputs.version }}"
-           echo "Git tag: v${{ steps.new_version.outputs.version }} created"
-           echo "Package.json updated and committed"
-           echo "macOS binary built, zipped, and attached to GitHub release as hone-v${{ steps.new_version.outputs.version }}-macos.zip"
-           echo "Published to NPM: https://www.npmjs.com/package/hone-ai"
-           echo "GitHub Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"
+          echo "✅ Major release completed successfully!"
+          echo "Version: ${{ steps.current_version.outputs.current }} → ${{ steps.new_version.outputs.version }}"
+          echo "Git tag: v${{ steps.new_version.outputs.version }} created"
+          echo "Package.json updated and committed"
+          echo "macOS binary built, zipped, and attached to GitHub release as hone-v${{ steps.new_version.outputs.version }}-macos.zip"
+          echo "Published to NPM: https://www.npmjs.com/package/hone-ai"
+          echo "GitHub Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"
