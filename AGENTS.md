@@ -188,6 +188,7 @@ Learnings and patterns for future agents working on hone.
 - Consistent implementation across major/minor release workflows
 - **Platform-specific releases**: Both Linux and macOS binaries built and attached to GitHub releases
 - Release artifacts named: `hone-v{version}-linux.zip` and `hone-v{version}-macos.zip`
+- Archive structure: `hone-v{version}-{platform}/hone` for organized extraction
 - Binaries inside zip archives always named `hone` for consistent user experience
 - Cross-compilation on Ubuntu runners: builds both bun-linux-x64 and bun-darwin-arm64 targets
 - When calling reusable workflows: caller must have all permissions required by called workflow

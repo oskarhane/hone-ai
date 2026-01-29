@@ -223,8 +223,8 @@ tasks:
     title: "zip release artifacts inside a folder"
     description: |
       make sure that both linux and macos binaries are zipped inside a folder before being attached to github releases.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "the artifacts are zipped inside a folder"
-    completed_at: null
+    completed_at: 2026-01-29T20:45:00Z

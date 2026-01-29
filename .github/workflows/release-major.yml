@@ -147,24 +147,28 @@ jobs:
           VERSION="${{ steps.new_version.outputs.version }}"
 
           echo "🐧 Preparing Linux binary for release..."
-          # Ensure binary has proper permissions and rename to 'hone' inside zip
+          # Create folder structure and prepare binary
           chmod +x ./hone-linux
-          cp ./hone-linux ./hone
+          LINUX_FOLDER="hone-v${VERSION}-linux"
+          mkdir -p "$LINUX_FOLDER"
+          cp ./hone-linux "./$LINUX_FOLDER/hone"
           LINUX_ZIP_NAME="hone-v${VERSION}-linux.zip"
-          zip "$LINUX_ZIP_NAME" hone
-          rm ./hone
+          zip -r "$LINUX_ZIP_NAME" "$LINUX_FOLDER"
+          rm -rf "$LINUX_FOLDER"
 
           echo "🍎 Preparing macOS binary for release..."
-          # Ensure binary has proper permissions and rename to 'hone' inside zip
+          # Create folder structure and prepare binary
           chmod +x ./hone-macos
-          cp ./hone-macos ./hone
+          MACOS_FOLDER="hone-v${VERSION}-macos"
+          mkdir -p "$MACOS_FOLDER"
+          cp ./hone-macos "./$MACOS_FOLDER/hone"
           MACOS_ZIP_NAME="hone-v${VERSION}-macos.zip"
-          zip "$MACOS_ZIP_NAME" hone
-          rm ./hone
+          zip -r "$MACOS_ZIP_NAME" "$MACOS_FOLDER"
+          rm -rf "$MACOS_FOLDER"
 
           echo "✅ Both binaries prepared:"
-          echo "  Linux Archive: $LINUX_ZIP_NAME"
-          echo "  macOS Archive: $MACOS_ZIP_NAME"
+          echo "  Linux Archive: $LINUX_ZIP_NAME (folder: $LINUX_FOLDER/)"
+          echo "  macOS Archive: $MACOS_ZIP_NAME (folder: $MACOS_FOLDER/)"
           ls -la "./$LINUX_ZIP_NAME" "./$MACOS_ZIP_NAME"
           echo "Linux archive size: $(du -h "./$LINUX_ZIP_NAME" | cut -f1)"
           echo "macOS archive size: $(du -h "./$MACOS_ZIP_NAME" | cut -f1)"

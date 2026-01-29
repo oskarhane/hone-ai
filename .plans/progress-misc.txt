@@ -286,4 +286,25 @@ Key Decisions:
 - Updated release summaries to mention both platform binaries
 - All 160 tests pass, ensuring no regressions
 
+================================================================================
+TASK-013: zip release artifacts inside a folder
+Date: 2026-01-29T20:45:00Z
+================================================================================
+
+Summary:
+Updated GitHub Actions release workflows to zip binaries inside version-specific 
+folders for better extraction organization. Both Linux and macOS binaries now 
+use folder structure: hone-v{VERSION}-{platform}/hone.
+
+Files Changed:
+- .github/workflows/release-major.yml (updated zip process with folder structure)
+- .github/workflows/release-minor.yml (updated zip process with folder structure)
+- AGENTS.md (documented new archive folder structure pattern)
+
+Key Decisions:
+- Used folder pattern: hone-v{VERSION}-{platform}/ for organized extraction
+- Binary still named 'hone' inside folders for user consistency
+- Added folder structure information to build output logs for transparency
+- Applied changes identically to both major and minor release workflows
+
 All Tasks Completed! 🎉
