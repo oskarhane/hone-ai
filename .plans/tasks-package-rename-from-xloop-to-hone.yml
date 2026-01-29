@@ -61,7 +61,7 @@ tasks:
     title: "Update configuration directory paths and file system operations"
     description: |
       Change all hardcoded paths that reference '.xloop' directories to use '.hone' instead. Update any file system operations that create or access configuration directories.
-    status: pending
+    status: cancelled
     dependencies:
       - task-004
     acceptance_criteria:
