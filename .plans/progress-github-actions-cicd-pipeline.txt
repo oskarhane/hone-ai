@@ -420,4 +420,38 @@ Review Feedback Applied:
 - Implementation correctly meets all acceptance criteria
 - Clean, minimal fix that directly addresses user problem
 
+Next Task: task-015
+
+================================================================================
+TASK-015: use oidc tokens for npm releases
+Date: 2026-01-29T12:03:00.000Z
+================================================================================
+
+Summary:
+Implemented OIDC tokens for NPM releases to eliminate long-lived NPM token requirements. Updated both major and minor release workflows to use GitHub's trusted publishing mechanism instead of NPM_TOKEN secrets.
+
+Files Changed:
+- .github/workflows/release-major.yml (modified - added id-token permission, removed NPM_TOKEN authentication, updated to OIDC)
+- .github/workflows/release-minor.yml (modified - added id-token permission, removed NPM_TOKEN authentication, updated to OIDC)
+
+Key Decisions:
+- Added "id-token: write" permission required for OIDC token generation
+- Removed NPM_TOKEN secret requirement and associated authentication steps
+- Replaced token-based npm publish with OIDC trusted publisher authentication
+- Updated comments to explain OIDC trusted publishing usage
+- Updated error messages to guide users to configure trusted publishers on npmjs.com
+- Updated success messages to reflect new trusted publishing method
+
+Security Enhancement:
+- Eliminated long-lived token security risks
+- Follows NPM's official OIDC documentation and best practices
+- Uses minimal required permissions (only id-token: write)
+- Leverages GitHub's built-in OIDC provider for secure authentication
+
+Review Feedback Applied:
+- All review feedback was positive (LGTM) - implementation correctly addresses all requirements
+- Security best practices followed with proper OIDC implementation
+- Clean removal of token-based authentication without leaving dead code
+- Accurate documentation and error messages for user guidance
+
 Next Task: All tasks complete
