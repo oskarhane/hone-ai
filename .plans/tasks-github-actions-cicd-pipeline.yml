@@ -207,3 +207,13 @@ tasks:
     acceptance_criteria:
       - "run works on github"
     completed_at: 2026-01-29T12:52:30.000Z
+
+  - id: task-014
+    title: "finx macos unpacked binary name"
+    description: |
+      after downloading the macos binary from the release page, I see that the filename is "hone-macos" whic it shouldn't be. It should just be "hone"
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "the unpacked binary name is hone"
+    completed_at: null
