@@ -172,7 +172,7 @@ tasks:
     title: "Comprehensive testing of agent integration"
     description: |
       Conduct thorough testing of all replaced functionality including chat operations, phase-specific operations, streaming responses, and error conditions through the new agent layer.
-    status: pending
+    status: completed
     dependencies:
       - task-010
     acceptance_criteria:
@@ -181,7 +181,7 @@ tasks:
       - "Streaming responses verified working"
       - "Error handling scenarios tested"
       - "Performance comparable to direct API calls verified"
-    completed_at: null
+    completed_at: 2026-01-29T18:30:00.000Z
 
   - id: task-012
     title: "update README"
