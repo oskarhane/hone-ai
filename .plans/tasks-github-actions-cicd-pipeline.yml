@@ -260,3 +260,33 @@ tasks:
     acceptance_criteria:
       - "the workflows with publish to npm with oidc works"
     completed_at: 2026-01-29T12:30:00.000Z
+
+  - id: task-018
+    title: "fix version bump"
+    description: |
+      see issue:
+        Run CURRENT_VERSION=$(bun --print 'JSON.parse(require("fs").readFileSync("package.json", "utf8")).version')
+          CURRENT_VERSION=$(bun --print 'JSON.parse(require("fs").readFileSync("package.json", "utf8")).version')
+          EXPECTED_VERSION="0.3.0"
+
+          if [ "$CURRENT_VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "❌ Version mismatch - package.json has $CURRENT_VERSION but expected $EXPECTED_VERSION"
+            echo "ℹ️  This suggests the release workflow did not properly update package.json"
+            exit 1
+          fi
+
+          echo "✅ Package version verified: $CURRENT_VERSION"
+          shell: /usr/bin/bash -e {0}
+          env:
+            CI: true
+            BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
+        ❌ Version mismatch - package.json has 0.2.0 but expected 0.3.0
+        ℹ️  This suggests the release workflow did not properly update package.json
+        Error: Process completed with exit code 1.
+
+        Maybe we should use a different approach to version bumping. like using npm version command?
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "the version bump works and the package.json is updated in an expected way"
+    completed_at: null
