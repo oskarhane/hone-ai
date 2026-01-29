@@ -122,42 +122,52 @@ jobs:
           fi
           echo "✅ Version updated successfully to $NEW_VERSION"
 
-      - name: Build standalone binary
+      - name: Build platform-specific binaries
         run: |
-          echo "Building standalone binary..."
+          echo "Building platform-specific binaries..."
           bun run build
         timeout-minutes: 3
 
-      - name: Verify binary build
+      - name: Verify binary builds
         run: |
-          if [ ! -f "./hone" ]; then
-            echo "❌ Binary build failed - hone executable not found in current directory"
-            echo "ℹ️  Expected binary at: $(pwd)/hone"
-            echo "ℹ️  Check build script configuration and ensure 'bun run build' produces the binary"
+          if [ ! -f "./hone-linux" ] || [ ! -f "./hone-macos" ]; then
+            echo "❌ Binary build failed - expected hone-linux and hone-macos executables"
+            echo "ℹ️  Expected binaries at: $(pwd)/hone-linux and $(pwd)/hone-macos"
+            echo "ℹ️  Check build script configuration"
             ls -la . || true
             exit 1
           fi
-          echo "✅ Binary build successful"
-          ls -la ./hone
-          echo "Binary size: $(du -h ./hone | cut -f1)"
+          echo "✅ Binary builds successful"
+          ls -la ./hone-linux ./hone-macos
+          echo "Linux binary size: $(du -h ./hone-linux | cut -f1)"
+          echo "macOS binary size: $(du -h ./hone-macos | cut -f1)"
 
-      - name: Prepare macOS binary for release
+      - name: Prepare binaries for release
         run: |
-          echo "🍎 Preparing macOS binary for release..."
-
-          # Ensure binary has proper permissions
-          chmod +x ./hone
-
-          # Create zip file with proper naming (keep binary named 'hone' inside zip)
           VERSION="${{ steps.new_version.outputs.version }}"
-          ZIP_NAME="hone-v${VERSION}-macos.zip"
-          zip "$ZIP_NAME" hone
 
-          echo "✅ macOS binary prepared:"
-          echo "  Binary: hone (inside zip archive)"
-          echo "  Archive: $ZIP_NAME"
-          ls -la ./hone "./$ZIP_NAME"
-          echo "Archive size: $(du -h "./$ZIP_NAME" | cut -f1)"
+          echo "🐧 Preparing Linux binary for release..."
+          # Ensure binary has proper permissions and rename to 'hone' inside zip
+          chmod +x ./hone-linux
+          cp ./hone-linux ./hone
+          LINUX_ZIP_NAME="hone-v${VERSION}-linux.zip"
+          zip "$LINUX_ZIP_NAME" hone
+          rm ./hone
+
+          echo "🍎 Preparing macOS binary for release..."
+          # Ensure binary has proper permissions and rename to 'hone' inside zip
+          chmod +x ./hone-macos
+          cp ./hone-macos ./hone
+          MACOS_ZIP_NAME="hone-v${VERSION}-macos.zip"
+          zip "$MACOS_ZIP_NAME" hone
+          rm ./hone
+
+          echo "✅ Both binaries prepared:"
+          echo "  Linux Archive: $LINUX_ZIP_NAME"
+          echo "  macOS Archive: $MACOS_ZIP_NAME"
+          ls -la "./$LINUX_ZIP_NAME" "./$MACOS_ZIP_NAME"
+          echo "Linux archive size: $(du -h "./$LINUX_ZIP_NAME" | cut -f1)"
+          echo "macOS archive size: $(du -h "./$MACOS_ZIP_NAME" | cut -f1)"
 
       - name: Sync with remote before committing
         run: |
@@ -230,22 +240,29 @@ jobs:
             exit 1
           fi
 
-           # Attach macOS binary archive to release
-           echo "📎 Attaching macOS binary archive to release..."
-           ZIP_NAME="hone-v$NEW_VERSION-macos.zip"
-           if ! gh release upload "v$NEW_VERSION" "./$ZIP_NAME" --clobber; then
-             echo "❌ Failed to upload binary archive to release"
-             echo "ℹ️  Release created but binary attachment failed"
-             echo "ℹ️  You may need to manually attach the binary archive"
+           # Attach both platform binary archives to release
+           echo "📎 Attaching binary archives to release..."
+           LINUX_ZIP_NAME="hone-v$NEW_VERSION-linux.zip"
+           MACOS_ZIP_NAME="hone-v$NEW_VERSION-macos.zip"
+           
+           if ! gh release upload "v$NEW_VERSION" "./$LINUX_ZIP_NAME" --clobber; then
+             echo "❌ Failed to upload Linux binary archive to release"
+             echo "ℹ️  Release created but Linux binary attachment failed"
              exit 1
            fi
            
-           echo "✅ GitHub release created with auto-generated notes and macOS binary archive"
+           if ! gh release upload "v$NEW_VERSION" "./$MACOS_ZIP_NAME" --clobber; then
+             echo "❌ Failed to upload macOS binary archive to release"
+             echo "ℹ️  Release created but macOS binary attachment failed"
+             exit 1
+           fi
+           
+           echo "✅ GitHub release created with auto-generated notes and both platform binary archives"
 
       - name: Clean up build artifacts
         run: |
           echo "🧹 Cleaning up build artifacts..."
-          rm -f ./hone ./hone-v${{ steps.new_version.outputs.version }}-macos.zip ./hone.map 2>/dev/null || true
+          rm -f ./hone-linux ./hone-macos ./hone-v${{ steps.new_version.outputs.version }}-linux.zip ./hone-v${{ steps.new_version.outputs.version }}-macos.zip ./hone.map 2>/dev/null || true
           echo "✅ Build artifacts cleaned up"
 
       - name: Release summary
@@ -254,7 +271,9 @@ jobs:
           echo "Version: ${{ steps.current_version.outputs.current }} → ${{ steps.new_version.outputs.version }}"
           echo "Git tag: v${{ steps.new_version.outputs.version }} created"
           echo "Package.json updated and committed"
-          echo "macOS binary built, zipped as 'hone', and attached to GitHub release as hone-v${{ steps.new_version.outputs.version }}-macos.zip"
+          echo "Linux and macOS binaries built, zipped as 'hone', and attached to GitHub release:"
+          echo "  • hone-v${{ steps.new_version.outputs.version }}-linux.zip"
+          echo "  • hone-v${{ steps.new_version.outputs.version }}-macos.zip"
           echo "GitHub Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"
 
   final-summary:
@@ -267,6 +286,7 @@ jobs:
           echo "🎉 Major release v${{ needs.release-major.outputs.new_version }} completed successfully!"
           echo "📋 Release Summary:"
           echo "  • GitHub Release: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.release-major.outputs.new_version }}"
+          echo "  • Linux Binary: Available in GitHub release as hone-v${{ needs.release-major.outputs.new_version }}-linux.zip"
           echo "  • macOS Binary: Available in GitHub release as hone-v${{ needs.release-major.outputs.new_version }}-macos.zip"
           echo ""
           echo "📦 To publish to NPM:"

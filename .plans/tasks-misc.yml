@@ -212,9 +212,9 @@ tasks:
     title: "make sure the platform specific builds on github actions"
     description: |
       make sure that both linux and macos builds build and attach artifacts to github releases.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "both platform builds build and attach artifacts to github releases"
       - "the artifacts are named correctly, and the binaries inside the artifacts are named correctly (just hone)"
-    completed_at: null
+    completed_at: 2026-01-29T19:35:00Z

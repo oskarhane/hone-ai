@@ -262,4 +262,28 @@ Key Decisions:
 - Maintained existing minify and sourcemap options for all builds
 - All 160 tests pass, ensuring no regressions
 
+================================================================================
+TASK-012: make sure the platform specific builds on github actions
+Date: 2026-01-29T19:35:00Z
+================================================================================
+
+Summary:
+Updated GitHub Actions release workflows (both major and minor) to build and attach both Linux 
+and macOS binaries to GitHub releases. Fixed workflows to use new cross-platform build system.
+
+Files Changed:
+- .github/workflows/release-minor.yml (updated to build both platforms, attach both archives)
+- .github/workflows/release-major.yml (updated to build both platforms, attach both archives)
+- AGENTS.md (documented platform-specific release artifact naming and cross-compilation setup)
+
+Key Decisions:
+- Both workflows now call `bun run build` which builds hone-linux and hone-macos binaries
+- Each binary is zipped individually with the name 'hone' inside the archive for consistency
+- Archive naming follows pattern: hone-v{version}-linux.zip, hone-v{version}-macos.zip  
+- Both archives are uploaded to GitHub releases using gh CLI with --clobber flag
+- Cross-compilation on Ubuntu runners supports both bun-linux-x64 and bun-darwin-arm64 targets
+- Maintained verification steps to ensure both binaries are built successfully
+- Updated release summaries to mention both platform binaries
+- All 160 tests pass, ensuring no regressions
+
 All Tasks Completed! 🎉

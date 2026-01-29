@@ -186,6 +186,10 @@ Learnings and patterns for future agents working on hone.
 - Binary existence verification after build prevents uploading missing artifacts
 - Size logging provides transparency in build process
 - Consistent implementation across major/minor release workflows
+- **Platform-specific releases**: Both Linux and macOS binaries built and attached to GitHub releases
+- Release artifacts named: `hone-v{version}-linux.zip` and `hone-v{version}-macos.zip`
+- Binaries inside zip archives always named `hone` for consistent user experience
+- Cross-compilation on Ubuntu runners: builds both bun-linux-x64 and bun-darwin-arm64 targets
 - When calling reusable workflows: caller must have all permissions required by called workflow
 - OIDC publishing requires `id-token: write` permission in both caller and called workflows
 
