@@ -6,6 +6,7 @@ import { listPrds } from './prds';
 import { listIncompleteTaskFiles } from './status';
 import { generatePRD } from './prd-generator';
 import { generateTasksFromPRD } from './task-generator';
+import { setVerbose } from './logger';
 
 const program = new Command();
 
@@ -41,6 +42,7 @@ Model Configuration:
 
 // Global flags
 program.option('--agent <type>', 'Override default agent (opencode or claude)');
+program.option('--verbose', 'Show detailed agent interaction logs');
 
 // Commands
 program
@@ -149,6 +151,7 @@ program
   .description('Generate PRD interactively from feature description')
   .action(async (description: string) => {
     try {
+      setVerbose(program.opts().verbose || false);
       await generatePRD(description);
     } catch (error) {
       console.error('\n✗ Error generating PRD:', error instanceof Error ? error.message : error);
@@ -161,6 +164,7 @@ program
   .description('Generate task list from PRD file')
   .action(async (prdFile: string) => {
     try {
+      setVerbose(program.opts().verbose || false);
       await generateTasksFromPRD(prdFile);
     } catch (error) {
       console.error('\n✗ Error generating tasks:', error instanceof Error ? error.message : error);
@@ -175,6 +179,7 @@ program
   .option('--skip <phase>', 'Skip a phase (e.g., review)')
   .action(async (tasksFile: string, options: { iterations: string; skip?: string }) => {
     try {
+      setVerbose(program.opts().verbose || false);
       const agent = await resolveAgent(program.opts().agent);
       const { executeTasks } = await import('./run');
       await executeTasks({

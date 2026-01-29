@@ -53,25 +53,30 @@ Learnings and patterns for future agents working on hone.
 - PRD and task generation no longer require ANTHROPIC_API_KEY - use agent subprocess instead
 - API key functions removed from config module after migration complete (kept ErrorMessages.MISSING_API_KEY for reference)
 
-## Agent Service Logging
+## Agent Service Logging & Verbosity Control
 
 - All agent service interactions logged using console.log/console.error
-- AgentClient logs:
-  - Request initiation: agent name, model selection
-  - Request details: message count, system prompt presence
-  - Error conditions: exit codes, error types
-  - Network retry attempts
-  - Successful completion: response length
-  - Prefix: `[AgentClient]`
-- spawnAgent logs:
-  - Agent spawn initiation: agent type, model, working directory
-  - Command being executed (with prompt placeholder for security)
-  - Process completion: exit codes (success/failure)
-  - Spawn errors: error messages
-  - Prefix: `[Agent]`
-- Logging follows existing patterns: direct console usage, minimal overhead
-- Error logs use console.error, informational logs use console.log
-- All logs designed for debugging and troubleshooting agent interactions
+- Verbosity controlled via src/logger.ts module with --verbose CLI flag
+- Default behavior: hides debug logs ([AgentClient]/[Agent] prefixed) for clean UX
+- Verbose mode: shows all logs for debugging (use --verbose flag)
+- Always-visible: critical errors and user-facing output regardless of verbose setting
+
+### Logging Categories:
+- **Debug logs** (verbose-only): Use `logVerbose()` and `logVerboseError()` from logger.ts
+  - AgentClient: request initiation, details, retry attempts, completion
+  - spawnAgent: spawn initiation, working directory, command execution, exit codes
+  - Prefixes: `[AgentClient]` and `[Agent]`
+- **Critical logs** (always visible): Use `log()` and `logError()` from logger.ts
+  - User-facing errors, warnings, important status messages
+  - Final task results and user notifications
+
+### Logger Module Pattern (src/logger.ts):
+- `setVerbose(boolean)` - control verbosity at runtime (called by CLI)
+- `logVerbose(message)` - info log only if verbose enabled
+- `logVerboseError(message)` - error log only if verbose enabled  
+- `log(message)` - always log (critical info)
+- `logError(message)` - always log error (critical errors)
+- Global state managed internally, CLI integration via commander.js global option
 
 ## Phase-Specific Model Configuration
 

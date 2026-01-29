@@ -1,6 +1,7 @@
 import { spawn, type ChildProcess } from 'child_process';
 import type { AgentType } from './config';
 import { exitWithError, ErrorMessages } from './errors';
+import { logVerbose, logVerboseError } from './logger';
 
 export interface SpawnAgentOptions {
   agent: AgentType;
@@ -24,8 +25,8 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
   const { agent, prompt, workingDir = process.cwd(), model } = options;
   
   // Log agent spawn initiation
-  console.log(`[Agent] Spawning ${agent} agent${model ? ` with model ${model}` : ''}`);
-  console.log(`[Agent] Working directory: ${workingDir}`);
+  logVerbose(`[Agent] Spawning ${agent} agent${model ? ` with model ${model}` : ''}`);
+  logVerbose(`[Agent] Working directory: ${workingDir}`);
   
   // Build command and args based on agent type
   // opencode: opencode run [--model anthropic/<model>] "prompt text"
@@ -48,7 +49,7 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
   
   // Log command being executed
   const cmdString = `${command} ${args.slice(0, -1).join(' ')} "<prompt>"`;
-  console.log(`[Agent] Command: ${cmdString}`);
+  logVerbose(`[Agent] Command: ${cmdString}`);
   
   return new Promise((resolve, reject) => {
     const child: ChildProcess = spawn(command, args, {
@@ -105,9 +106,9 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
       
       // Log completion status
       if (exitCode === 0) {
-        console.log(`[Agent] Process completed successfully (exit code 0)`);
+        logVerbose(`[Agent] Process completed successfully (exit code 0)`);
       } else {
-        console.error(`[Agent] Process exited with code ${exitCode}`);
+        logVerboseError(`[Agent] Process exited with code ${exitCode}`);
       }
       
       resolve({
@@ -123,7 +124,7 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
       process.off('SIGINT', handleSignal);
       process.off('SIGTERM', handleSignal);
       
-      console.error(`[Agent] Spawn error: ${error.message}`);
+      logVerboseError(`[Agent] Spawn error: ${error.message}`);
       reject(new Error(`Failed to spawn ${agent}: ${error.message}`));
     });
   });

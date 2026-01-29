@@ -212,9 +212,9 @@ tasks:
       [Agent] Command: opencode run --model anthropic/claude-sonnet-4-20250514 "<prompt>"
 
       None of the bracketed should be shown by default
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "--verbose flag to show all details from the hone commands"
       - "default output should be less verbose"
-    completed_at: null
+    completed_at: 2026-01-29T20:30:00.000Z

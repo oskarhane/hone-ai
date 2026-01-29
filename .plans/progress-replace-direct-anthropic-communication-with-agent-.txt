@@ -904,5 +904,75 @@ Key Review Findings:
 - ✓ No regressions introduced
 - ✓ Security improved (no API key exposure risk)
 
+Next Task: task-013
+
+================================================================================
+TASK-013: less verbose output from agents
+Date: 2026-01-29T20:30:00.000Z
+================================================================================
+
+Summary:
+Implemented less verbose output from agents by adding a --verbose flag to the CLI. Created a logger utility module that controls logging output based on the verbose flag. By default, all [AgentClient] and [Agent] log messages are hidden, but can be shown with --verbose flag. All existing functionality preserved with improved user experience.
+
+Files Changed:
+- src/logger.ts (created - logging utilities with verbose/quiet controls)
+- src/logger.test.ts (created - unit tests for logger module)
+- src/index.ts (modified - added --verbose flag and setVerbose calls for agent commands)
+- src/agent.ts (modified - replaced console.log/error with logVerbose/logVerboseError)
+- src/agent-client.ts (modified - replaced console.log/error with logVerbose/logVerboseError)
+
+Key Implementation Details:
+- Logger module provides setVerbose(boolean), logVerbose(), logVerboseError(), log(), logError()
+- --verbose flag added as global option in CLI
+- setVerbose() called at start of prd, prd-to-tasks, and run commands
+- All [AgentClient] and [Agent] logging moved to verbose-only functions
+- Critical error messages and user-facing output remain always visible
+- Backward compatible - existing behavior available with --verbose flag
+
+Test Coverage:
+- 5 new logger tests covering all verbose logging scenarios
+- 156 total tests pass (100% pass rate)
+- Build pipeline works correctly
+- CLI help shows --verbose flag properly
+
+Acceptance Criteria Met:
+✓ --verbose flag to show all details from the hone commands (added as global option)
+✓ default output should be less verbose (all bracketed logs now hidden by default)
+
+Key Benefits:
+- Cleaner default user experience with less noise
+- Debugging capability preserved via --verbose flag
+- Zero breaking changes to existing functionality
+- Clear separation between user messages and debug logs
+
+Usage Examples:
+- Default (quiet): `hone run tasks.yml -i 5`
+- Verbose (debug): `hone run tasks.yml -i 5 --verbose`
+- Help: `hone --help` shows --verbose option
+
 Next Task: All tasks complete! Feature complete.
+
+================================================================================
+FINALIZED: TASK-013
+Date: 2026-01-29T21:00:00.000Z
+================================================================================
+
+Summary:
+Finalized task-013 implementing less verbose output from agents. Added --verbose flag as global CLI option and created logger utility module. By default, all [AgentClient] and [Agent] debug logs are hidden for cleaner user experience. Verbose mode shows all previously visible logs. Critical errors and user-facing output remain always visible. Review feedback was LGTM - no changes needed.
+
+Files Changed:
+- src/logger.ts (created - logging utilities with verbose/quiet controls)
+- src/logger.test.ts (created - 5 unit tests for logger module)
+- src/index.ts (modified - added --verbose flag and setVerbose calls)
+- src/agent.ts (modified - replaced console.log/error with logVerbose functions)
+- src/agent-client.ts (modified - replaced console.log/error with logVerbose functions)
+
+Key Decisions:
+- Global --verbose flag accessible across all agent commands (prd, prd-to-tasks, run)
+- Logger module provides clean abstraction: setVerbose(), logVerbose(), logVerboseError(), log(), logError()
+- Backward compatible - existing behavior available with --verbose flag
+- Critical errors and user output always visible regardless of verbose setting
+- Zero breaking changes to existing functionality
+
+Next Task: All tasks complete! Agent integration feature fully implemented.
 
