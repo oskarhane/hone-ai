@@ -145,3 +145,13 @@ tasks:
     acceptance_criteria:
       - "the release is published to npm"
     completed_at: 2026-01-29T21:30:15.000Z
+
+  - id: task-011
+    title: "actions not showing up on github"
+    description: |
+      the github actions are not showing up on github
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "the github actions are showing up on github"
+    completed_at: null
