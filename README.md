@@ -7,8 +7,7 @@ hone manages the full development lifecycle from requirements gathering through 
 ## Prerequisites
 
 - [Bun](https://bun.sh) runtime
-- [OpenCode](https://opencode.ai) or [Claude Code](https://docs.anthropic.com/claude/docs/claude-code) CLI
-- [Anthropic API key](https://console.anthropic.com/)
+- [OpenCode](https://opencode.ai) or [Claude Code](https://docs.anthropic.com/claude/docs/claude-code) CLI with access to Claude models
 - Git-initialized project
 
 ## Installation
@@ -49,9 +48,13 @@ This creates:
 - `.plans/` directory for storing PRDs, tasks, and progress
 - `.plans/hone.config.yml` with default configuration
 
-2. Create `.env` file in project root:
+2. Ensure opencode or claude CLI is installed and configured:
 ```bash
-ANTHROPIC_API_KEY=your_api_key_here
+# Check if installed
+which opencode  # or: which claude
+
+# Verify access to Claude models
+opencode --help  # or: claude --help
 ```
 
 Note: Other commands will auto-initialize if you skip the `init` step.
@@ -63,12 +66,28 @@ Configuration is stored in `.plans/hone.config.yml`:
 ```yaml
 defaultAgent: claude
 models:
+  # Agent-specific models (required)
   opencode: claude-sonnet-4-20250514
   claude: claude-sonnet-4-20250514
+  
+  # Phase-specific model overrides (optional)
+  prd: claude-sonnet-4-20250514        # PRD generation
+  prdToTasks: claude-sonnet-4-20250514 # Task generation from PRD
+  implement: claude-opus-4-20250514    # Task implementation
+  review: claude-sonnet-4-20250514     # Code review
+  finalize: claude-sonnet-4-20250514   # Finalization and commits
+
 commitPrefix: hone
 feedbackInstructions: 'test: bun test, type check: bun run tsc'
 lintCommand:
 ```
+
+**Model Configuration Notes:**
+- Agent-specific models (`opencode`, `claude`) are required
+- Phase-specific models are optional - they override agent-specific models for that phase
+- Model names must use full version format: `claude-sonnet-4-YYYYMMDD` or `claude-opus-4-YYYYMMDD`
+- Check available models: `opencode --help` or `claude --help`
+- Model resolution priority: phase-specific > agent-specific > default
 
 ## Usage
 
@@ -170,8 +189,7 @@ project-root/
 │   ├── prd-<feature>.md           # PRD files
 │   ├── tasks-<feature>.yml        # Task lists
 │   └── progress-<feature>.txt     # Progress logs
-├── AGENTS.md                      # Project knowledge base
-└── .env                          # API keys
+└── AGENTS.md                      # Project knowledge base
 ```
 
 ## Examples
@@ -213,10 +231,11 @@ bun test
 
 hone handles common errors gracefully:
 
-- **Missing API key**: Instructions to create `.env` file
-- **Agent not found**: Installation instructions
+- **Agent not found**: Installation instructions for opencode or claude CLI
+- **Model unavailable**: Suggestions to check model name format and agent compatibility
 - **Task failure**: Exits immediately, failed task remains pending for retry
 - **Network errors**: Automatic retry with exponential backoff (3 attempts)
+- **Rate limiting**: Clear error message with retry-after time if available
 
 ## Development
 
@@ -224,7 +243,7 @@ This project uses:
 - Bun runtime
 - commander.js for CLI parsing
 - js-yaml for YAML parsing
-- Anthropic SDK for AI operations
+- Agent subprocess spawning for AI operations (opencode/claude CLI)
 - Tests next to source files (`x.test.ts`)
 
 ## License

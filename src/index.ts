@@ -21,7 +21,23 @@ if (!isInitCommand) {
 program
   .name('hone')
   .description('AI Coding Agent Orchestrator - Orchestrate AI agents to implement features based on PRDs')
-  .version('0.1.0');
+  .version('0.1.0')
+  .addHelpText('after', `
+Model Configuration:
+  Configure models in .plans/hone.config.yml:
+  
+  models:
+    opencode: claude-sonnet-4-20250514    # Default for opencode agent
+    claude: claude-sonnet-4-20250514      # Default for claude agent
+    prd: claude-sonnet-4-20250514         # Override for PRD generation (optional)
+    prdToTasks: claude-sonnet-4-20250514  # Override for task generation (optional)
+    implement: claude-opus-4-20250514     # Override for implementation (optional)
+    review: claude-sonnet-4-20250514      # Override for review (optional)
+    finalize: claude-sonnet-4-20250514    # Override for finalization (optional)
+  
+  Phase-specific models are optional and override agent-specific models.
+  Check available models: opencode --help or claude --help
+`);
 
 // Global flags
 program.option('--agent <type>', 'Override default agent (opencode or claude)');
