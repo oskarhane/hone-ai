@@ -1,0 +1,18 @@
+================================================================================
+TASK-001: Update package.json with new name and binary configuration
+Date: 2026-01-29T08:15:00.000Z
+================================================================================
+
+Summary:
+Renamed package from xloop to hone-ai, configured binary mapping for 'hone' command, updated repository URLs and metadata. Applied review feedback to update .gitignore for new build output filenames.
+
+Files Changed:
+- package.json (modified: changed name to 'hone-ai', updated bin to 'hone', updated repo URLs, added keywords/description)
+- .gitignore (modified: updated build output references from xloop/xloop.map to hone/hone.map)
+
+Key Decisions:
+- Package name: hone-ai (npm namespace available)
+- Binary name: hone (simpler than hone-ai for CLI usage)
+- Repository URL: https://github.com/oskarhane/hone.git (to be renamed in task-002)
+
+Next Task: task-002

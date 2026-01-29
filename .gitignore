@@ -7,8 +7,8 @@ dist
 *.tgz
 
 # build output
-xloop
-xloop.map
+hone
+hone.map
 
 # code coverage
 coverage

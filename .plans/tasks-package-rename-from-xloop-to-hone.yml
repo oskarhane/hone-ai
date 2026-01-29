@@ -1,0 +1,164 @@
+feature: package-rename-from-xloop-to-hone
+prd: ./prd-package-rename-from-xloop-to-hone.md
+created_at: 2026-01-29T07:52:26.117Z
+updated_at: 2026-01-29T07:52:26.117Z
+
+tasks:
+  - id: task-001
+    title: "Update package.json with new name and binary configuration"
+    description: |
+      Change package name to 'hone-ai' and configure binary mapping so 'hone' command is available when installed globally. Update all package metadata including description, keywords, and repository URLs.
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "Package name changed to 'hone-ai' in package.json"
+      - "Binary field maps 'hone' to correct entry point"
+      - "Repository URL updated to new repository name"
+      - "Package description and keywords reflect new branding"
+    completed_at: 2026-01-29T08:15:00.000Z
+
+  - id: task-002
+    title: "Rename repository and update all repository references"
+    description: |
+      Change repository name from xloop to hone-related name and update all references to the old repository URL in documentation, package.json, and configuration files.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "Repository renamed on hosting platform"
+      - "All documentation links point to new repository"
+      - "CI/CD configurations updated with new repository name"
+      - "Issue and pull request templates reference new repository"
+    completed_at: null
+
+  - id: task-003
+    title: "Update CLI entry point and command structure"
+    description: |
+      Modify the main CLI entry point to handle 'hone' branding and rename the 'do' command to 'run'. Update help text and command descriptions throughout the CLI framework.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "CLI responds to 'hone --version' correctly"
+      - "Help command shows 'hone' branding throughout"
+      - "'do' command renamed to 'run' command"
+      - "All CLI help text references 'hone' instead of 'xloop'"
+    completed_at: null
+
+  - id: task-004
+    title: "Replace all source code references from xloop to hone"
+    description: |
+      Systematically search and replace all variable names, function names, class names, and other identifiers containing 'xloop' with 'hone' equivalents. Update import/export statements and module references.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "All variable and function names updated from xloop to hone"
+      - "All class names and interfaces updated"
+      - "Import/export statements reference correct module names"
+      - "No remaining 'xloop' identifiers in source code"
+    completed_at: null
+
+  - id: task-005
+    title: "Update configuration directory paths and file system operations"
+    description: |
+      Change all hardcoded paths that reference '.xloop' directories to use '.hone' instead. Update any file system operations that create or access configuration directories.
+    status: pending
+    dependencies:
+      - task-004
+    acceptance_criteria:
+      - "Configuration directory uses '.hone' naming convention"
+      - "All file system operations reference correct paths"
+      - "No hardcoded '.xloop' paths remain in codebase"
+      - "Default configuration files created in '.hone' directory"
+    completed_at: null
+
+  - id: task-006
+    title: "Update all string literals and user-facing messages"
+    description: |
+      Replace all string literals containing 'xloop' with 'hone' including error messages, log output, user prompts, and any other user-facing text. Ensure consistent branding throughout.
+    status: pending
+    dependencies:
+      - task-004
+    acceptance_criteria:
+      - "All error messages reference 'hone' instead of 'xloop'"
+      - "Log output uses 'hone' branding consistently"
+      - "User prompts and help text updated"
+      - "No 'xloop' strings visible to end users"
+    completed_at: null
+
+  - id: task-007
+    title: "Update documentation files and README"
+    description: |
+      Comprehensively update README.md, API documentation, JSDoc comments, and any other documentation files to reference 'hone' and 'hone-ai' package. Update installation instructions and usage examples.
+    status: pending
+    dependencies:
+      - task-002
+      - task-003
+    acceptance_criteria:
+      - "README.md updated with new package name and installation instructions"
+      - "All JSDoc comments reference 'hone' instead of 'xloop'"
+      - "API documentation updated with new branding"
+      - "Usage examples show 'hone' commands correctly"
+    completed_at: null
+
+  - id: task-008
+    title: "Update build scripts and configuration files"
+    description: |
+      Modify build scripts, webpack config, tsconfig.json, and other build-related configuration files to reference the new package name and handle any path changes.
+    status: pending
+    dependencies:
+      - task-001
+      - task-005
+    acceptance_criteria:
+      - "Build scripts reference correct package name"
+      - "Output directories use 'hone' naming where applicable"
+      - "Configuration files updated with new paths"
+      - "Build process completes successfully with new naming"
+    completed_at: null
+
+  - id: task-009
+    title: "Update test files and test configurations"
+    description: |
+      Modify all test files to use new naming convention, update test configurations, and ensure all tests pass with the renamed package and commands. Update mock data and test fixtures.
+    status: pending
+    dependencies:
+      - task-004
+      - task-005
+      - task-006
+    acceptance_criteria:
+      - "All test files use 'hone' instead of 'xloop' in test names and descriptions"
+      - "Test configurations reference correct package and binary names"
+      - "Mock data and fixtures updated with new naming"
+      - "All tests pass with updated naming convention"
+    completed_at: null
+
+  - id: task-010
+    title: "Update CI/CD pipeline configurations"
+    description: |
+      Modify GitHub Actions, deployment scripts, and other CI/CD configurations to work with the new package name and repository. Update any environment variables or secrets that reference the old name.
+    status: pending
+    dependencies:
+      - task-002
+      - task-008
+    acceptance_criteria:
+      - "CI/CD pipelines reference correct repository and package names"
+      - "Deployment scripts updated with new naming"
+      - "Environment variables updated where necessary"
+      - "Build and deployment processes work end-to-end"
+    completed_at: null
+
+  - id: task-011
+    title: "Perform comprehensive testing of renamed package"
+    description: |
+      Test global installation via 'npm install -g hone-ai', verify 'hone' command works correctly, test all CLI functionality, and ensure no remaining xloop references are accessible to users.
+    status: pending
+    dependencies:
+      - task-003
+      - task-007
+      - task-009
+      - task-010
+    acceptance_criteria:
+      - "Global installation via 'npm install -g hone-ai' works correctly"
+      - "'hone' command available and functional after global install"
+      - "All CLI commands work: 'hone --version', 'hone help', 'hone run'"
+      - "No xloop references visible in any user interactions"
+    completed_at: null
