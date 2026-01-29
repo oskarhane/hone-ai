@@ -175,3 +175,23 @@ Key Decisions:
 - Remaining criteria N/A: no hosting platform, no CI/CD, no issue/PR templates
 
 Next Task: task-007
+
+================================================================================
+TASK-007: Update documentation files and README
+Date: 2026-01-29T18:45:00.000Z
+================================================================================
+
+Summary:
+Addressed review feedback by adding npm global installation instructions to README. Verified all JSDoc comments already updated (no xloop refs in src/). Fixed incomplete docs from task-003 by adding primary installation method.
+
+Files Changed:
+- README.md (modified: added npm global installation section with 'npm install -g hone-ai')
+
+Key Decisions:
+- JSDoc comments: all xloop refs already removed in task-004 (verified via grep)
+- API documentation: no separate API docs exist - all inline JSDoc
+- Usage examples: already updated in task-003 ('do' → 'run' command)
+- Primary installation method (npm global) was missing from README - now added
+- Historical PRD files (.plans/prd-xloop.md) left unchanged - they're archival
+
+Next Task: task-010

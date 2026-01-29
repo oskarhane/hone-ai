@@ -13,6 +13,14 @@ hone manages the full development lifecycle from requirements gathering through 
 
 ## Installation
 
+### Global Installation via npm
+
+```bash
+npm install -g hone-ai
+```
+
+This makes the `hone` command available system-wide.
+
 ### From Source
 
 ```bash
@@ -130,17 +138,17 @@ Creates `tasks-user-avatar-upload.yml` with dependency-ordered task list.
 
 Execute n iterations with review phase:
 ```bash
-bun src/index.ts do .plans/tasks-user-avatar-upload.yml -i 5
+bun src/index.ts run .plans/tasks-user-avatar-upload.yml -i 5
 ```
 
 Skip review for faster iteration:
 ```bash
-bun src/index.ts do .plans/tasks-user-avatar-upload.yml -i 5 --skip=review
+bun src/index.ts run .plans/tasks-user-avatar-upload.yml -i 5 --skip=review
 ```
 
 Use specific agent:
 ```bash
-bun src/index.ts do .plans/tasks-user-avatar-upload.yml -i 3 --agent opencode
+bun src/index.ts run .plans/tasks-user-avatar-upload.yml -i 3 --agent opencode
 ```
 
 ## How It Works
@@ -183,10 +191,10 @@ bun src/index.ts prd-to-tasks .plans/prd-email-notifications.md
 bun src/index.ts status
 
 # Execute 5 iterations
-bun src/index.ts do .plans/tasks-email-notifications.yml -i 5
+bun src/index.ts run .plans/tasks-email-notifications.yml -i 5
 
 # Continue with more work, skip review
-bun src/index.ts do .plans/tasks-email-notifications.yml -i 3 --skip=review
+bun src/index.ts run .plans/tasks-email-notifications.yml -i 3 --skip=review
 
 # Check progress
 bun src/index.ts prds
@@ -194,7 +202,7 @@ bun src/index.ts prds
 
 ### Use different agent
 ```bash
-bun src/index.ts do .plans/tasks-feature.yml -i 2 --agent opencode
+bun src/index.ts run .plans/tasks-feature.yml -i 2 --agent opencode
 ```
 
 ## Testing
