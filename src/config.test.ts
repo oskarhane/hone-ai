@@ -11,7 +11,7 @@ import {
   isValidAgent,
   resolveAgent,
   initProject,
-  type XLoopConfig 
+  type HoneConfig 
 } from './config';
 
 // Set test environment
@@ -69,14 +69,14 @@ describe('Config Management', () => {
     expect(config.defaultAgent).toBe('claude');
     expect(config.models.opencode).toBe('claude-sonnet-4-20250514');
     expect(config.models.claude).toBe('claude-sonnet-4-20250514');
-    expect(config.commitPrefix).toBe('xloop');
+    expect(config.commitPrefix).toBe('hone');
     
     // Verify file was created
     expect(existsSync(getConfigPath())).toBe(true);
   });
 
   test('loadConfig reads existing config', async () => {
-    const customConfig: XLoopConfig = {
+    const customConfig: HoneConfig = {
       defaultAgent: 'opencode',
       models: {
         opencode: 'custom-model',
@@ -94,7 +94,7 @@ describe('Config Management', () => {
   });
 
   test('saveConfig writes config correctly', async () => {
-    const config: XLoopConfig = {
+    const config: HoneConfig = {
       defaultAgent: 'opencode',
       models: {
         opencode: 'test-opencode',

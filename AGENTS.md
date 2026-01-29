@@ -1,12 +1,12 @@
 # AGENTS.md
 
-Learnings and patterns for future agents working on xloop.
+Learnings and patterns for future agents working on hone.
 
 ## CLI Structure
 
 - Using commander.js for CLI parsing
 - Entry point: src/index.ts with shebang for direct execution
-- All commands follow pattern: xloop <command> [options]
+- All commands follow pattern: hone <command> [options]
 - Auto-initialization: All commands except 'init' auto-create .plans/ and config
 - Init command: Explicit initialization with user feedback, idempotent
 
@@ -19,11 +19,11 @@ Learnings and patterns for future agents working on xloop.
 
 ## Project Structure
 
-- `.plans/` directory at project root stores all xloop state
+- `.plans/` directory at project root stores all hone state
 - Task files: `.plans/tasks-<feature>.yml`
 - PRD files: `.plans/prd-<feature>.md`
 - Progress logs: `.plans/progress-<feature>.txt`
-- Config: `.plans/xloop.config.json`
+- Config: `.plans/hone.config.json`
 - Tests: add unit tests in x.test.ts files next to the source file being tested
 
 ## Task Dependency Logic
@@ -38,7 +38,7 @@ Learnings and patterns for future agents working on xloop.
 
 - Model names must use full version format: `claude-sonnet-4-YYYYMMDD` (e.g., `claude-sonnet-4-20250514`)
 - Short names like `claude-sonnet-4` return 404 errors
-- Model config in `.plans/xloop.config.json` should always use full version names
+- Model config in `.plans/hone.config.json` should always use full version names
 - When updating API calls, ensure both default config and fallback values use correct format
 
 ## Task Generation
@@ -92,7 +92,7 @@ Learnings and patterns for future agents working on xloop.
 
 ## Error Module (src/errors.ts)
 
-- XLoopError extends Error with exitCode property for structured errors
+- HoneError extends Error with exitCode property for structured errors
 - formatError() uses ✗ symbol matching PRD spec for consistent error display
 - exitWithError() throws in test mode (NODE_ENV/BUN_ENV=test) to allow testing
 - isNetworkError() detects common network errors (ECONNREFUSED, ETIMEDOUT, etc.)
@@ -105,7 +105,7 @@ Learnings and patterns for future agents working on xloop.
 
 - Build script in package.json: `bun run build`
 - Uses `bun build --compile --minify --sourcemap` to create standalone executable
-- Outputs single binary `xloop` (~57MB) that includes Bun runtime and all dependencies
+- Outputs single binary `hone` (~57MB) that includes Bun runtime and all dependencies
 - Binary can be copied to /usr/local/bin or other PATH location for system-wide use
-- Build output (xloop, xloop.map) added to .gitignore
+- Build output (hone, hone.map) added to .gitignore
 - README documents both source installation and binary build process

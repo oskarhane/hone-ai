@@ -19,7 +19,7 @@ if (!isInitCommand) {
 }
 
 program
-  .name('xloop')
+  .name('hone')
   .description('AI Coding Agent Orchestrator - Orchestrate AI agents to implement features based on PRDs')
   .version('0.1.0');
 
@@ -29,20 +29,20 @@ program.option('--agent <type>', 'Override default agent (opencode or claude)');
 // Commands
 program
   .command('init')
-  .description('Initialize xloop in current directory')
+  .description('Initialize hone in current directory')
   .action(async () => {
     try {
       const result = await initProject();
       
       if (!result.plansCreated && !result.configCreated) {
-        console.log('xloop is already initialized in this directory.');
+        console.log('hone is already initialized in this directory.');
         console.log('');
         console.log('  .plans/ directory: exists');
         console.log('  config file: exists');
         return;
       }
       
-      console.log('Initialized xloop successfully!');
+      console.log('Initialized hone successfully!');
       console.log('');
       
       if (result.plansCreated) {
@@ -52,19 +52,19 @@ program
       }
       
       if (result.configCreated) {
-        console.log('  ✓ Created .plans/xloop.config.json');
+        console.log('  ✓ Created .plans/hone.config.json');
       } else {
-        console.log('  • .plans/xloop.config.json already exists');
+        console.log('  • .plans/hone.config.json already exists');
       }
       
       console.log('');
       console.log('Next steps:');
       console.log('  1. Set ANTHROPIC_API_KEY in your environment or .env file');
-      console.log('  2. Generate a PRD: xloop prd "your feature description"');
-      console.log('  3. Generate tasks: xloop prd-to-tasks .plans/prd-<feature>.md');
-      console.log('  4. Execute tasks: xloop do .plans/tasks-<feature>.yml -i 5');
+      console.log('  2. Generate a PRD: hone prd "your feature description"');
+      console.log('  3. Generate tasks: hone prd-to-tasks .plans/prd-<feature>.md');
+      console.log('  4. Execute tasks: hone run .plans/tasks-<feature>.yml -i 5');
     } catch (error) {
-      console.error('\n✗ Error initializing xloop:', error instanceof Error ? error.message : error);
+      console.error('\n✗ Error initializing hone:', error instanceof Error ? error.message : error);
       process.exit(1);
     }
   });
@@ -78,7 +78,7 @@ program
     if (prds.length === 0) {
       console.log('No PRDs found in .plans/');
       console.log('');
-      console.log('Create a PRD with: xloop prd "your feature description"');
+      console.log('Create a PRD with: hone prd "your feature description"');
       return;
     }
     
@@ -155,7 +155,7 @@ program
   });
 
 program
-  .command('do <tasks-file>')
+  .command('run <tasks-file>')
   .description('Execute tasks iteratively')
   .requiredOption('-i, --iterations <number>', 'Number of iterations to run')
   .option('--skip <phase>', 'Skip a phase (e.g., review)')

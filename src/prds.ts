@@ -32,7 +32,7 @@ export interface PrdInfo {
 
 /**
  * Extract feature name from PRD filename
- * e.g., "prd-xloop.md" -> "xloop"
+ * e.g., "prd-hone.md" -> "hone"
  */
 export function extractFeatureName(prdFilename: string): string {
   return prdFilename.replace(/^prd-/, '').replace(/\.md$/, '');

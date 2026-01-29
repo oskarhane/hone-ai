@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { exitWithError, ErrorMessages } from './errors';
 
-export interface XLoopConfig {
+export interface HoneConfig {
   defaultAgent: 'opencode' | 'claude';
   models: {
     opencode: string;
@@ -14,13 +14,13 @@ export interface XLoopConfig {
   lintCommand?: string;
 }
 
-const DEFAULT_CONFIG: XLoopConfig = {
+const DEFAULT_CONFIG: HoneConfig = {
   defaultAgent: 'claude',
   models: {
     opencode: 'claude-sonnet-4-20250514',
     claude: 'claude-sonnet-4-20250514'
   },
-  commitPrefix: 'xloop',
+  commitPrefix: 'hone',
   feedbackCommand: 'bun test',
   lintCommand: undefined
 };
@@ -37,10 +37,10 @@ export function ensurePlansDir(): void {
 }
 
 export function getConfigPath(): string {
-  return join(getPlansDir(), 'xloop.config.json');
+  return join(getPlansDir(), 'hone.config.json');
 }
 
-export async function loadConfig(): Promise<XLoopConfig> {
+export async function loadConfig(): Promise<HoneConfig> {
   ensurePlansDir();
   
   const configPath = getConfigPath();
@@ -60,7 +60,7 @@ export async function loadConfig(): Promise<XLoopConfig> {
   }
 }
 
-export async function saveConfig(config: XLoopConfig): Promise<void> {
+export async function saveConfig(config: HoneConfig): Promise<void> {
   ensurePlansDir();
   const configPath = getConfigPath();
   await writeFile(configPath, JSON.stringify(config, null, 2));

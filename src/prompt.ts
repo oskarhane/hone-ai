@@ -1,13 +1,13 @@
 import { existsSync } from 'fs';
 import { join, relative } from 'path';
-import { getPlansDir, type XLoopConfig } from './config';
+import { getPlansDir, type HoneConfig } from './config';
 
 export type PromptPhase = 'implement' | 'review' | 'finalize';
 
 export interface PromptOptions {
   phase: PromptPhase;
   featureName: string;
-  config: XLoopConfig;
+  config: HoneConfig;
   taskId?: string;
   reviewFeedback?: string;
 }
@@ -68,11 +68,11 @@ export function constructPrompt(options: PromptOptions): string {
 function getPhaseHeader(phase: PromptPhase): string {
   switch (phase) {
     case 'implement':
-      return '# XLOOP: IMPLEMENT PHASE';
+      return '# HONE: IMPLEMENT PHASE';
     case 'review':
-      return '# XLOOP: REVIEW PHASE';
+      return '# HONE: REVIEW PHASE';
     case 'finalize':
-      return '# XLOOP: FINALIZE PHASE';
+      return '# HONE: FINALIZE PHASE';
   }
 }
 
@@ -81,7 +81,7 @@ function getPhaseHeader(phase: PromptPhase): string {
  */
 function getPhaseInstructions(
   phase: PromptPhase,
-  config: XLoopConfig,
+  config: HoneConfig,
   taskId?: string,
   reviewFeedback?: string
 ): string {
@@ -156,7 +156,7 @@ Your changes should remain uncommitted at this point.
 At the end, output on a single line:
 TASK_COMPLETED: <task-id>
 
-This allows xloop to track which task you completed.
+This allows hone to track which task you completed.
 Only output this marker if the task is fully complete and all feedback loops pass.`;
 
   return instructions;
@@ -270,7 +270,7 @@ ${reviewFeedback || 'No review feedback provided (review was skipped or approved
      * All code changes
      * AGENTS.md (if you updated it)
    - Commit with format: \`<feature>-<task-id>: <descriptive message>\`
-   - Example: \`git commit -m "xloop-task-009: add prompt construction module"\`
+   - Example: \`git commit -m "hone-task-009: add prompt construction module"\`
    - Verify commit succeeded by checking \`git log -1\` shows your commit
    - DO NOT push to remote
 

@@ -94,7 +94,7 @@ describe('CLI Integration Tests', () => {
       
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('No PRDs found');
-      expect(result.stdout).toContain('Create a PRD with: xloop prd');
+      expect(result.stdout).toContain('Create a PRD with: hone prd');
     });
 
     test('lists PRD with no task file', () => {
@@ -235,7 +235,7 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['--help']);
       
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('xloop');
+      expect(result.stdout).toContain('hone');
       expect(result.stdout).toContain('AI Coding Agent Orchestrator');
     });
 
@@ -268,13 +268,13 @@ describe('CLI Integration Tests', () => {
     });
   });
 
-  describe('do command', () => {
+  describe('run command', () => {
     test('requires iterations flag', () => {
       createMockTaskFile('test-feature', [
         { id: 'task-1', title: 'Task 1', description: 'Test', status: 'pending', dependencies: [] }
       ]);
       
-      const result = runCli(['do', '.plans/tasks-test-feature.yml']);
+      const result = runCli(['run', '.plans/tasks-test-feature.yml']);
       
       expect(result.exitCode).toBe(1);
       expect(result.stderr).toContain('required option');
@@ -285,14 +285,14 @@ describe('CLI Integration Tests', () => {
         { id: 'task-1', title: 'Task 1', description: 'Test', status: 'pending', dependencies: [] }
       ]);
       
-      const result = runCli(['do', '.plans/tasks-test-feature.yml', '-i', 'invalid']);
+      const result = runCli(['run', '.plans/tasks-test-feature.yml', '-i', 'invalid']);
       
       // Should fail because 'invalid' parses to NaN which fails validation
       expect(result.exitCode).toBe(1);
     });
 
     test('validates tasks file exists', () => {
-      const result = runCli(['do', 'nonexistent.yml', '-i', '1']);
+      const result = runCli(['run', 'nonexistent.yml', '-i', '1']);
       
       expect(result.exitCode).toBe(1);
       expect(result.stderr).toContain('Error executing tasks');
@@ -304,14 +304,14 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['init']);
       
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Initialized xloop successfully!');
+      expect(result.stdout).toContain('Initialized hone successfully!');
       expect(result.stdout).toContain('✓ Created .plans/ directory');
-      expect(result.stdout).toContain('✓ Created .plans/xloop.config.json');
+      expect(result.stdout).toContain('✓ Created .plans/hone.config.json');
       expect(result.stdout).toContain('Next steps:');
       
       // Verify files were created
       expect(existsSync(join(TEST_CWD, '.plans'))).toBe(true);
-      expect(existsSync(join(TEST_CWD, '.plans', 'xloop.config.json'))).toBe(true);
+      expect(existsSync(join(TEST_CWD, '.plans', 'hone.config.json'))).toBe(true);
     });
 
     test('detects when already initialized', () => {
@@ -322,7 +322,7 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['init']);
       
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('xloop is already initialized');
+      expect(result.stdout).toContain('hone is already initialized');
       expect(result.stdout).toContain('.plans/ directory: exists');
       expect(result.stdout).toContain('config file: exists');
     });
@@ -334,12 +334,12 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['init']);
       
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Initialized xloop successfully!');
+      expect(result.stdout).toContain('Initialized hone successfully!');
       expect(result.stdout).toContain('• .plans/ directory already exists');
-      expect(result.stdout).toContain('✓ Created .plans/xloop.config.json');
+      expect(result.stdout).toContain('✓ Created .plans/hone.config.json');
       
       // Verify config was created
-      expect(existsSync(join(TEST_CWD, '.plans', 'xloop.config.json'))).toBe(true);
+      expect(existsSync(join(TEST_CWD, '.plans', 'hone.config.json'))).toBe(true);
     });
   });
 });

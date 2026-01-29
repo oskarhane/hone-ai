@@ -1,16 +1,16 @@
 /**
- * Error handling utilities for xloop
+ * Error handling utilities for hone
  */
 
-export class XLoopError extends Error {
+export class HoneError extends Error {
   constructor(message: string, public readonly exitCode: number = 1) {
     super(message);
-    this.name = 'XLoopError';
+    this.name = 'HoneError';
   }
 }
 
 /**
- * Format error message in xloop style with ✗ symbol
+ * Format error message in hone style with ✗ symbol
  */
 export function formatError(message: string, details?: string): string {
   let output = `✗ ${message}`;
@@ -29,7 +29,7 @@ export function exitWithError(message: string, details?: string): never {
   
   // In test mode, throw instead of exit to allow testing
   if (process.env.NODE_ENV === 'test' || process.env.BUN_ENV === 'test') {
-    throw new XLoopError(fullMessage);
+    throw new HoneError(fullMessage);
   }
   
   console.error(fullMessage);

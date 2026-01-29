@@ -8,7 +8,7 @@ import {
 
 describe('extractFeatureName', () => {
   test('extracts feature name from PRD filename', () => {
-    expect(extractFeatureName('prd-xloop.md')).toBe('xloop');
+    expect(extractFeatureName('prd-hone.md')).toBe('hone');
     expect(extractFeatureName('prd-delete-button.md')).toBe('delete-button');
     expect(extractFeatureName('prd-user-auth.md')).toBe('user-auth');
   });

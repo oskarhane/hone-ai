@@ -9,6 +9,8 @@ dist
 # build output
 hone
 hone.map
+xloop
+xloop.map
 
 # code coverage
 coverage

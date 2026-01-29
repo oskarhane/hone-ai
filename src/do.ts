@@ -83,7 +83,7 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
       console.error('\n✗ Implement phase failed');
       console.error('\nThe agent encountered an error during task implementation.');
       console.error('The task has NOT been marked as completed.');
-      console.error('When you run xloop again, it will retry the same task.');
+      console.error('When you run hone again, it will retry the same task.');
       console.error(`\nAgent exit code: ${implementResult.exitCode}`);
       if (implementResult.stderr) {
         console.error('\nError output:');
@@ -128,7 +128,7 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
         console.error('\n✗ Review phase failed');
         console.error('\nThe agent encountered an error during task review.');
         console.error('The task has NOT been marked as completed.');
-        console.error('When you run xloop again, it will retry the same task.');
+        console.error('When you run hone again, it will retry the same task.');
         console.error(`\nAgent exit code: ${reviewResult.exitCode}`);
         if (reviewResult.stderr) {
           console.error('\nError output:');

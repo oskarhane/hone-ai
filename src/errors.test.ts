@@ -3,7 +3,7 @@ import {
   formatError, 
   isNetworkError, 
   retryWithBackoff,
-  XLoopError,
+  HoneError,
   ErrorMessages
 } from './errors';
 
@@ -129,16 +129,16 @@ describe('retryWithBackoff', () => {
   });
 });
 
-describe('XLoopError', () => {
+describe('HoneError', () => {
   test('creates error with message', () => {
-    const error = new XLoopError('Test error');
+    const error = new HoneError('Test error');
     expect(error.message).toBe('Test error');
     expect(error.exitCode).toBe(1);
-    expect(error.name).toBe('XLoopError');
+    expect(error.name).toBe('HoneError');
   });
   
   test('creates error with custom exit code', () => {
-    const error = new XLoopError('Test error', 2);
+    const error = new HoneError('Test error', 2);
     expect(error.exitCode).toBe(2);
   });
 });

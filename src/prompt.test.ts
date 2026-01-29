@@ -2,7 +2,7 @@ import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { constructPrompt, type PromptPhase } from './prompt';
-import type { XLoopConfig } from './config';
+import type { HoneConfig } from './config';
 
 const TEST_WORKSPACE = join(process.cwd(), '.test-prompt-workspace');
 const TEST_PLANS_DIR = join(TEST_WORKSPACE, '.plans');
@@ -27,13 +27,13 @@ afterEach(() => {
   }
 });
 
-const mockConfig: XLoopConfig = {
+const mockConfig: HoneConfig = {
   defaultAgent: 'claude',
   models: {
     opencode: 'claude-sonnet-4-20250514',
     claude: 'claude-sonnet-4-20250514'
   },
-  commitPrefix: 'xloop',
+  commitPrefix: 'hone',
   feedbackCommand: 'bun test',
   lintCommand: 'bun run lint'
 };
@@ -52,7 +52,7 @@ describe('constructPrompt', () => {
       config: mockConfig
     });
     
-    expect(prompt).toContain('# XLOOP: IMPLEMENT PHASE');
+    expect(prompt).toContain('# HONE: IMPLEMENT PHASE');
   });
   
   test('includes AGENTS.md reference if exists', () => {
@@ -152,7 +152,7 @@ describe('constructPrompt', () => {
       taskId: 'task-001'
     });
     
-    expect(prompt).toContain('# XLOOP: REVIEW PHASE');
+    expect(prompt).toContain('# HONE: REVIEW PHASE');
     expect(prompt).toContain('# REVIEW CHECKLIST');
     expect(prompt).toContain('Correctness');
     expect(prompt).toContain('task-001');
@@ -173,7 +173,7 @@ describe('constructPrompt', () => {
       reviewFeedback: feedback
     });
     
-    expect(prompt).toContain('# XLOOP: FINALIZE PHASE');
+    expect(prompt).toContain('# HONE: FINALIZE PHASE');
     expect(prompt).toContain('# REVIEW FEEDBACK');
     expect(prompt).toContain('Missing error handling');
   });
@@ -232,7 +232,7 @@ describe('constructPrompt', () => {
       'tasks:\n  - id: task-001\n    status: pending\n'
     );
     
-    const configWithoutFeedback: XLoopConfig = {
+    const configWithoutFeedback: HoneConfig = {
       ...mockConfig,
       feedbackCommand: undefined
     };

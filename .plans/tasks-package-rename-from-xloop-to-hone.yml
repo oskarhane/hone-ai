@@ -34,7 +34,7 @@ tasks:
     title: "Update CLI entry point and command structure"
     description: |
       Modify the main CLI entry point to handle 'hone' branding and rename the 'do' command to 'run'. Update help text and command descriptions throughout the CLI framework.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -42,7 +42,7 @@ tasks:
       - "Help command shows 'hone' branding throughout"
       - "'do' command renamed to 'run' command"
       - "All CLI help text references 'hone' instead of 'xloop'"
-    completed_at: null
+    completed_at: 2026-01-29T15:45:00.000Z
 
   - id: task-004
     title: "Replace all source code references from xloop to hone"

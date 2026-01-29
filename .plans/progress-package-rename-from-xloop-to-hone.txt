@@ -47,3 +47,33 @@ Key Decisions:
 - README comprehensively updated with new branding
 
 Next Task: task-005
+
+================================================================================
+TASK-003: Update CLI entry point and command structure
+Date: 2026-01-29T15:45:00.000Z
+================================================================================
+
+Summary:
+Updated CLI branding from xloop to hone throughout help text and command structure. Renamed 'do' command to 'run' command. All CLI help output now shows hone branding consistently.
+
+Files Changed:
+- src/index.ts (modified: program name to 'hone', 'do' command renamed to 'run', help text updated)
+- src/commands/do.ts (modified: command description and help text to reference 'run' command)
+- src/commands/prd-generate.ts (modified: help text to show hone commands)
+- src/prompts/implement-phase.ts (modified: prompt instructions reference 'run' not 'do')
+- src/prompts/review-phase.ts (modified: prompt context references 'run' not 'do')
+- src/prompts/finalize-phase.ts (modified: prompt context references 'run' not 'do')
+- test-prd-e2e.sh (modified: test script uses 'hone run' instead of 'xloop do')
+- src/config.test.ts, src/errors.test.ts, src/task-utils.test.ts (modified: test descriptions reference hone)
+- AGENTS.md (modified: updated CLI structure section to document hone commands)
+- README.md (modified: usage examples show 'hone run' instead of 'xloop do')
+- .plans/hone.config.json (created: initial config with hone branding)
+- .gitignore (modified: added xloop binary to ignore list)
+
+Key Decisions:
+- Command renamed from 'do' to 'run' for better clarity (run <feature> is more intuitive)
+- All help text consistently references 'hone' CLI name
+- Config file properly created with hone branding during init
+- Old xloop binary artifacts added to .gitignore for cleanup
+
+Next Task: task-005
