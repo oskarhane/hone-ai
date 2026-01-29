@@ -107,7 +107,6 @@ tasks:
     status: pending
     dependencies:
       - task-001
-      - task-005
     acceptance_criteria:
       - "Build scripts reference correct package name"
       - "Output directories use 'hone' naming where applicable"
@@ -122,7 +121,6 @@ tasks:
     status: pending
     dependencies:
       - task-004
-      - task-005
       - task-006
     acceptance_criteria:
       - "All test files use 'hone' instead of 'xloop' in test names and descriptions"
