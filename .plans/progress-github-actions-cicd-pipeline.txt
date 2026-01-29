@@ -329,4 +329,34 @@ Key Decisions:
 - Maintained existing workflow functionality while fixing branch references
 - Applied targeted fix without unnecessary changes to working code
 
+================================================================================
+TASK-012: fix ci error
+Date: 2026-01-29T23:52:00.000Z
+================================================================================
+
+Summary:
+Fixed GitHub Actions CI error caused by Bun version mismatch and incorrect lockfile reference. Updated all workflows to use Bun 1.2.21 (matching local development environment) and corrected cache keys to reference 'bun.lock' instead of 'bun.lockb'.
+
+Files Changed:
+- .github/workflows/ci.yml (modified - updated Bun version to 1.2.21 and fixed cache key to use bun.lock)
+- .github/workflows/release-major.yml (modified - updated Bun version to 1.2.21 and fixed cache key)
+- .github/workflows/release-minor.yml (modified - updated Bun version to 1.2.21 and fixed cache key)
+
+Root Cause:
+- CI workflows configured with Bun 1.1.42 which had lockfile version compatibility issues
+- Cache keys incorrectly referenced 'bun.lockb' but actual lockfile is 'bun.lock'
+- Local development using Bun 1.2.21 created incompatibility with older CI version
+
+Key Decisions:
+- Upgraded all workflows to use Bun 1.2.21 to match local development environment
+- Fixed cache key pattern from '**/bun.lockb' to '**/bun.lock' for correct lockfile matching
+- Verified local compatibility: bun install --frozen-lockfile, bun test, bun run tsc --noEmit, bun run build
+- Maintained existing workflow structure and timeout configurations
+
+Verification:
+- Local test: bun install --frozen-lockfile ✅ (no errors)
+- Local test: bun test ✅ (156 tests pass)
+- Local test: bun run tsc --noEmit ✅ (no type errors)
+- Local test: bun run build ✅ (binary created successfully)
+
 Next Task: All tasks complete
