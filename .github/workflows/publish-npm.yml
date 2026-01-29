@@ -29,7 +29,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull latest changes with version bump
+        run: |
+          echo "Ensuring we have the latest version bump commit..."
+          git fetch origin master
+          git checkout master
+          git pull origin master
+          echo "✅ Latest changes pulled successfully"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
