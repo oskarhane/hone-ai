@@ -14,13 +14,12 @@ permissions:
   id-token: write # Required for OIDC trusted publishing to npm via called workflow
 
 jobs:
-  prepare-release:
-    name: Prepare Major Release
+  release-major:
+    name: Major Version Release
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
       new_version: ${{ steps.new_version.outputs.version }}
-      current_version: ${{ steps.current_version.outputs.current }}
     env:
       CI: true
       BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
@@ -55,7 +54,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "📦 Installing dependencies for version bump..."
+          echo "📦 Installing dependencies for build..."
           bun install --frozen-lockfile || {
             echo "❌ Dependency installation failed"
             echo "ℹ️  Check network connectivity and lockfile integrity"
@@ -106,7 +105,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          # Use npm version to bump major version (this updates package.json)
+          # Use npm version to bump major version (this updates package.json and creates a git commit and tag)
           NEW_VERSION=$(npm version major --no-git-tag-version --preid="")
 
           # Clean the version (remove 'v' prefix if present)
@@ -122,6 +121,57 @@ jobs:
             exit 1
           fi
           echo "✅ Version updated successfully to $NEW_VERSION"
+
+      - name: Build platform-specific binaries
+        run: |
+          echo "Building platform-specific binaries..."
+          bun run build
+        timeout-minutes: 3
+
+      - name: Verify binary builds
+        run: |
+          if [ ! -f "./hone-linux" ] || [ ! -f "./hone-macos" ]; then
+            echo "❌ Binary build failed - expected hone-linux and hone-macos executables"
+            echo "ℹ️  Expected binaries at: $(pwd)/hone-linux and $(pwd)/hone-macos"
+            echo "ℹ️  Check build script configuration"
+            ls -la . || true
+            exit 1
+          fi
+          echo "✅ Binary builds successful"
+          ls -la ./hone-linux ./hone-macos
+          echo "Linux binary size: $(du -h ./hone-linux | cut -f1)"
+          echo "macOS binary size: $(du -h ./hone-macos | cut -f1)"
+
+      - name: Prepare binaries for release
+        run: |
+          VERSION="${{ steps.new_version.outputs.version }}"
+
+          echo "🐧 Preparing Linux binary for release..."
+          # Create folder structure and prepare binary
+          chmod +x ./hone-linux
+          LINUX_FOLDER="hone-v${VERSION}-linux"
+          mkdir -p "$LINUX_FOLDER"
+          cp ./hone-linux "./$LINUX_FOLDER/hone"
+          LINUX_ZIP_NAME="hone-v${VERSION}-linux.zip"
+          zip -r "$LINUX_ZIP_NAME" "$LINUX_FOLDER"
+          rm -rf "$LINUX_FOLDER"
+
+          echo "🍎 Preparing macOS binary for release..."
+          # Create folder structure and prepare binary
+          chmod +x ./hone-macos
+          MACOS_FOLDER="hone-v${VERSION}-macos"
+          mkdir -p "$MACOS_FOLDER"
+          cp ./hone-macos "./$MACOS_FOLDER/hone"
+          MACOS_ZIP_NAME="hone-v${VERSION}-macos.zip"
+          zip -r "$MACOS_ZIP_NAME" "$MACOS_FOLDER"
+          rm -rf "$MACOS_FOLDER"
+
+          echo "✅ Both binaries prepared:"
+          echo "  Linux Archive: $LINUX_ZIP_NAME (folder: $LINUX_FOLDER/)"
+          echo "  macOS Archive: $MACOS_ZIP_NAME (folder: $MACOS_FOLDER/)"
+          ls -la "./$LINUX_ZIP_NAME" "./$MACOS_ZIP_NAME"
+          echo "Linux archive size: $(du -h "./$LINUX_ZIP_NAME" | cut -f1)"
+          echo "macOS archive size: $(du -h "./$MACOS_ZIP_NAME" | cut -f1)"
 
       - name: Sync with remote before committing
         run: |
@@ -141,223 +191,19 @@ jobs:
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.version }}"
           git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
-          git push origin "v$NEW_VERSION"
-          git push origin master
+           git push origin "v$NEW_VERSION"
+           git push origin master
         timeout-minutes: 2
 
-      - name: Prepare release summary
-        run: |
-          echo "✅ Major release preparation completed!"
-          echo "Version: ${{ steps.current_version.outputs.current }} → ${{ steps.new_version.outputs.version }}"
-          echo "Git tag: v${{ steps.new_version.outputs.version }} created"
-          echo "Package.json updated and committed"
-          echo "Ready for binary builds and GitHub release creation..."
-
-  build-linux:
-    name: Build Linux Binary
-    runs-on: ubuntu-latest
-    needs: prepare-release
-    timeout-minutes: 5
-    env:
-      CI: true
-      BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.prepare-release.outputs.new_version }}
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: "1.2.21"
-
-      - name: Cache Bun dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
-      - name: Install dependencies
-        run: |
-          echo "📦 Installing dependencies for Linux build..."
-          bun install --frozen-lockfile || {
-            echo "❌ Dependency installation failed"
-            exit 1
-          }
-          echo "✅ Dependencies installed successfully"
-        timeout-minutes: 2
-
-      - name: Build Linux binary
-        run: |
-          echo "🐧 Building Linux binary..."
-          bun run build:linux
+      - name: Create GitHub Release with binary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         timeout-minutes: 3
-
-      - name: Verify Linux binary
         run: |
-          if [ ! -f "./hone-linux" ]; then
-            echo "❌ Linux binary build failed - expected hone-linux executable"
-            ls -la . || true
-            exit 1
-          fi
-          echo "✅ Linux binary build successful"
-          ls -la ./hone-linux
-          echo "Linux binary size: $(du -h ./hone-linux | cut -f1)"
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
 
-      - name: Prepare Linux binary for release
-        run: |
-          VERSION="${{ needs.prepare-release.outputs.new_version }}"
-          echo "🐧 Preparing Linux binary for release..."
-
-          # Create folder structure and prepare binary
-          chmod +x ./hone-linux
-          LINUX_FOLDER="hone-v${VERSION}-linux"
-          mkdir -p "$LINUX_FOLDER"
-          cp ./hone-linux "./$LINUX_FOLDER/hone"
-          LINUX_ZIP_NAME="hone-v${VERSION}-linux.zip"
-          zip -r "$LINUX_ZIP_NAME" "$LINUX_FOLDER"
-          rm -rf "$LINUX_FOLDER"
-
-          echo "✅ Linux binary prepared:"
-          echo "  Archive: $LINUX_ZIP_NAME"
-          ls -la "./$LINUX_ZIP_NAME"
-          echo "Linux archive size: $(du -h "./$LINUX_ZIP_NAME" | cut -f1)"
-
-      - name: Upload Linux binary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: hone-v${{ needs.prepare-release.outputs.new_version }}-linux
-          path: hone-v${{ needs.prepare-release.outputs.new_version }}-linux.zip
-          retention-days: 1
-
-  build-macos:
-    name: Build macOS Binary
-    runs-on: macos-latest
-    needs: prepare-release
-    timeout-minutes: 5
-    env:
-      CI: true
-      BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.prepare-release.outputs.new_version }}
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: "1.2.21"
-
-      - name: Cache Bun dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
-      - name: Install dependencies
-        run: |
-          echo "📦 Installing dependencies for macOS build..."
-          bun install --frozen-lockfile || {
-            echo "❌ Dependency installation failed"
-            exit 1
-          }
-          echo "✅ Dependencies installed successfully"
-        timeout-minutes: 2
-
-      - name: Build macOS binary
-        run: |
-          echo "🍎 Building macOS binary..."
-          bun run build:macos
-        timeout-minutes: 3
-
-      - name: Verify macOS binary
-        run: |
-          if [ ! -f "./hone-macos" ]; then
-            echo "❌ macOS binary build failed - expected hone-macos executable"
-            ls -la . || true
-            exit 1
-          fi
-          echo "✅ macOS binary build successful"
-          ls -la ./hone-macos
-          echo "macOS binary size: $(du -h ./hone-macos | cut -f1)"
-          echo "Binary type: $(file ./hone-macos)"
-
-      - name: Test macOS binary functionality
-        run: |
-          echo "🧪 Testing macOS binary functionality..."
-          chmod +x ./hone-macos
-          ./hone-macos --version || {
-            echo "❌ macOS binary is not functional"
-            echo "ℹ️  Binary was built but cannot execute properly"
-            exit 1
-          }
-          echo "✅ macOS binary is functional"
-
-      - name: Prepare macOS binary for release
-        run: |
-          VERSION="${{ needs.prepare-release.outputs.new_version }}"
-          echo "🍎 Preparing macOS binary for release..."
-
-          # Create folder structure and prepare binary
-          chmod +x ./hone-macos
-          MACOS_FOLDER="hone-v${VERSION}-macos"
-          mkdir -p "$MACOS_FOLDER"
-          cp ./hone-macos "./$MACOS_FOLDER/hone"
-          MACOS_ZIP_NAME="hone-v${VERSION}-macos.zip"
-          zip -r "$MACOS_ZIP_NAME" "$MACOS_FOLDER"
-          rm -rf "$MACOS_FOLDER"
-
-          echo "✅ macOS binary prepared:"
-          echo "  Archive: $MACOS_ZIP_NAME"
-          ls -la "./$MACOS_ZIP_NAME"
-          echo "macOS archive size: $(du -h "./$MACOS_ZIP_NAME" | cut -f1)"
-
-      - name: Upload macOS binary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: hone-v${{ needs.prepare-release.outputs.new_version }}-macos
-          path: hone-v${{ needs.prepare-release.outputs.new_version }}-macos.zip
-          retention-days: 1
-
-  create-release:
-    name: Create GitHub Release
-    runs-on: ubuntu-latest
-    needs: [prepare-release, build-linux, build-macos]
-    timeout-minutes: 5
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.prepare-release.outputs.new_version }}
-          fetch-depth: 0
-
-      - name: Download Linux binary
-        uses: actions/download-artifact@v4
-        with:
-          name: hone-v${{ needs.prepare-release.outputs.new_version }}-linux
-
-      - name: Download macOS binary
-        uses: actions/download-artifact@v4
-        with:
-          name: hone-v${{ needs.prepare-release.outputs.new_version }}-macos
-
-      - name: Generate release notes
-        id: release_notes
-        run: |
-          NEW_VERSION="${{ needs.prepare-release.outputs.new_version }}"
-          CURRENT_VERSION="${{ needs.prepare-release.outputs.current_version }}"
-
+          # Generate release notes from commit history
           echo "Generating release notes from commit history..."
 
           # Get the previous tag to generate changelog from
@@ -377,71 +223,80 @@ jobs:
             fi
           fi
 
-          # Create release notes with changelog and save to file
-          cat > release_notes.md << EOF
-          ## Major Release v$NEW_VERSION
+          # Create release notes with changelog
+          RELEASE_NOTES="## Major Release v$NEW_VERSION
 
           This is a major version release with breaking changes.
 
           ### What's Changed
           $CHANGELOG
 
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG:-$(git rev-list --max-parents=0 HEAD)}...v$NEW_VERSION
-          EOF
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG:-$(git rev-list --max-parents=0 HEAD)}...v$NEW_VERSION"
 
-      - name: Create GitHub release
-        run: |
-          NEW_VERSION="${{ needs.prepare-release.outputs.new_version }}"
-
+          # Create GitHub release with auto-generated notes
           echo "🚀 Creating GitHub release..."
           if ! gh release create "v$NEW_VERSION" \
             --title "Release v$NEW_VERSION" \
-            --notes-file release_notes.md \
+            --notes "$RELEASE_NOTES" \
             --latest; then
             echo "❌ Failed to create GitHub release"
             echo "ℹ️  Check GitHub token permissions and repository access"
             exit 1
           fi
 
-      - name: Upload release binaries
+           # Attach both platform binary archives to release
+           echo "📎 Attaching binary archives to release..."
+           LINUX_ZIP_NAME="hone-v$NEW_VERSION-linux.zip"
+           MACOS_ZIP_NAME="hone-v$NEW_VERSION-macos.zip"
+           
+           if ! gh release upload "v$NEW_VERSION" "./$LINUX_ZIP_NAME" --clobber; then
+             echo "❌ Failed to upload Linux binary archive to release"
+             echo "ℹ️  Release created but Linux binary attachment failed"
+             exit 1
+           fi
+           
+           if ! gh release upload "v$NEW_VERSION" "./$MACOS_ZIP_NAME" --clobber; then
+             echo "❌ Failed to upload macOS binary archive to release"
+             echo "ℹ️  Release created but macOS binary attachment failed"
+             exit 1
+           fi
+           
+           echo "✅ GitHub release created with auto-generated notes and both platform binary archives"
+
+      - name: Clean up build artifacts
         run: |
-          NEW_VERSION="${{ needs.prepare-release.outputs.new_version }}"
+          echo "🧹 Cleaning up build artifacts..."
+          rm -f ./hone-linux ./hone-macos ./hone-v${{ steps.new_version.outputs.version }}-linux.zip ./hone-v${{ steps.new_version.outputs.version }}-macos.zip ./hone.map 2>/dev/null || true
+          echo "✅ Build artifacts cleaned up"
 
-          echo "📎 Attaching binary archives to release..."
-          LINUX_ZIP_NAME="hone-v$NEW_VERSION-linux.zip"
-          MACOS_ZIP_NAME="hone-v$NEW_VERSION-macos.zip"
-
-          if ! gh release upload "v$NEW_VERSION" "./$LINUX_ZIP_NAME" --clobber; then
-            echo "❌ Failed to upload Linux binary archive to release"
-            echo "ℹ️  Release created but Linux binary attachment failed"
-            exit 1
-          fi
-
-          if ! gh release upload "v$NEW_VERSION" "./$MACOS_ZIP_NAME" --clobber; then
-            echo "❌ Failed to upload macOS binary archive to release"
-            echo "ℹ️  Release created but macOS binary attachment failed"
-            exit 1
-          fi
-
-          echo "✅ GitHub release created with auto-generated notes and both platform binary archives"
+      - name: Release summary
+        run: |
+          echo "✅ Major release completed successfully!"
+          echo "Version: ${{ steps.current_version.outputs.current }} → ${{ steps.new_version.outputs.version }}"
+          echo "Git tag: v${{ steps.new_version.outputs.version }} created"
+          echo "Package.json updated and committed"
+          echo "Linux and macOS binaries built, zipped as 'hone', and attached to GitHub release:"
+          echo "  • hone-v${{ steps.new_version.outputs.version }}-linux.zip"
+          echo "  • hone-v${{ steps.new_version.outputs.version }}-macos.zip"
+          echo "GitHub Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"
 
   final-summary:
     name: Final Summary
-    needs: [prepare-release, create-release]
+    needs: [release-major]
     runs-on: ubuntu-latest
     steps:
       - name: Complete release summary
         run: |
-          echo "🎉 Major release v${{ needs.prepare-release.outputs.new_version }} completed successfully!"
+          echo "🎉 Major release v${{ needs.release-major.outputs.new_version }} completed successfully!"
           echo "📋 Release Summary:"
-          echo "  • GitHub Release: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.prepare-release.outputs.new_version }}"
-          echo "  • Linux Binary: Available in GitHub release as hone-v${{ needs.prepare-release.outputs.new_version }}-linux.zip"
-          echo "  • macOS Binary: Available in GitHub release as hone-v${{ needs.prepare-release.outputs.new_version }}-macos.zip (built on native macOS runner)"
+          echo "  • GitHub Release: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.release-major.outputs.new_version }}"
+          echo "  • Linux Binary: Available in GitHub release as hone-v${{ needs.release-major.outputs.new_version }}-linux.zip"
+          echo "  • macOS Binary: Available in GitHub release as hone-v${{ needs.release-major.outputs.new_version }}-macos.zip"
           echo ""
           echo "📦 To publish to NPM:"
           echo "  1. Go to: https://github.com/${{ github.repository }}/actions/workflows/publish-npm-manual.yml"
           echo "  2. Click 'Run workflow' button"
-          echo "  3. Enter version: ${{ needs.prepare-release.outputs.new_version }}"
+          echo "  3. Enter version: ${{ needs.release-major.outputs.new_version }}"
           echo "  4. Type 'CONFIRM' to proceed"
           echo ""
           echo "🔧 NPM Trusted Publisher Configuration:"

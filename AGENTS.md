@@ -191,9 +191,7 @@ Learnings and patterns for future agents working on hone.
 - Release artifacts named: `hone-v{version}-linux.zip` and `hone-v{version}-macos.zip`
 - Archive structure: `hone-v{version}-{platform}/hone` for organized extraction
 - Binaries inside zip archives always named `hone` for consistent user experience
-- **Native builds preferred over cross-compilation**: Use platform-specific runners (ubuntu-latest for Linux, macos-latest for macOS)
-- Cross-compilation from Linux to macOS may produce non-functional binaries - use native macOS runners instead
-- Job structure: prepare-release → build-linux/build-macos → create-release with GitHub Actions artifacts for binary passing
+- Cross-compilation on Ubuntu runners: builds both bun-linux-x64 and bun-darwin-arm64 targets
 - When calling reusable workflows: caller must have all permissions required by called workflow
 - OIDC publishing requires `id-token: write` permission in both caller and called workflows
 
