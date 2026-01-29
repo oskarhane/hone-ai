@@ -91,15 +91,22 @@ jobs:
       - name: Setup Node.js for npm publish
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
+
+      - name: Verify npm version
+        run: |
+          echo "npm version: $(npm --version)"
+          # Trusted publishing requires npm 11.5.1+
+          NPM_VERSION=$(npm --version)
+          echo "Using npm $NPM_VERSION"
 
       - name: Publish to NPM
         run: |
           echo "📦 Publishing v${{ inputs.version }} to NPM..."
 
-          # Publish to npm using OIDC trusted publishing (--provenance enables OIDC auth)
-          if ! npm publish --provenance --access public; then
+          # Publish to npm using OIDC trusted publishing (provenance is automatic)
+          if ! npm publish --access public; then
             echo "❌ NPM publishing failed"
             echo "ℹ️  Check package.json configuration and npm registry permissions"
             echo "ℹ️  Version may already exist or package name may be taken"
