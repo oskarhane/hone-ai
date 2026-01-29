@@ -116,3 +116,22 @@ Key Decisions:
 - Task-006 essentially verified completion of task-004 acceptance criteria
 
 Next Task: task-007
+
+================================================================================
+TASK-008: Update build scripts and configuration files
+Date: 2026-01-29T17:17:00.000Z
+================================================================================
+
+Summary:
+Verified that build configuration already correctly references 'hone' from task-001. package.json:22 build script outputs to 'hone' binary. tsconfig.json has no package-specific references (generic Bun config). Successfully tested build process: produced 57M hone binary that runs correctly.
+
+Files Changed:
+- None (all build configuration already correct from task-001)
+
+Key Decisions:
+- Build script already outputs to 'hone' not 'xloop' (updated in task-001)
+- No webpack/vite/rollup configs - using Bun's built-in bundler
+- tsconfig.json is package-agnostic (no changes needed)
+- Verified build produces working hone binary with correct version and help text
+
+Next Task: task-009
