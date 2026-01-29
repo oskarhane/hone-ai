@@ -65,3 +65,18 @@ tasks:
       - "output from hone status all files with relative paths"
       - "tests pass"
     completed_at: 2026-01-29T14:00:00Z
+
+  - id: task-005
+    title: "hone prd - has stopped asking questions"
+    description: |
+      the hone prd command has stopped asking clarifying questions.
+      It should give instructions to the agent to investigate teh codebase then
+      ask any clarifying questions that are needed to be able to write a concrete
+      and non ambiguous prd.
+      I think it might actually hang at the moment.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "hone prd <text> should ask user questions to sort out any vagueness"
+      - "hone prd <text> should ask user questions to sort out any ambiguity"
+    completed_at: null
