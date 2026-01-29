@@ -123,3 +123,25 @@ tasks:
       - "Resource usage optimized"
       - "Clear error messages in failed runs"
     completed_at: null
+
+  - id: task-009
+    title: "Name the binary following common convention for macos binaries"
+    description: |
+      Name the macos binary in the GH release following common convention. and make it a zip file.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "the github release artifact name follows common convention"
+      - "the macos binary is named following common convention"
+      - "the macos binary is zipped"
+    completed_at: null
+
+  - id: task-010
+    title: "also publish releases to npm"
+    description: |
+      publish the release to npm as well as to gh release.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "the release is published to npm"
+    completed_at: null
