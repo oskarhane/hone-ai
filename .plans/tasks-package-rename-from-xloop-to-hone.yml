@@ -133,7 +133,7 @@ tasks:
     title: "Update CI/CD pipeline configurations"
     description: |
       Modify GitHub Actions, deployment scripts, and other CI/CD configurations to work with the new package name and repository. Update any environment variables or secrets that reference the old name.
-    status: pending
+    status: cancelled
     dependencies:
       - task-002
       - task-008
@@ -148,7 +148,7 @@ tasks:
     title: "Perform comprehensive testing of renamed package"
     description: |
       Test global installation via 'npm install -g hone-ai', verify 'hone' command works correctly, test all CLI functionality, and ensure no remaining xloop references are accessible to users.
-    status: pending
+    status: cancelled
     dependencies:
       - task-003
       - task-007
