@@ -1,0 +1,19 @@
+================================================================================
+TASK-001: rename do.ts files to reflect the name change from do -> run
+Date: 2026-01-29T10:30:00Z
+================================================================================
+
+Summary:
+Renamed do.ts and do.test.ts to run.ts and run.test.ts to reflect the command 
+rename. Updated all imports and test descriptions.
+
+Files Changed:
+- src/do.ts → src/run.ts (renamed)
+- src/do.test.ts → src/run.test.ts (renamed, updated test workspace path and descriptions)
+- src/index.ts (updated import from './do' to './run')
+
+Key Decisions:
+- Pure rename refactor with no logic changes to minimize risk
+- Updated test workspace path from .test-workspace-do to .test-workspace-run for consistency
+
+Next Task: All tasks complete

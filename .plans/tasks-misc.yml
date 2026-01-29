@@ -1,0 +1,16 @@
+feature: misc
+created_at:
+updated_at:
+
+tasks:
+  - id: task-001
+    title: "rename do.ts files to reflect the name change from do -> run"
+    description: |
+      rename do.ts files to reflect the name change from do -> run
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "run.ts and run.test.ts files exist"
+      - "run command still works"
+      - "tests pass"
+    completed_at: 2026-01-29T10:30:00Z

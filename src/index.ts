@@ -162,7 +162,7 @@ program
   .action(async (tasksFile: string, options: { iterations: string; skip?: string }) => {
     try {
       const agent = await resolveAgent(program.opts().agent);
-      const { executeTasks } = await import('./do');
+      const { executeTasks } = await import('./run');
       await executeTasks({
         tasksFile,
         iterations: parseInt(options.iterations, 10),

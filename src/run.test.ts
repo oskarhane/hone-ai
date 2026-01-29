@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'bun:test';
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
-import { executeTasks } from './do';
+import { executeTasks } from './run';
 
 // Set test environment
 const originalEnv = process.env.BUN_ENV;
@@ -12,8 +12,8 @@ afterAll(() => {
   process.env.BUN_ENV = originalEnv;
 });
 
-describe('do module', () => {
-  const testWorkspace = join(process.cwd(), '.test-workspace-do');
+describe('run module', () => {
+  const testWorkspace = join(process.cwd(), '.test-workspace-run');
   const plansDir = join(testWorkspace, '.plans');
   
   beforeEach(() => {
