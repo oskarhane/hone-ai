@@ -200,10 +200,10 @@ tasks:
       bun run build, builds for the platform it's running on.
       I want to be able to build for a different platform.
       But I also want to be able to build for linux.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "bun run build - builds for all platforms"
       - "bun run build:linux - builds for linux"
       - "bun run build:macos - builds for macos"
-    completed_at: null
+    completed_at: 2026-01-29T19:28:00Z

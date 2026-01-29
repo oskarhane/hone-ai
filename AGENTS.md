@@ -166,11 +166,15 @@ Learnings and patterns for future agents working on hone.
 
 ## Build & Distribution
 
-- Build script in package.json: `bun run build`
-- Uses `bun build --compile --minify --sourcemap` to create standalone executable
-- Outputs single binary `hone` (~57MB) that includes Bun runtime and all dependencies
+- Build script in package.json: `bun run build` (builds for all platforms)
+- Platform-specific builds: `bun run build:linux`, `bun run build:macos`
+- Uses `bun build --compile --minify --sourcemap --target=<platform>` with cross-compilation
+- Supports multiple targets: bun-linux-x64 (servers), bun-darwin-arm64 (M1/M2 Macs)
+- Outputs platform-specific binaries: hone-linux (~104MB), hone-macos (~57MB)
+- Binaries include Bun runtime and all dependencies as standalone executables
 - Binary can be copied to /usr/local/bin or other PATH location for system-wide use
-- Build output (hone, hone.map) added to .gitignore
+- Build output (hone\*, hone.map) added to .gitignore
+- Cross-compilation allows building Linux binaries on macOS and vice versa
 - README documents both source installation and binary build process
 
 ## GitHub Actions CI/CD

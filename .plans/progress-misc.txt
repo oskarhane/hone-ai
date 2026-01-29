@@ -239,4 +239,27 @@ Key Decisions:
 - Added comprehensive tests covering unknown options, commands, and multiple unknown options
 - Preserved normal error handling for other command errors (like missing required options)
 
+================================================================================
+TASK-011: the build command is platform-specific
+Date: 2026-01-29T19:28:00Z
+================================================================================
+
+Summary:
+Implemented cross-platform build support using Bun's native cross-compilation capabilities.
+Updated package.json scripts to support building for Linux and macOS platforms separately or together.
+
+Files Changed:
+- package.json (updated build scripts to use --target flags for cross-compilation)
+  - build: builds for all platforms (Linux and macOS)
+  - build:linux: builds specifically for Linux x64
+  - build:macos: builds specifically for macOS ARM64
+
+Key Decisions:
+- Used bun-linux-x64 target for Linux compatibility (most servers)
+- Used bun-darwin-arm64 target for macOS ARM (M1/M2 Macs)
+- Main build script runs both platform builds in sequence
+- Output binaries have platform-specific names: hone-linux, hone-macos
+- Maintained existing minify and sourcemap options for all builds
+- All 160 tests pass, ensuring no regressions
+
 All Tasks Completed! 🎉
