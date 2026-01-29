@@ -70,7 +70,6 @@ describe('Config Management', () => {
     expect(config.defaultAgent).toBe('claude');
     expect(config.models.opencode).toBe('claude-sonnet-4-20250514');
     expect(config.models.claude).toBe('claude-sonnet-4-20250514');
-    expect(config.commitPrefix).toBe('hone');
     
     // Verify file was created
     expect(existsSync(getConfigPath())).toBe(true);
@@ -82,8 +81,7 @@ describe('Config Management', () => {
       models: {
         opencode: 'custom-model',
         claude: 'another-model'
-      },
-      commitPrefix: 'custom'
+      }
     };
     
     await saveConfig(customConfig);
@@ -91,7 +89,6 @@ describe('Config Management', () => {
     
     expect(loaded.defaultAgent).toBe('opencode');
     expect(loaded.models.opencode).toBe('custom-model');
-    expect(loaded.commitPrefix).toBe('custom');
   });
 
   test('saveConfig writes config correctly', async () => {
@@ -101,7 +98,6 @@ describe('Config Management', () => {
         opencode: 'test-opencode',
         claude: 'test-claude'
       },
-      commitPrefix: 'test',
       feedbackInstructions: 'test: npm test, lint: npm run lint',
       lintCommand: 'npm run lint'
     };
@@ -130,7 +126,7 @@ describe('Config Management', () => {
     await saveConfig({
       defaultAgent: 'claude',
       models: { opencode: 'test', claude: 'test' },
-      commitPrefix: 'test'
+
     });
     
     // Flag should override
@@ -143,7 +139,7 @@ describe('Config Management', () => {
     await saveConfig({
       defaultAgent: 'opencode',
       models: { opencode: 'test', claude: 'test' },
-      commitPrefix: 'test'
+
     });
     
     const agent = await resolveAgent();
@@ -203,8 +199,8 @@ describe('Model Resolution', () => {
       models: {
         opencode: 'claude-sonnet-4-20250514',
         claude: 'claude-sonnet-4-20250514'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const model = resolveModelForPhase(config);
@@ -218,8 +214,8 @@ describe('Model Resolution', () => {
         opencode: 'claude-sonnet-4-20250514',
         claude: 'claude-sonnet-4-20250514',
         implement: 'claude-opus-4-20250514'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const model = resolveModelForPhase(config, 'implement');
@@ -232,8 +228,8 @@ describe('Model Resolution', () => {
       models: {
         opencode: 'custom-opencode-model',
         claude: 'claude-sonnet-4-20250514'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const model = resolveModelForPhase(config, 'implement', 'opencode');
@@ -247,8 +243,8 @@ describe('Model Resolution', () => {
         opencode: 'opencode-default',
         claude: 'claude-default',
         review: 'review-specific-model'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const model = resolveModelForPhase(config, 'review', 'opencode');
@@ -261,8 +257,8 @@ describe('Model Resolution', () => {
       models: {
         opencode: 'opencode-model',
         claude: 'claude-model'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const model = resolveModelForPhase(config, 'prd');
@@ -275,8 +271,8 @@ describe('Model Resolution', () => {
       models: {
         opencode: '',
         claude: ''
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const model = resolveModelForPhase(config, 'finalize');
@@ -294,8 +290,8 @@ describe('Model Resolution', () => {
         implement: 'impl-model',
         review: 'review-model',
         finalize: 'final-model'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     expect(resolveModelForPhase(config, 'prd')).toBe('prd-model');
@@ -313,8 +309,8 @@ describe('Config Validation', () => {
       models: {
         opencode: 'claude-sonnet-4-20250514',
         claude: 'claude-opus-4-20251231'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const result = validateConfig(config);
@@ -330,8 +326,8 @@ describe('Config Validation', () => {
         claude: 'claude-sonnet-4-20250514',
         implement: 'claude-opus-4-20250601',
         review: 'claude-sonnet-4-20250701'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const result = validateConfig(config);
@@ -345,8 +341,8 @@ describe('Config Validation', () => {
       models: {
         opencode: 'invalid-model',
         claude: 'claude-sonnet-4-20250514'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const result = validateConfig(config);
@@ -363,8 +359,8 @@ describe('Config Validation', () => {
         opencode: 'claude-sonnet-4-20250514',
         claude: 'claude-sonnet-4-20250514',
         implement: 'wrong-format'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const result = validateConfig(config);
@@ -380,8 +376,8 @@ describe('Config Validation', () => {
         opencode: 'bad-opencode',
         claude: 'bad-claude',
         implement: 'bad-implement'
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const result = validateConfig(config);
@@ -396,8 +392,8 @@ describe('Config Validation', () => {
         opencode: 'claude-sonnet-4-20250514',
         claude: 'claude-sonnet-4-20250514'
         // No phase-specific models
-      },
-      commitPrefix: 'hone'
+      }
+
     };
     
     const result = validateConfig(config);

@@ -33,7 +33,6 @@ const mockConfig: HoneConfig = {
     opencode: 'claude-sonnet-4-20250514',
     claude: 'claude-sonnet-4-20250514'
   },
-  commitPrefix: 'hone',
   feedbackInstructions: 'test: bun test',
   lintCommand: 'bun run lint'
 };

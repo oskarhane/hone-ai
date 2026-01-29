@@ -8,14 +8,14 @@ tasks:
     title: "Remove commitPrefix from HoneConfig interface and DEFAULT_CONFIG"
     description: |
       Remove the commitPrefix property from the HoneConfig interface in src/config.ts and remove it from the DEFAULT_CONFIG object. This is the core change that eliminates the unused configuration option.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "commitPrefix property removed from HoneConfig interface"
       - "commitPrefix removed from DEFAULT_CONFIG object"
       - "TypeScript compilation succeeds after changes"
       - "No references to config.commitPrefix remain in config.ts"
-    completed_at: null
+    completed_at: "2026-01-29T10:55:12.000Z"
 
   - id: task-002
     title: "Add deprecated config validation for commitPrefix"
