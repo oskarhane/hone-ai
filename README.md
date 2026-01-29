@@ -1,183 +1,112 @@
 # hone
 
-**AI Coding Agent Orchestrator** — Orchestrate AI agents (opencode or claude) to implement features based on PRDs.
+**AI Coding Agent Orchestrator** — Automatically implement features from requirements using AI agents.
 
-hone manages the full development lifecycle from requirements gathering through implementation, review, and commits — enabling iterative, autonomous development with human oversight.
+Transform feature ideas into working code through autonomous development with human oversight.
+
+## Quick Start
+
+1. **Install hone**
+   ```bash
+   npm install -g hone-ai
+   ```
+
+2. **Install an AI agent** ([OpenCode](https://opencode.ai) or [Claude Code](https://docs.anthropic.com/claude/docs/claude-code))
+
+3. **Initialize in your project**
+   ```bash
+   hone init
+   ```
+
+4. **Create a feature**
+   ```bash
+   hone prd "Add user login with email and password"
+   hone prd-to-tasks .plans/prd-user-login.md
+   hone run .plans/tasks-user-login.yml -i 3
+   ```
+
+That's it! hone will implement the feature, run tests, and commit changes automatically.
 
 ## Prerequisites
 
 - [Bun](https://bun.sh) runtime
-- [OpenCode](https://opencode.ai) or [Claude Code](https://docs.anthropic.com/claude/docs/claude-code) CLI with access to Claude models
+- [OpenCode](https://opencode.ai) or [Claude Code](https://docs.anthropic.com/claude/docs/claude-code) CLI
 - Git-initialized project
 
-## Installation
+## Installation Options
 
-### Global Installation via npm
+### Global Installation (Recommended)
 
 ```bash
 npm install -g hone-ai
 ```
 
-This makes the `hone` command available system-wide.
-
 ### From Source
 
 ```bash
+git clone https://github.com/oskarhane/hone-ai.git
+cd hone-ai
 bun install
 ```
 
-### Build Single Executable
+Use `bun src/index.ts` instead of `hone` for all commands.
 
-Build a standalone macOS executable:
+### Standalone Binary
+
+Build a self-contained executable:
 
 ```bash
 bun run build
+cp hone /usr/local/bin/
 ```
 
-This creates a `hone` binary that can be moved anywhere (e.g., `/usr/local/bin/hone`).
+## Common Commands
 
-## Setup
-
-1. Initialize hone in your project:
+### Create and implement a feature
 ```bash
-bun src/index.ts init
-# or if installed globally: hone init
+hone prd "Feature description"              # Generate requirements
+hone prd-to-tasks .plans/prd-feature.md     # Generate tasks  
+hone run .plans/tasks-feature.yml -i 5      # Implement tasks
 ```
 
-This creates:
-- `.plans/` directory for storing PRDs, tasks, and progress
-- `.plans/hone.config.yml` with default configuration
-
-2. Ensure opencode or claude CLI is installed and configured:
+### Check progress
 ```bash
-# Check if installed
-which opencode  # or: which claude
-
-# Verify access to Claude models
-opencode --help  # or: claude --help
+hone status                                 # See incomplete tasks
+hone prds                                  # List all features
 ```
 
-Note: Other commands will auto-initialize if you skip the `init` step.
+### Advanced options
+```bash
+hone run tasks.yml -i 3 --agent opencode   # Use specific agent
+hone run tasks.yml -i 5 --skip=review      # Skip code review
+```
 
 ## Configuration
 
-Configuration is stored in `.plans/hone.config.yml`:
+Edit `.plans/hone.config.yml` to customize models and test commands:
 
 ```yaml
 defaultAgent: claude
 models:
-  # Agent-specific models (required)
   opencode: claude-sonnet-4-20250514
   claude: claude-sonnet-4-20250514
-  
-  # Phase-specific model overrides (optional)
-  prd: claude-sonnet-4-20250514        # PRD generation
-  prdToTasks: claude-sonnet-4-20250514 # Task generation from PRD
-  implement: claude-opus-4-20250514    # Task implementation
-  review: claude-sonnet-4-20250514     # Code review
-  finalize: claude-sonnet-4-20250514   # Finalization and commits
-
 feedbackInstructions: 'test: bun test, type check: bun run tsc'
-lintCommand:
 ```
 
-**Model Configuration Notes:**
-- Agent-specific models (`opencode`, `claude`) are required
-- Phase-specific models are optional - they override agent-specific models for that phase
-- Model names must use full version format: `claude-sonnet-4-YYYYMMDD` or `claude-opus-4-YYYYMMDD`
+**Advanced model configuration:**
+- Use phase-specific models (prd, implement, review, finalize)
+- Model names need full version: `claude-sonnet-4-YYYYMMDD`
 - Check available models: `opencode --help` or `claude --help`
-- Model resolution priority: phase-specific > agent-specific > default
-
-## Usage
-
-### Initialize Project
-
-```bash
-bun src/index.ts init
-```
-
-Creates `.plans/` directory and config file. Safe to run multiple times — won't overwrite existing setup.
-
-### List PRDs
-
-```bash
-bun src/index.ts prds
-```
-
-Example output:
-```
-PRDs in .plans/
-
-  prd-user-avatar-upload.md
-    Tasks: tasks-user-avatar-upload.yml
-    Status: in progress (3/7 completed)
-
-  prd-dark-mode.md
-    Tasks: none
-    Status: not started
-```
-
-### Generate PRD
-
-```bash
-bun src/index.ts prd "Add user avatar upload with cropping"
-```
-
-Interactive session with up to 5 rounds of clarifying questions. Type `done` to proceed anytime.
-
-### View Task Status
-
-```bash
-bun src/index.ts status
-```
-
-Example output:
-```
-Incomplete task lists:
-
-  tasks-user-avatar-upload.yml
-    Feature: user-avatar-upload
-    Progress: 3/7 tasks completed
-    Next: task-004 - Add confirmation dialog
-```
-
-### Generate Tasks from PRD
-
-```bash
-bun src/index.ts prd-to-tasks .plans/prd-user-avatar-upload.md
-```
-
-Creates `tasks-user-avatar-upload.yml` with dependency-ordered task list.
-
-### Execute Tasks
-
-Execute n iterations with review phase:
-```bash
-bun src/index.ts run .plans/tasks-user-avatar-upload.yml -i 5
-```
-
-Skip review for faster iteration:
-```bash
-bun src/index.ts run .plans/tasks-user-avatar-upload.yml -i 5 --skip=review
-```
-
-Use specific agent:
-```bash
-bun src/index.ts run .plans/tasks-user-avatar-upload.yml -i 3 --agent opencode
-```
 
 ## How It Works
 
-Each iteration executes up to 3 agent invocations:
+hone breaks feature development into 3 phases:
 
-1. **Implement**: Agent selects and implements the most important uncompleted task (respecting dependencies)
-2. **Review** *(optional)*: Agent reviews changes for correctness, tests, security, performance
-3. **Finalize**: Agent applies feedback, updates task file/progress log/AGENTS.md, commits changes
+1. **Implement** — AI selects and codes the next task (following dependencies)
+2. **Review** — AI checks code quality, tests, and security
+3. **Finalize** — AI applies feedback, updates docs, and commits changes
 
-The agent has full access to:
-- `/AGENTS.md` — Project-specific patterns and learnings
-- `.plans/tasks-<feature>.yml` — Full task list with dependencies
-- `.plans/progress-<feature>.txt` — Iteration history
+Each `hone run` executes multiple iterations of this cycle automatically.
 
 ## File Structure
 
@@ -185,65 +114,36 @@ The agent has full access to:
 project-root/
 ├── .plans/
 │   ├── hone.config.yml            # Configuration
-│   ├── prd-<feature>.md           # PRD files
-│   ├── tasks-<feature>.yml        # Task lists
-│   └── progress-<feature>.txt     # Progress logs
-└── AGENTS.md                      # Project knowledge base
+│   ├── prd-<feature>.md           # Requirements
+│   ├── tasks-<feature>.yml        # Task breakdown
+│   └── progress-<feature>.txt     # Development log
+└── AGENTS.md                      # AI learning notes
 ```
 
-## Examples
+## Troubleshooting
 
-### Full workflow
+**Agent not found**
 ```bash
-# Generate PRD
-bun src/index.ts prd "Add email notifications for order status"
+# Install OpenCode
+npm install -g @opencode/cli
 
-# Generate tasks
-bun src/index.ts prd-to-tasks .plans/prd-email-notifications.md
-
-# Check status
-bun src/index.ts status
-
-# Execute 5 iterations
-bun src/index.ts run .plans/tasks-email-notifications.yml -i 5
-
-# Continue with more work, skip review
-bun src/index.ts run .plans/tasks-email-notifications.yml -i 3 --skip=review
-
-# Check progress
-bun src/index.ts prds
+# Or install Claude Code
+# Follow instructions at https://docs.anthropic.com/claude/docs/claude-code
 ```
 
-### Use different agent
-```bash
-bun src/index.ts run .plans/tasks-feature.yml -i 2 --agent opencode
-```
+**Task fails**
+- Failed tasks remain pending and retry on next run
+- Check `.plans/progress-<feature>.txt` for error details
+- Network errors retry automatically (3 attempts)
 
-## Testing
+## Contributing
 
-Run unit and integration tests:
 ```bash
+git clone https://github.com/oskarhane/hone-ai.git
+cd hone-ai
+bun install
 bun test
 ```
-
-## Error Handling
-
-hone handles common errors gracefully:
-
-- **Agent not found**: Installation instructions for opencode or claude CLI
-- **Model unavailable**: Suggestions to check model name format and agent compatibility
-- **Task failure**: Exits immediately, failed task remains pending for retry
-- **Network errors**: Automatic retry with exponential backoff (3 attempts)
-- **Rate limiting**: Clear error message with retry-after time if available
-
-## Development
-
-This project uses:
-- Bun runtime
-- commander.js for CLI parsing
-- js-yaml for YAML parsing
-- Agent subprocess spawning for AI operations (opencode/claude CLI)
-- Tests next to source files (`x.test.ts`)
 
 ## License
 

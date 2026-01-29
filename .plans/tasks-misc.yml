@@ -75,10 +75,10 @@ tasks:
       the readme has some duplication and is not user-friendly.
       It should be rewritten to be more concise and easy to understand.
       Put getting started instructions up front.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "make README more user-friendly"
       - "rewrite README to be more concise and easy to understand"
       - "put getting started instructions up front"
-    completed_at: null
+    completed_at: 2026-01-29T18:15:00Z
