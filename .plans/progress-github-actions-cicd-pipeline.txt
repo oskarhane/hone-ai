@@ -454,4 +454,27 @@ Review Feedback Applied:
 - Clean removal of token-based authentication without leaving dead code
 - Accurate documentation and error messages for user guidance
 
+Next Task: task-016
+
+================================================================================
+TASK-016: have a single release to npm worksflow
+Date: 2026-01-29T12:15:30.000Z
+================================================================================
+
+Summary:
+Created single reusable NPM publishing workflow to satisfy OIDC trusted publisher requirement. Refactored major and minor release workflows to call shared NPM workflow, eliminating code duplication while maintaining automatic publishing.
+
+Files Changed:
+- .github/workflows/publish-npm.yml (created - reusable NPM publishing workflow with OIDC support)
+- .github/workflows/release-major.yml (modified - removed inline NPM publish, added workflow call to publish-npm.yml)
+- .github/workflows/release-minor.yml (modified - removed inline NPM publish, added workflow call to publish-npm.yml)
+
+Key Decisions:
+- Created reusable workflow `.github/workflows/publish-npm.yml` as single OIDC-enabled workflow
+- Both major/minor workflows now call shared workflow using `uses: ./.github/workflows/publish-npm.yml`
+- Moved `id-token: write` permission to NPM workflow only (security isolation)
+- Added job outputs to pass version between workflows
+- Added final summary job showing comprehensive release information
+- Maintained automatic NPM publishing with proper error handling and verification
+
 Next Task: All tasks complete

@@ -240,8 +240,8 @@ tasks:
       still automatically publish to npm if possible, but if not manual is ok.
       Feel free to web search for more information on how to configure oidc tokens for npm releases.
       https://docs.npmjs.com/trusted-publishers#supported-cicd-providers
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "single github workflow for the publishing to npm"
-    completed_at: null
+    completed_at: 2026-01-29T12:15:30.000Z

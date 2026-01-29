@@ -11,13 +11,14 @@ on:
 permissions:
   contents: write
   pull-requests: read
-  id-token: write # Required for OIDC trusted publishing to npm
 
 jobs:
   release-minor:
     name: Minor Version Release
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      new_version: ${{ steps.new_version.outputs.version }}
     env:
       CI: true
       BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
@@ -246,23 +247,6 @@ jobs:
            
            echo "✅ GitHub release created with auto-generated notes and macOS binary archive"
 
-      - name: Publish to NPM
-        run: |
-          echo "📦 Publishing to NPM..."
-
-          # Publish to npm using OIDC trusted publishing (no token required)
-          if ! npm publish; then
-            echo "❌ NPM publishing failed"
-            echo "ℹ️  Check package.json configuration and npm registry permissions"
-            echo "ℹ️  Version may already exist or package name may be taken"
-            echo "ℹ️  Ensure trusted publisher is configured on npmjs.com for this repository"
-            exit 1
-          fi
-
-          echo "✅ Successfully published to NPM using trusted publishing"
-          echo "NPM package: https://www.npmjs.com/package/hone-ai"
-        timeout-minutes: 2
-
       - name: Clean up build artifacts
         run: |
           echo "🧹 Cleaning up build artifacts..."
@@ -276,5 +260,25 @@ jobs:
           echo "Git tag: v${{ steps.new_version.outputs.version }} created"
           echo "Package.json updated and committed"
           echo "macOS binary built, zipped as 'hone', and attached to GitHub release as hone-v${{ steps.new_version.outputs.version }}-macos.zip"
-           echo "Published to NPM via trusted publishing: https://www.npmjs.com/package/hone-ai"
           echo "GitHub Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"
+
+  publish-to-npm:
+    name: Publish to NPM
+    needs: release-minor
+    uses: ./.github/workflows/publish-npm.yml
+    with:
+      version: ${{ needs.release-minor.outputs.new_version }}
+      release-type: "minor"
+
+  final-summary:
+    name: Final Summary
+    needs: [release-minor, publish-to-npm]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Complete release summary
+        run: |
+          echo "🎉 Minor release v${{ needs.release-minor.outputs.new_version }} completed successfully!"
+          echo "📋 Release Summary:"
+          echo "  • GitHub Release: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.release-minor.outputs.new_version }}"
+          echo "  • NPM Package: https://www.npmjs.com/package/hone-ai"
+          echo "  • macOS Binary: Available in GitHub release as hone-v${{ needs.release-minor.outputs.new_version }}-macos.zip"

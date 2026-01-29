@@ -1,0 +1,94 @@
+name: Publish to NPM
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Version to publish"
+        required: true
+        type: string
+      release-type:
+        description: "Release type (major/minor)"
+        required: true
+        type: string
+
+permissions:
+  id-token: write # Required for OIDC trusted publishing to npm
+  contents: read
+
+jobs:
+  publish-npm:
+    name: NPM Publication
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CI: true
+      BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2.21"
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies for NPM publish..."
+          bun install --frozen-lockfile || {
+            echo "❌ Dependency installation failed"
+            echo "ℹ️  Check network connectivity and lockfile integrity"
+            exit 1
+          }
+          echo "✅ Dependencies installed successfully"
+        timeout-minutes: 2
+
+      - name: Verify package version
+        run: |
+          CURRENT_VERSION=$(bun --print 'JSON.parse(require("fs").readFileSync("package.json", "utf8")).version')
+          EXPECTED_VERSION="${{ inputs.version }}"
+
+          if [ "$CURRENT_VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "❌ Version mismatch - package.json has $CURRENT_VERSION but expected $EXPECTED_VERSION"
+            echo "ℹ️  This suggests the release workflow did not properly update package.json"
+            exit 1
+          fi
+
+          echo "✅ Package version verified: $CURRENT_VERSION"
+
+      - name: Publish to NPM
+        run: |
+          echo "📦 Publishing v${{ inputs.version }} to NPM..."
+          echo "Release type: ${{ inputs.release-type }}"
+
+          # Publish to npm using OIDC trusted publishing (no token required)
+          if ! npm publish; then
+            echo "❌ NPM publishing failed"
+            echo "ℹ️  Check package.json configuration and npm registry permissions"
+            echo "ℹ️  Version may already exist or package name may be taken"
+            echo "ℹ️  Ensure trusted publisher is configured on npmjs.com for this repository"
+            exit 1
+          fi
+
+          echo "✅ Successfully published v${{ inputs.version }} to NPM using trusted publishing"
+          echo "NPM package: https://www.npmjs.com/package/hone-ai"
+        timeout-minutes: 2
+
+      - name: Publication summary
+        run: |
+          echo "✅ NPM publication completed successfully!"
+          echo "Version: v${{ inputs.version }}"
+          echo "Release type: ${{ inputs.release-type }}"
+          echo "Package URL: https://www.npmjs.com/package/hone-ai"
