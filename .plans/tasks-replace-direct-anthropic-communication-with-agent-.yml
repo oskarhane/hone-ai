@@ -142,7 +142,7 @@ tasks:
     title: "Add logging for agent service interactions"
     description: |
       Implement comprehensive logging for all agent service interactions to support debugging. Log requests, responses, model selections, and error conditions while maintaining existing logging patterns.
-    status: pending
+    status: completed
     dependencies:
       - task-005
     acceptance_criteria:
@@ -151,7 +151,7 @@ tasks:
       - "Response handling logged for debugging"
       - "Error conditions logged with context"
       - "Logging follows existing application patterns"
-    completed_at: null
+    completed_at: 2026-01-29T16:20:00.000Z
 
   - id: task-010
     title: "Clean up unused Anthropic dependencies"
