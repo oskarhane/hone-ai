@@ -86,4 +86,24 @@ Key Decisions:
 - Users can format instructions as they prefer (plain, bullets, etc.)
 - All 115 tests pass
 
+Next Task: task-005
+
+================================================================================
+TASK-005: list prds and tasks will full relative paths
+Date: 2026-01-29T14:00:00Z
+================================================================================
+
+Summary:
+Updated `hone prds` and `hone status` commands to display files with full relative paths
+(.plans/prd-*.md, .plans/tasks-*.yml) to make them clickable in terminals.
+
+Files Changed:
+- src/index.ts (added .plans/ prefix to prd.filename, prd.taskFile, and taskFile.filename output)
+- src/index.integration.test.ts (updated test expectations to check for .plans/ prefix in output)
+
+Key Decisions:
+- Added .plans/ prefix at display time in index.ts rather than in data structures
+- Kept internal data structures unchanged (filename only) for API consistency
+- All 115 tests pass
+
 Next Task: All tasks complete

@@ -86,8 +86,8 @@ program
     console.log('');
     
     for (const prd of prds) {
-      console.log(`  ${prd.filename}`);
-      console.log(`    Tasks: ${prd.taskFile || 'none'}`);
+      console.log(`  .plans/${prd.filename}`);
+      console.log(`    Tasks: ${prd.taskFile ? `.plans/${prd.taskFile}` : 'none'}`);
       
       if (prd.status === 'in progress' && prd.completedCount !== undefined && prd.totalCount !== undefined) {
         console.log(`    Status: ${prd.status} (${prd.completedCount}/${prd.totalCount} completed)`);
@@ -115,7 +115,7 @@ program
     console.log('');
     
     for (const taskFile of taskFiles) {
-      console.log(`  ${taskFile.filename}`);
+      console.log(`  .plans/${taskFile.filename}`);
       console.log(`    Feature: ${taskFile.feature}`);
       console.log(`    Progress: ${taskFile.completedCount}/${taskFile.totalCount} tasks completed`);
       

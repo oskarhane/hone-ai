@@ -58,10 +58,10 @@ tasks:
     title: "list prds and tasks will full relative paths"
     description: |
       list prds and tasks will full relative paths so they're clickable for users
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "output from hone prds list all files with relative paths"
       - "output from hone status all files with relative paths"
       - "tests pass"
-    completed_at: null
+    completed_at: 2026-01-29T14:00:00Z

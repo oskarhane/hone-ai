@@ -103,7 +103,7 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['prds']);
       
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('prd-test-feature.md');
+      expect(result.stdout).toContain('.plans/prd-test-feature.md');
       expect(result.stdout).toContain('Tasks: none');
       expect(result.stdout).toContain('Status: not started');
     });
@@ -118,8 +118,8 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['prds']);
       
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('prd-test-feature.md');
-      expect(result.stdout).toContain('Tasks: tasks-test-feature.yml');
+      expect(result.stdout).toContain('.plans/prd-test-feature.md');
+      expect(result.stdout).toContain('Tasks: .plans/tasks-test-feature.yml');
       expect(result.stdout).toContain('Status: in progress (1/2 completed)');
     });
 
@@ -133,7 +133,7 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['prds']);
       
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('prd-test-feature.md');
+      expect(result.stdout).toContain('.plans/prd-test-feature.md');
       expect(result.stdout).toContain('Status: completed');
     });
 
@@ -147,9 +147,9 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['prds']);
       
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('prd-feature-one.md');
-      expect(result.stdout).toContain('prd-feature-two.md');
-      expect(result.stdout).toContain('tasks-feature-one.yml');
+      expect(result.stdout).toContain('.plans/prd-feature-one.md');
+      expect(result.stdout).toContain('.plans/prd-feature-two.md');
+      expect(result.stdout).toContain('.plans/tasks-feature-one.yml');
       expect(result.stdout).toContain('Tasks: none');
     });
   });
@@ -172,7 +172,7 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['status']);
       
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('tasks-test-feature.yml');
+      expect(result.stdout).toContain('.plans/tasks-test-feature.yml');
       expect(result.stdout).toContain('Feature: test-feature');
       expect(result.stdout).toContain('Progress: 1/2 tasks completed');
       expect(result.stdout).toContain('Next: task-2 - Task 2');
