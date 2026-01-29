@@ -59,7 +59,7 @@ program
       
       console.log('');
       console.log('Next steps:');
-      console.log('  1. Set ANTHROPIC_API_KEY in your environment or .env file');
+      console.log('  1. Install opencode or claude CLI (hone uses agent subprocesses)');
       console.log('  2. Generate a PRD: hone prd "your feature description"');
       console.log('  3. Generate tasks: hone prd-to-tasks .plans/prd-<feature>.md');
       console.log('  4. Execute tasks: hone run .plans/tasks-<feature>.yml -i 5');

@@ -157,7 +157,7 @@ tasks:
     title: "Clean up unused Anthropic dependencies"
     description: |
       Remove unused Anthropic SDK imports, dependencies, and configuration after all direct API calls have been replaced. Update dependency configuration and package files.
-    status: pending
+    status: completed
     dependencies:
       - task-008
     acceptance_criteria:
@@ -166,7 +166,7 @@ tasks:
       - "Configuration files cleaned of unused Anthropic settings"
       - "Package files updated to remove unused dependencies"
       - "No dead code related to direct Anthropic calls remains"
-    completed_at: null
+    completed_at: 2026-01-29T17:00:00.000Z
 
   - id: task-011
     title: "Comprehensive testing of agent integration"

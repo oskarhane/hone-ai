@@ -15,7 +15,7 @@ Learnings and patterns for future agents working on hone.
 - Bun runtime (not Node.js)
 - commander.js for CLI
 - js-yaml for task file parsing
-- ai SDK with @anthropic-ai/sdk for AI operations
+- ai SDK (note: Anthropic SDK removed - all AI operations use agent subprocess spawning)
 
 ## Project Structure
 

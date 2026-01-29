@@ -29,7 +29,6 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.2",
     "ai": "^6.0.57",
     "commander": "^14.0.2",
     "js-yaml": "^4.1.1"

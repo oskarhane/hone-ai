@@ -548,3 +548,39 @@ Review Feedback Applied:
 
 Next Task: task-010
 
+================================================================================
+FINALIZED: task-010
+Date: 2026-01-29T10:01:23.000Z
+================================================================================
+
+Summary:
+Removed @anthropic-ai/sdk dependency from package.json and updated init command help text to reflect new agent subprocess model. All references to ANTHROPIC_API_KEY removed from user-facing documentation. Implementation clean with only intentional test references remaining.
+
+Files Changed:
+- package.json (modified - removed @anthropic-ai/sdk dependency)
+- src/index.ts (modified - updated init command help text to mention agent CLI installation instead of API key)
+- AGENTS.md (modified - documented dependency removal)
+
+Review Feedback Applied:
+- Medium priority: Fixed outdated init command help text at src/index.ts:62
+- Changed from "Set ANTHROPIC_API_KEY in your environment or .env file"
+- To "Install opencode or claude CLI (hone uses agent subprocesses)"
+- All 151 tests pass after changes
+
+Key Verification:
+- No @anthropic-ai/sdk imports remain in codebase
+- bun install successfully removed package from lockfile
+- All 151 tests pass (100% pass rate)
+- ErrorMessages.MISSING_API_KEY kept for reference (intentional)
+- Test files referencing ANTHROPIC_API_KEY are test fixtures (intentional)
+- New user onboarding now correctly explains agent CLI requirements
+
+Acceptance Criteria Met:
+✓ Unused Anthropic imports removed from codebase
+✓ Anthropic SDK dependency removed from package.json
+✓ Configuration files cleaned (AGENTS.md updated, init help fixed)
+✓ Package files updated to remove unused dependencies
+✓ No dead code related to direct Anthropic calls remains
+
+Next Task: task-011
+
