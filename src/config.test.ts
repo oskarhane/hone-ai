@@ -101,7 +101,7 @@ describe('Config Management', () => {
         claude: 'test-claude'
       },
       commitPrefix: 'test',
-      feedbackCommand: 'npm test',
+      feedbackInstructions: 'test: npm test, lint: npm run lint',
       lintCommand: 'npm run lint'
     };
     
