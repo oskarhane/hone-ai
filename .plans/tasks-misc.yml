@@ -53,3 +53,15 @@ tasks:
       - "hono init uses feedbackInstructions"
       - "prompts use feedbackInstructions"
     completed_at: 2026-01-29T13:30:00Z
+
+  - id: task-005
+    title: "list prds and tasks will full relative paths"
+    description: |
+      list prds and tasks will full relative paths so they're clickable for users
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "output from hone prds list all files with relative paths"
+      - "output from hone status all files with relative paths"
+      - "tests pass"
+    completed_at: null
