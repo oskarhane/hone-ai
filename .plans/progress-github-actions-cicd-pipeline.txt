@@ -359,4 +359,34 @@ Verification:
 - Local test: bun run tsc --noEmit ✅ (no type errors)
 - Local test: bun run build ✅ (binary created successfully)
 
+Next Task: task-013
+
+================================================================================
+TASK-013: fix ci error
+Date: 2026-01-29T12:52:30.000Z
+================================================================================
+
+Summary:
+Fixed GitHub Actions permission error (403 - Permission denied to github-actions[bot]) by adding explicit permissions block to both release workflows. Added 'contents: write' and 'pull-requests: read' permissions to allow git operations.
+
+Files Changed:
+- .github/workflows/release-major.yml (modified - added permissions block for contents write access)
+- .github/workflows/release-minor.yml (modified - added permissions block for contents write access)
+
+Key Decisions:
+- Added minimal required permissions: 'contents: write' for git operations, 'pull-requests: read' for workflow context
+- Applied consistent permissions configuration to both major and minor release workflows
+- Followed GitHub Actions security best practices with explicit, scoped permissions
+- Addressed root cause of 403 error from git push/tag operations
+
+Root Cause:
+- GitHub Actions workflows lacked explicit permissions for git operations
+- Default permissions insufficient for pushing tags and commits to repository
+- Error: "remote: Permission to oskarhane/hone-ai.git denied to github-actions[bot]"
+
+Review Feedback Applied:
+- All feedback was positive (LGTM) - implementation correctly addresses permission issues
+- Security best practices followed with minimal scoped permissions
+- Clean, consistent implementation across both workflow files
+
 Next Task: All tasks complete

@@ -202,8 +202,8 @@ tasks:
       Error: Process completed with exit code 128.
 
       See https://graphite.com/guides/how-to-automate-tagging-and-release-workflows-in-github for info on tagging and realeasing.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "run works on github"
-    completed_at: null
+    completed_at: 2026-01-29T12:52:30.000Z

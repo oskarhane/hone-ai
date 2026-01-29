@@ -8,6 +8,10 @@ on:
         required: true
         default: ""
 
+permissions:
+  contents: write
+  pull-requests: read
+
 jobs:
   release-minor:
     name: Minor Version Release
