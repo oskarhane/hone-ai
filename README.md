@@ -1,8 +1,8 @@
-# xloop
+# hone
 
 **AI Coding Agent Orchestrator** — Orchestrate AI agents (opencode or claude) to implement features based on PRDs.
 
-xloop manages the full development lifecycle from requirements gathering through implementation, review, and commits — enabling iterative, autonomous development with human oversight.
+hone manages the full development lifecycle from requirements gathering through implementation, review, and commits — enabling iterative, autonomous development with human oversight.
 
 ## Prerequisites
 
@@ -27,19 +27,19 @@ Build a standalone macOS executable:
 bun run build
 ```
 
-This creates a `xloop` binary that can be moved anywhere (e.g., `/usr/local/bin/xloop`).
+This creates a `hone` binary that can be moved anywhere (e.g., `/usr/local/bin/hone`).
 
 ## Setup
 
-1. Initialize xloop in your project:
+1. Initialize hone in your project:
 ```bash
 bun src/index.ts init
-# or if installed globally: xloop init
+# or if installed globally: hone init
 ```
 
 This creates:
 - `.plans/` directory for storing PRDs, tasks, and progress
-- `.plans/xloop.config.json` with default configuration
+- `.plans/hone.config.json` with default configuration
 
 2. Create `.env` file in project root:
 ```bash
@@ -50,7 +50,7 @@ Note: Other commands will auto-initialize if you skip the `init` step.
 
 ## Configuration
 
-Configuration is stored in `.plans/xloop.config.json`:
+Configuration is stored in `.plans/hone.config.json`:
 
 ```json
 {
@@ -161,7 +161,7 @@ The agent has full access to:
 ```
 project-root/
 ├── .plans/
-│   ├── xloop.config.json          # Configuration
+│   ├── hone.config.json           # Configuration
 │   ├── prd-<feature>.md           # PRD files
 │   ├── tasks-<feature>.yml        # Task lists
 │   └── progress-<feature>.txt     # Progress logs
@@ -206,7 +206,7 @@ bun test
 
 ## Error Handling
 
-xloop handles common errors gracefully:
+hone handles common errors gracefully:
 
 - **Missing API key**: Instructions to create `.env` file
 - **Agent not found**: Installation instructions

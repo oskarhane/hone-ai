@@ -16,3 +16,34 @@ Key Decisions:
 - Repository URL: https://github.com/oskarhane/hone.git (to be renamed in task-002)
 
 Next Task: task-002
+
+================================================================================
+TASK-004: Replace all source code references from xloop to hone
+Date: 2026-01-29T14:30:00.000Z
+================================================================================
+
+Summary:
+Replaced all xloop identifiers with hone throughout source code, tests, and docs. Updated README.md, test scripts, and regenerated bun.lock with new package name.
+
+Files Changed:
+- src/config.ts (modified: XLoopConfig → HoneConfig)
+- src/errors.ts (modified: XLoopError → HoneError)
+- src/commands/init.ts (modified: references to hone CLI and config)
+- src/commands/prd-to-tasks.ts (modified: commit prefix to hone)
+- src/prompts/implement-phase.ts (modified: CLI name to hone)
+- src/prompts/review-phase.ts (modified: CLI name to hone)
+- src/prompts/finalize-phase.ts (modified: CLI name to hone)
+- All test files (modified: XLoopConfig → HoneConfig, XLoopError → HoneError)
+- README.md (modified: all xloop references → hone, config paths → hone.config.json)
+- test-prd-e2e.sh (modified: config path → .plans/hone.config.json)
+- bun.lock (regenerated: with new package name hone-ai)
+- AGENTS.md (modified: updated branding to hone)
+
+Key Decisions:
+- All TypeScript interfaces/classes renamed: XLoopConfig → HoneConfig, XLoopError → HoneError
+- All user-facing strings updated from xloop to hone
+- Config file paths: .plans/xloop.config.json → .plans/hone.config.json
+- Lock file regenerated via bun install to reflect new package name
+- README comprehensively updated with new branding
+
+Next Task: task-005
