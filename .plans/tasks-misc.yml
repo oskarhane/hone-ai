@@ -233,8 +233,8 @@ tasks:
     title: "fix failing tests"
     description: |
       fix failing tests, bun run test
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "all tests pass"
-    completed_at: null
+    completed_at: 2026-01-29T23:45:00Z

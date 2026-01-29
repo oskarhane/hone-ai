@@ -313,14 +313,14 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['--version'])
 
       expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('0.5.0')
+      expect(result.stdout).toContain('0.6.0')
     })
 
     test('-v shows version', () => {
       const result = runCli(['-v'])
 
       expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('0.5.0')
+      expect(result.stdout).toContain('0.6.0')
     })
 
     test('unknown option shows help instead of error', () => {

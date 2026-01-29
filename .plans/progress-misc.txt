@@ -307,4 +307,25 @@ Key Decisions:
 - Added folder structure information to build output logs for transparency
 - Applied changes identically to both major and minor release workflows
 
+================================================================================
+TASK-014: fix failing tests
+Date: 2026-01-29T23:45:00Z
+================================================================================
+
+Summary:
+Fixed two categories of failing tests: version tests expecting 0.5.0 instead of 0.6.0,
+and task-generator tests lacking proper AgentClient mocking for isolated testing.
+
+Files Changed:
+- src/index.integration.test.ts (updated version expectations from 0.5.0 to 0.6.0)
+- src/task-generator.test.ts (added comprehensive AgentClient mocking with mock.module(), proper cleanup with mock.restore(), enhanced test coverage with file content verification)
+
+Key Decisions:
+- Updated version tests to match current package.json version (0.6.0)
+- Implemented comprehensive mocking strategy for AgentClient to avoid real API calls in tests
+- Added proper mock cleanup with afterEach hooks to prevent test pollution
+- Enhanced task generator test to verify both file creation and content correctness
+- Used Bun's mock.module() for reliable test isolation
+- All 160 tests now pass consistently
+
 All Tasks Completed! 🎉
