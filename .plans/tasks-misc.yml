@@ -82,3 +82,14 @@ tasks:
       - "rewrite README to be more concise and easy to understand"
       - "put getting started instructions up front"
     completed_at: 2026-01-29T18:15:00Z
+
+  - id: task-007
+    title: "install yaml formatter and linting tool"
+    description: |
+      we have issues with yaml formatting and linting.
+      Install a yaml formatter and linting tool to ensure consistency and quality.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "editing yaml files are faster and more consistent"
+    completed_at: null
