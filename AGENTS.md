@@ -202,16 +202,20 @@ Learnings and patterns for future agents working on hone.
 
 ## NPM Trusted Publisher with GitHub Actions
 
+- **CRITICAL: Requires npm 11.5.1+ (Node.js 24)** - older npm versions fail with "Access token expired" errors
 - NPM trusted publisher requires exact workflow filename match on npmjs.com configuration
 - Each package can only have ONE trusted publisher configuration
 - When using `workflow_call`, NPM validates against the calling workflow name, not the called workflow
 - Multiple release workflows calling shared NPM workflow creates unsolvable configuration conflict
 - Solution: Single dedicated manual workflow (e.g., publish-npm-manual.yml) triggered after releases
-- OIDC authentication requires `id-token: write` permission
+- OIDC authentication requires `id-token: write` permission at both workflow and job level
+- Must use `actions/setup-node@v4` with `registry-url: 'https://registry.npmjs.org'`
 - Configuration fields are case-sensitive and must match exactly:
   - Organization/user: GitHub username or org name
   - Repository: Repository name (case-sensitive)
   - Workflow filename: Exact filename including .yml extension
   - Environment name: Optional, leave empty if not using GitHub environments
 - Common ENEEDAUTH errors indicate misconfigured or missing trusted publisher setup
+- "Access token expired or revoked" with successful provenance signing = npm version too old
 - Trusted publisher configuration URL: https://www.npmjs.com/package/{package-name}/access
+- Provenance is automatic with trusted publishing - no need for `--provenance` flag
