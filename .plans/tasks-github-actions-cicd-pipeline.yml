@@ -212,8 +212,8 @@ tasks:
     title: "finx macos unpacked binary name"
     description: |
       after downloading the macos binary from the release page, I see that the filename is "hone-macos" whic it shouldn't be. It should just be "hone"
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "the unpacked binary name is hone"
-    completed_at: null
+    completed_at: 2026-01-29T23:59:45.000Z

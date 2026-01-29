@@ -389,4 +389,35 @@ Review Feedback Applied:
 - Security best practices followed with minimal scoped permissions
 - Clean, consistent implementation across both workflow files
 
+Next Task: task-014
+
+================================================================================
+TASK-014: fix macos unpacked binary name
+Date: 2026-01-29T23:59:45.000Z
+================================================================================
+
+Summary:
+Fixed macOS binary naming issue where downloaded zip contained "hone-macos" instead of "hone". Removed unnecessary binary renaming step and updated comments and logging to reflect correct behavior.
+
+Files Changed:
+- .github/workflows/release-major.yml (modified - removed mv ./hone ./hone-macos command and updated comments/logging)
+- .github/workflows/release-minor.yml (modified - removed mv ./hone ./hone-macos command and updated comments/logging)
+
+Key Decisions:
+- Removed problematic `mv ./hone ./hone-macos` command that was incorrectly renaming binary inside zip
+- Kept zip archive naming convention (`hone-v{VERSION}-macos.zip`) while preserving internal binary name
+- Updated comments to clarify: "keep binary named 'hone' inside zip"
+- Updated logging messages to reflect correct binary name inside zip
+- Fixed cleanup steps to remove correct artifacts (./hone instead of ./hone-macos)
+
+Root Cause:
+- Build creates binary named "hone" but workflow was renaming it to "hone-macos" before zipping
+- Users downloading and extracting zip expected file named "hone" but got "hone-macos"
+- Archive name should indicate platform, but internal binary should keep standard name
+
+Review Feedback Applied:
+- Review feedback was "LGTM" - no changes needed
+- Implementation correctly meets all acceptance criteria
+- Clean, minimal fix that directly addresses user problem
+
 Next Task: All tasks complete

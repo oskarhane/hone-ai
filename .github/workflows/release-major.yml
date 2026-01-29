@@ -142,20 +142,19 @@ jobs:
         run: |
           echo "🍎 Preparing macOS binary for release..."
 
-          # Rename binary following macOS conventions
-          mv ./hone ./hone-macos
-          chmod +x ./hone-macos
+          # Ensure binary has proper permissions
+          chmod +x ./hone
 
-          # Create zip file with proper naming
+          # Create zip file with proper naming (keep binary named 'hone' inside zip)
           VERSION="${{ steps.new_version.outputs.version }}"
           ZIP_NAME="hone-v${VERSION}-macos.zip"
-          zip "$ZIP_NAME" hone-macos
-           
-           echo "✅ macOS binary prepared:"
-           echo "  Binary: hone-macos"
-           echo "  Archive: $ZIP_NAME"
-           ls -la ./hone-macos "./$ZIP_NAME"
-           echo "Archive size: $(du -h "./$ZIP_NAME" | cut -f1)"
+          zip "$ZIP_NAME" hone
+
+          echo "✅ macOS binary prepared:"
+          echo "  Binary: hone (inside zip archive)"
+          echo "  Archive: $ZIP_NAME"
+          ls -la ./hone "./$ZIP_NAME"
+          echo "Archive size: $(du -h "./$ZIP_NAME" | cut -f1)"
 
       - name: Configure Git
         run: |
@@ -274,7 +273,7 @@ jobs:
       - name: Clean up build artifacts
         run: |
           echo "🧹 Cleaning up build artifacts..."
-          rm -f ./hone-macos ./hone-v${{ steps.new_version.outputs.version }}-macos.zip ./hone.map 2>/dev/null || true
+          rm -f ./hone ./hone-v${{ steps.new_version.outputs.version }}-macos.zip ./hone.map 2>/dev/null || true
           echo "✅ Build artifacts cleaned up"
 
       - name: Release summary
@@ -283,6 +282,6 @@ jobs:
           echo "Version: ${{ steps.current_version.outputs.current }} → ${{ steps.new_version.outputs.version }}"
           echo "Git tag: v${{ steps.new_version.outputs.version }} created"
           echo "Package.json updated and committed"
-          echo "macOS binary built, zipped, and attached to GitHub release as hone-v${{ steps.new_version.outputs.version }}-macos.zip"
+           echo "macOS binary built, zipped as 'hone', and attached to GitHub release as hone-v${{ steps.new_version.outputs.version }}-macos.zip"
           echo "Published to NPM: https://www.npmjs.com/package/hone-ai"
           echo "GitHub Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"
