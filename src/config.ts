@@ -78,18 +78,6 @@ export async function saveConfig(config: HoneConfig): Promise<void> {
   await writeFile(configPath, yaml.dump(config));
 }
 
-export function getApiKey(): string | undefined {
-  return process.env.ANTHROPIC_API_KEY;
-}
-
-export function validateApiKey(): void {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    const { message, details } = ErrorMessages.MISSING_API_KEY;
-    exitWithError(message, details);
-  }
-}
-
 export type AgentType = 'opencode' | 'claude';
 
 export function isValidAgent(agent: string): agent is AgentType {

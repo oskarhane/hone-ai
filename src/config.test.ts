@@ -7,7 +7,6 @@ import {
   getConfigPath, 
   loadConfig, 
   saveConfig,
-  getApiKey,
   isValidAgent,
   resolveAgent,
   initProject,
@@ -113,21 +112,6 @@ describe('Config Management', () => {
     
     const loaded = await loadConfig();
     expect(loaded).toEqual(config);
-  });
-
-  test('getApiKey returns ANTHROPIC_API_KEY from env', () => {
-    const originalKey = process.env.ANTHROPIC_API_KEY;
-    
-    process.env.ANTHROPIC_API_KEY = 'test-key-123';
-    expect(getApiKey()).toBe('test-key-123');
-    
-    delete process.env.ANTHROPIC_API_KEY;
-    expect(getApiKey()).toBeUndefined();
-    
-    // Restore
-    if (originalKey) {
-      process.env.ANTHROPIC_API_KEY = originalKey;
-    }
   });
 
   test('isValidAgent returns true for valid agents', () => {

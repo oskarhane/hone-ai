@@ -1,9 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk';
-import { getApiKey, loadConfig, resolveModelForPhase } from './config';
+import { loadConfig, resolveModelForPhase } from './config';
 import { readFile, writeFile } from 'fs/promises';
 import { join, basename } from 'path';
 import { existsSync } from 'fs';
-import { retryWithBackoff, exitWithError, ErrorMessages } from './errors';
+import { exitWithError, ErrorMessages } from './errors';
+import { AgentClient } from './agent-client';
 
 interface Task {
   id: string;
@@ -71,15 +71,13 @@ export async function generateTasksFromPRD(prdFilePath: string): Promise<string>
 }
 
 async function generateTasksWithAI(prdContent: string): Promise<Task[]> {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY not set');
-  }
-  
   const config = await loadConfig();
   const model = resolveModelForPhase(config, 'prdToTasks');
   
-  const client = new Anthropic({ apiKey });
+  const client = new AgentClient({
+    agent: config.defaultAgent,
+    model
+  });
   
   const systemPrompt = `You are a technical project manager breaking down a PRD into implementable tasks.
 
@@ -140,52 +138,51 @@ Example output:
 
 Now analyze this PRD and generate tasks:`;
 
-  const response = await retryWithBackoff(
-    () => client.messages.create({
-      model,
+  try {
+    const response = await client.messages.create({
       max_tokens: 8000,
       messages: [{
         role: 'user',
         content: prdContent
       }],
       system: systemPrompt
-    })
-  ).catch(error => {
+    });
+    
+    const content = response.content[0];
+    if (!content || content.type !== 'text') {
+      throw new Error('Invalid response from AI');
+    }
+    
+    // Extract JSON array from response (handle cases where AI wraps in markdown code blocks)
+    let jsonText = content.text.trim();
+    const jsonMatch = jsonText.match(/```(?:json)?\s*(\[[\s\S]*\])\s*```/);
+    if (jsonMatch && jsonMatch[1]) {
+      jsonText = jsonMatch[1];
+    }
+    
+    try {
+      const tasks = JSON.parse(jsonText);
+      
+      if (!Array.isArray(tasks)) {
+        throw new Error('Response is not an array');
+      }
+      
+      // Validate task structure
+      for (const task of tasks) {
+        if (!task.id || !task.title || !task.description || !task.status || 
+            !Array.isArray(task.dependencies) || !Array.isArray(task.acceptance_criteria)) {
+          throw new Error(`Invalid task structure: ${JSON.stringify(task)}`);
+        }
+      }
+      
+      return tasks;
+    } catch (error) {
+      throw new Error(`Failed to parse AI response as JSON: ${error instanceof Error ? error.message : error}`);
+    }
+  } catch (error) {
     const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
     exitWithError(message, details);
     throw error; // Never reached but satisfies TypeScript
-  });
-  
-  const content = response.content[0];
-  if (!content || content.type !== 'text') {
-    throw new Error('Invalid response from AI');
-  }
-  
-  // Extract JSON array from response (handle cases where AI wraps in markdown code blocks)
-  let jsonText = content.text.trim();
-  const jsonMatch = jsonText.match(/```(?:json)?\s*(\[[\s\S]*\])\s*```/);
-  if (jsonMatch && jsonMatch[1]) {
-    jsonText = jsonMatch[1];
-  }
-  
-  try {
-    const tasks = JSON.parse(jsonText);
-    
-    if (!Array.isArray(tasks)) {
-      throw new Error('Response is not an array');
-    }
-    
-    // Validate task structure
-    for (const task of tasks) {
-      if (!task.id || !task.title || !task.description || !task.status || 
-          !Array.isArray(task.dependencies) || !Array.isArray(task.acceptance_criteria)) {
-        throw new Error(`Invalid task structure: ${JSON.stringify(task)}`);
-      }
-    }
-    
-    return tasks;
-  } catch (error) {
-    throw new Error(`Failed to parse AI response as JSON: ${error instanceof Error ? error.message : error}`);
   }
 }
 

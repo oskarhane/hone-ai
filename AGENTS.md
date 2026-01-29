@@ -50,6 +50,7 @@ Learnings and patterns for future agents working on hone.
 - Error handling: retryWithBackoff only retries network errors (checks stderr with isNetworkError), non-network failures throw immediately
 - Prompt construction: system prompt + messages joined with newlines, assistant messages prefixed "Previous response:"
 - PRD and task generation no longer require ANTHROPIC_API_KEY - use agent subprocess instead
+- API key functions removed from config module after migration complete (kept ErrorMessages.MISSING_API_KEY for reference)
 
 ## Phase-Specific Model Configuration
 

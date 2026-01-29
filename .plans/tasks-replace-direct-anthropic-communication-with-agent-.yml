@@ -98,7 +98,7 @@ tasks:
     title: "Replace phase-specific LLM calls with agent integration"
     description: |
       Replace direct Anthropic calls in phase-specific operations (prd, prd-to-tasks, implement, review, finalize) with agent calls using appropriate model configurations for each phase.
-    status: pending
+    status: completed
     dependencies:
       - task-005
       - task-006
@@ -108,7 +108,7 @@ tasks:
       - "Phase operations work through agent layer"
       - "Model configuration properly applied per phase"
       - "Error handling maintains current user experience"
-    completed_at: null
+    completed_at: 2026-01-29T14:00:00.000Z
 
   - id: task-008
     title: "Implement error handling and user feedback"

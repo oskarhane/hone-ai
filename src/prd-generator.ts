@@ -1,10 +1,10 @@
-import Anthropic from '@anthropic-ai/sdk';
-import { getApiKey, loadConfig, resolveModelForPhase } from './config';
+import { loadConfig, resolveModelForPhase } from './config';
 import { readFile, writeFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import * as readline from 'readline';
-import { retryWithBackoff, exitWithError, ErrorMessages } from './errors';
+import { exitWithError, ErrorMessages } from './errors';
+import { AgentClient } from './agent-client';
 
 export function slugify(text: string): string {
   return text
@@ -79,15 +79,13 @@ async function generateClarifyingQuestion(
   previousQA: Array<{ question: string; answer: string }>,
   roundNumber: number
 ): Promise<QAResponse> {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY not set');
-  }
-  
   const config = await loadConfig();
   const model = resolveModelForPhase(config, 'prd');
   
-  const client = new Anthropic({ apiKey });
+  const client = new AgentClient({ 
+    agent: config.defaultAgent,
+    model 
+  });
   
   const qaHistory = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n');
   
@@ -107,30 +105,29 @@ Feature description: ${featureDescription}
 
 ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`;
 
-  const response = await retryWithBackoff(
-    () => client.messages.create({
-      model,
+  try {
+    const response = await client.messages.create({
       max_tokens: 500,
       messages: [{
         role: 'user',
         content: 'What is your next clarifying question, or respond with "DONE" if you have enough information?'
       }],
       system: systemPrompt
-    })
-  ).catch(error => {
+    });
+    
+    const content = response.content[0];
+    const text = content && content.type === 'text' ? content.text.trim() : '';
+    
+    if (text.toUpperCase().includes('DONE') || text === '') {
+      return { question: null, shouldContinue: false };
+    }
+    
+    return { question: text, shouldContinue: true };
+  } catch (error) {
     const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
     exitWithError(message, details);
     throw error; // Never reached but satisfies TypeScript
-  });
-  
-  const content = response.content[0];
-  const text = content && content.type === 'text' ? content.text.trim() : '';
-  
-  if (text.toUpperCase().includes('DONE') || text === '') {
-    return { question: null, shouldContinue: false };
   }
-  
-  return { question: text, shouldContinue: true };
 }
 
 async function generatePRDContent(
@@ -138,15 +135,13 @@ async function generatePRDContent(
   codebaseAnalysis: string,
   qa: Array<{ question: string; answer: string }>
 ): Promise<{ content: string; featureName: string }> {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY not set');
-  }
-  
   const config = await loadConfig();
   const model = resolveModelForPhase(config, 'prd');
   
-  const client = new Anthropic({ apiKey });
+  const client = new AgentClient({
+    agent: config.defaultAgent,
+    model
+  });
   
   const qaHistory = qa.map(q => `Q: ${q.question}\nA: ${q.answer}`).join('\n\n');
   
@@ -194,30 +189,29 @@ ${qaHistory ? `\n- Q&A Session:\n${qaHistory}` : ''}
 
 Write a complete, detailed PRD following the structure above.`;
 
-  const response = await retryWithBackoff(
-    () => client.messages.create({
-      model,
+  try {
+    const response = await client.messages.create({
       max_tokens: 4000,
       messages: [{
         role: 'user',
         content: 'Generate the PRD now.'
       }],
       system: systemPrompt
-    })
-  ).catch(error => {
+    });
+    
+    const content = response.content[0];
+    const prdContent = content && content.type === 'text' ? content.text : '';
+    
+    // Extract feature name from the first heading
+    const match = prdContent.match(/# PRD: (.+)/);
+    const featureName = match && match[1] ? match[1].trim() : featureDescription;
+    
+    return { content: prdContent, featureName };
+  } catch (error) {
     const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
     exitWithError(message, details);
     throw error; // Never reached but satisfies TypeScript
-  });
-  
-  const content = response.content[0];
-  const prdContent = content && content.type === 'text' ? content.text : '';
-  
-  // Extract feature name from the first heading
-  const match = prdContent.match(/# PRD: (.+)/);
-  const featureName = match && match[1] ? match[1].trim() : featureDescription;
-  
-  return { content: prdContent, featureName };
+  }
 }
 
 export async function generatePRD(featureDescription: string): Promise<string> {

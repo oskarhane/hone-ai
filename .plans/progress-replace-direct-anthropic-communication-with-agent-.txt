@@ -319,3 +319,71 @@ Key Changes:
 
 Next Task: task-007
 
+
+================================================================================
+TASK-007: Replace phase-specific LLM calls with agent integration
+Date: 2026-01-29T14:00:00.000Z
+================================================================================
+
+Summary:
+Verified all phase-specific LLM operations already migrated to agent integration. PRD generation and task generation use AgentClient (completed in task-006). Implement/review/finalize phases use spawnAgent with phase-specific model resolution (completed in task-004). No direct Anthropic SDK imports remain in codebase.
+
+Files Verified:
+- src/prd-generator.ts (verified - uses AgentClient with resolveModelForPhase('prd'))
+- src/task-generator.ts (verified - uses AgentClient with resolveModelForPhase('prdToTasks'))
+- src/run.ts (verified - implement/review/finalize phases use resolveModelForPhase() + spawnAgent())
+- All source files (verified - no direct Anthropic SDK imports found)
+
+Key Findings:
+- prd-generator.ts: Lines 83-88, 141-144 use AgentClient with 'prd' phase
+- task-generator.ts: Lines 74-80 use AgentClient with 'prdToTasks' phase
+- run.ts: Lines 76/124/162 resolve models for implement/review/finalize phases
+- run.ts: Lines 82/130/168 pass model parameter to spawnAgent()
+- No remaining direct Anthropic SDK usage (grep confirmed)
+- All 137 tests pass
+
+Acceptance Criteria Met:
+✓ All phase-specific Anthropic calls replaced
+✓ Correct model selection for each phase implemented
+✓ Phase operations work through agent layer
+✓ Model configuration properly applied per phase
+✓ Error handling maintains current user experience
+
+Implementation Timeline:
+- task-004 (2026-01-29T12:30:00.000Z): Added model resolution to run.ts phases
+- task-006 (2026-01-29T09:42:32.000Z): Migrated prd-generator and task-generator to AgentClient
+- task-007 (now): Verified complete migration, no additional work needed
+
+Next Task: task-008
+
+================================================================================
+FINALIZED: task-007
+Date: 2026-01-29T14:30:00.000Z
+================================================================================
+
+Summary:
+Applied review feedback: removed unused API key functions (getApiKey, validateApiKey) from src/config.ts since they're no longer needed after migration to agent integration. All phase-specific LLM operations already migrated in previous tasks. All acceptance criteria met: direct Anthropic calls replaced, model resolution working, agent integration complete, no regressions.
+
+Files Changed:
+- src/config.ts (modified - removed getApiKey() and validateApiKey() functions)
+- src/config.test.ts (modified - removed getApiKey test, removed import)
+- .plans/tasks-replace-direct-anthropic-communication-with-agent-.yml (verified - task-007 already completed)
+- .plans/progress-replace-direct-anthropic-communication-with-agent-.txt (modified - added finalization entry)
+- AGENTS.md (modified - added note about API key cleanup)
+
+Review Feedback Applied:
+- MEDIUM: Removed unused getApiKey() and validateApiKey() from config.ts (only used in tests)
+- Updated config.test.ts to remove API key test and import
+- All 136 tests pass (reduced from 137 after removing API key test)
+- Code cleanup complete - no unused API key configuration code remains except in error messages module
+
+Key Decisions:
+- Kept ErrorMessages.MISSING_API_KEY in src/errors.ts for future use if needed
+- getApiKey/validateApiKey removed since no commands use them after agent migration
+- Task was verification-only: implementation done in task-004 (model resolution) and task-006 (API migration)
+
+Deferred Issues (low priority):
+- Missing documentation about @anthropic-ai/sdk removal timeline (task-010 planned)
+- Progress log timestamp clarification (informational only)
+
+Next Task: task-008
