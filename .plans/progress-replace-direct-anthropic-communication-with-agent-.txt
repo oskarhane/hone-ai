@@ -475,3 +475,76 @@ Key Verification:
 
 Next Task: task-009
 
+================================================================================
+TASK-009: Add logging for agent service interactions
+Date: 2026-01-29T09:55:57.000Z
+================================================================================
+
+Summary:
+Implemented comprehensive logging for all agent service interactions. Added logs to AgentClient (request initiation, details, error conditions, network retry attempts, completion, response length) and spawnAgent (spawn initiation, working directory, command execution, exit codes, spawn errors). All logs use [AgentClient]/[Agent] prefixes following existing patterns.
+
+Files Changed:
+- src/agent-client.ts (modified - added 8 log statements for request lifecycle, errors, responses)
+- src/agent.ts (modified - added 5 log statements for agent spawn lifecycle, command execution, exit codes)
+- AGENTS.md (modified - added "Agent Service Logging" section documenting all logging patterns)
+- .plans/tasks-replace-direct-anthropic-communication-with-agent-.yml (modified - marked task-009 completed)
+
+Key Implementation Details:
+- AgentClient logs request initiation with agent and model selection
+- Request details: message count and system prompt presence
+- Error conditions: exit codes and error types from parseAgentError
+- Network retry attempts logged before retry logic
+- Successful completion and response character count logged
+- spawnAgent logs agent type, model, working directory
+- Command execution logged with prompt placeholder for security
+- Process completion: separate logs for success (exit 0) vs failure
+- Spawn errors logged with error messages
+- All logs use console.log for info, console.error for errors
+
+Logging Coverage:
+- ✓ Agent service requests logged appropriately (initiation, details)
+- ✓ Model selection decisions logged (agent-client + spawn-agent)
+- ✓ Response handling logged for debugging (length, completion status)
+- ✓ Error conditions logged with context (exit codes, error types, retries)
+- ✓ Logging follows existing application patterns (direct console, prefixed)
+
+Test Results:
+- All 151 tests pass (100% pass rate)
+- No regressions introduced
+- Logging visible in test output demonstrating correct operation
+
+Acceptance Criteria Met:
+✓ Agent service requests logged appropriately
+✓ Model selection decisions logged
+✓ Response handling logged for debugging
+✓ Error conditions logged with context
+✓ Logging follows existing application patterns
+
+Next Task: task-010
+
+================================================================================
+FINALIZED: task-009
+Date: 2026-01-29T16:15:00.000Z
+================================================================================
+
+Summary:
+Reviewed task-009 implementation. All logging comprehensively added to AgentClient and spawnAgent. No feedback changes needed - implementation excellent, all acceptance criteria met, all 151 tests pass. Proceeding directly to finalization.
+
+Files Changed:
+- src/agent-client.ts (modified - added 8 log statements covering request lifecycle, errors, retries, completion)
+- src/agent.ts (modified - added 5 log statements covering spawn lifecycle, commands, exit codes)
+- AGENTS.md (modified - added "Agent Service Logging" section documenting all patterns)
+
+Key Review Findings:
+- ✓ Complete coverage of all agent interaction stages
+- ✓ Consistent [AgentClient] and [Agent] prefixes
+- ✓ Security: prompt content replaced with placeholder
+- ✓ Appropriate log levels: console.log for info, console.error for errors
+- ✓ Clear documentation in AGENTS.md
+- ✓ All 151 tests pass, no regressions
+
+Review Feedback Applied:
+- None needed - implementation LGTM
+
+Next Task: task-010
+

@@ -23,6 +23,10 @@ export interface SpawnAgentResult {
 export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgentResult> {
   const { agent, prompt, workingDir = process.cwd(), model } = options;
   
+  // Log agent spawn initiation
+  console.log(`[Agent] Spawning ${agent} agent${model ? ` with model ${model}` : ''}`);
+  console.log(`[Agent] Working directory: ${workingDir}`);
+  
   // Build command and args based on agent type
   // opencode: opencode run [--model anthropic/<model>] "prompt text"
   // claude: claude -p "prompt text" [--model <model>]
@@ -41,6 +45,10 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
       args.push('--model', model);
     }
   }
+  
+  // Log command being executed
+  const cmdString = `${command} ${args.slice(0, -1).join(' ')} "<prompt>"`;
+  console.log(`[Agent] Command: ${cmdString}`);
   
   return new Promise((resolve, reject) => {
     const child: ChildProcess = spawn(command, args, {
@@ -93,8 +101,17 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
       process.off('SIGINT', handleSignal);
       process.off('SIGTERM', handleSignal);
       
+      const exitCode = code ?? 1;
+      
+      // Log completion status
+      if (exitCode === 0) {
+        console.log(`[Agent] Process completed successfully (exit code 0)`);
+      } else {
+        console.error(`[Agent] Process exited with code ${exitCode}`);
+      }
+      
       resolve({
-        exitCode: code ?? 1,
+        exitCode,
         stdout,
         stderr
       });
@@ -106,6 +123,7 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
       process.off('SIGINT', handleSignal);
       process.off('SIGTERM', handleSignal);
       
+      console.error(`[Agent] Spawn error: ${error.message}`);
       reject(new Error(`Failed to spawn ${agent}: ${error.message}`));
     });
   });

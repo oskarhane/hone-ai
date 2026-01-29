@@ -45,8 +45,16 @@ export class AgentClient {
         // Use model from request, fall back to client config
         const model = request.model || this.config.model;
         
+        // Log agent request initiation
+        console.log(`[AgentClient] Initiating request to ${this.config.agent}${model ? ` with model ${model}` : ''}`);
+        
         // Construct prompt from request
         const prompt = constructPromptFromRequest(request);
+        
+        // Log request details
+        const messageCount = request.messages.length;
+        const hasSystem = !!request.system;
+        console.log(`[AgentClient] Request: ${messageCount} message(s)${hasSystem ? ' + system prompt' : ''}`);
         
         // Execute with retry logic for network errors only
         try {
@@ -62,6 +70,7 @@ export class AgentClient {
             if (spawnResult.exitCode !== 0) {
               // Parse error type from stderr
               const errorInfo = parseAgentError(spawnResult.stderr, spawnResult.exitCode);
+              console.error(`[AgentClient] Agent exited with code ${spawnResult.exitCode}, error type: ${errorInfo.type}`);
               
               // Handle specific error types with user-friendly messages
               if (errorInfo.type === 'model_unavailable') {
@@ -77,6 +86,7 @@ export class AgentClient {
               
               // For network errors, allow retry
               if (errorInfo.retryable) {
+                console.log(`[AgentClient] Network error detected, will retry`);
                 throw new Error(`Agent exited with code ${spawnResult.exitCode}: ${spawnResult.stderr}`);
               }
               
@@ -85,14 +95,20 @@ export class AgentClient {
               exitWithError(message, details);
             }
             
+            console.log(`[AgentClient] Request completed successfully`);
             return spawnResult;
           });
+          
+          // Log response details
+          const responseLength = result.stdout.trim().length;
+          console.log(`[AgentClient] Response: ${responseLength} characters`);
           
           // Parse response into Anthropic-compatible format
           return parseAgentResponse(result.stdout);
         } catch (error) {
           // Network errors that exhausted retries
           if (error instanceof Error && error.message.includes('Agent exited with code')) {
+            console.error(`[AgentClient] All retry attempts exhausted`);
             const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
             exitWithError(message, details);
           }

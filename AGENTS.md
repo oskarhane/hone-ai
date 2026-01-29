@@ -52,6 +52,26 @@ Learnings and patterns for future agents working on hone.
 - PRD and task generation no longer require ANTHROPIC_API_KEY - use agent subprocess instead
 - API key functions removed from config module after migration complete (kept ErrorMessages.MISSING_API_KEY for reference)
 
+## Agent Service Logging
+
+- All agent service interactions logged using console.log/console.error
+- AgentClient logs:
+  - Request initiation: agent name, model selection
+  - Request details: message count, system prompt presence
+  - Error conditions: exit codes, error types
+  - Network retry attempts
+  - Successful completion: response length
+  - Prefix: `[AgentClient]`
+- spawnAgent logs:
+  - Agent spawn initiation: agent type, model, working directory
+  - Command being executed (with prompt placeholder for security)
+  - Process completion: exit codes (success/failure)
+  - Spawn errors: error messages
+  - Prefix: `[Agent]`
+- Logging follows existing patterns: direct console usage, minimal overhead
+- Error logs use console.error, informational logs use console.log
+- All logs designed for debugging and troubleshooting agent interactions
+
 ## Phase-Specific Model Configuration
 
 - Config supports optional phase-specific model overrides: `prd`, `prdToTasks`, `implement`, `review`, `finalize`
