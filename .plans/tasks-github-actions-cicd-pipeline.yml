@@ -255,8 +255,8 @@ tasks:
       The workflow is not valid. .github/workflows/release-minor.yml (Line: 265, Col: 3): Error calling workflow 'oskarhane/hone-ai/.github/workflows/publish-npm.yml@fcb65249f20e0b2ff8782047909b478792c3161f'. The workflow is requesting 'id-token: write', but is only allowed 'id-token: none'.
 
       As stated earlier. if impossible to automatically publish to npm, we can manually publish to npm as a separate manual workflow.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "the workflows with publish to npm with oidc works"
-    completed_at: null
+    completed_at: 2026-01-29T12:30:00.000Z

@@ -477,4 +477,27 @@ Key Decisions:
 - Added final summary job showing comprehensive release information
 - Maintained automatic NPM publishing with proper error handling and verification
 
+Next Task: All tasks complete================================================================================
+TASK-017: fix workflow issue
+Date: 2026-01-29T12:30:00.000Z
+================================================================================
+
+Summary:
+Fixed GitHub Actions workflow error by adding id-token: write permission to both major and minor release workflows. This resolves the OIDC authentication error when calling the shared publish-npm workflow.
+
+Files Changed:
+- .github/workflows/release-major.yml (modified - added id-token: write permission with explanatory comment)
+- .github/workflows/release-minor.yml (modified - added id-token: write permission with explanatory comment)
+
+Key Decisions:
+- Added id-token: write permission to top-level permissions block in both workflows
+- Included descriptive comment explaining requirement for OIDC trusted publishing
+- Maintained minimal required permissions following security best practices
+- Applied consistent fix across both major and minor release workflows
+
+Root Cause:
+- Called workflow (publish-npm.yml) required id-token: write for OIDC authentication with npm
+- Caller workflows (release-major/minor.yml) lacked this permission
+- GitHub Actions validation error: "requesting 'id-token: write', but is only allowed 'id-token: none'"
+
 Next Task: All tasks complete

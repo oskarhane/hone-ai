@@ -11,6 +11,7 @@ on:
 permissions:
   contents: write
   pull-requests: read
+  id-token: write # Required for OIDC trusted publishing to npm via called workflow
 
 jobs:
   release-minor:

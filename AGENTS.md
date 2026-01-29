@@ -62,6 +62,7 @@ Learnings and patterns for future agents working on hone.
 - Always-visible: critical errors and user-facing output regardless of verbose setting
 
 ### Logging Categories:
+
 - **Debug logs** (verbose-only): Use `logVerbose()` and `logVerboseError()` from logger.ts
   - AgentClient: request initiation, details, retry attempts, completion
   - spawnAgent: spawn initiation, working directory, command execution, exit codes
@@ -71,9 +72,10 @@ Learnings and patterns for future agents working on hone.
   - Final task results and user notifications
 
 ### Logger Module Pattern (src/logger.ts):
+
 - `setVerbose(boolean)` - control verbosity at runtime (called by CLI)
 - `logVerbose(message)` - info log only if verbose enabled
-- `logVerboseError(message)` - error log only if verbose enabled  
+- `logVerboseError(message)` - error log only if verbose enabled
 - `log(message)` - always log (critical info)
 - `logError(message)` - always log error (critical errors)
 - Global state managed internally, CLI integration via commander.js global option
@@ -151,7 +153,7 @@ Learnings and patterns for future agents working on hone.
 - isRateLimitError() detects rate limiting errors (429, quota exceeded, etc.)
 - isModelUnavailableError() detects model availability errors (404, model not found, etc.)
 - parseAgentError() analyzes stderr to classify error types and determine retryability
-- retryWithBackoff() implements exponential backoff: delay = min(initial * 2^attempt, maxDelay)
+- retryWithBackoff() implements exponential backoff: delay = min(initial \* 2^attempt, maxDelay)
 - Default retry: 3 attempts, 1s initial delay, 10s max delay
 - ErrorMessages object provides structured message/details for common scenarios:
   - AGENT_SPAWN_FAILED: Agent binary not found or failed to start
@@ -180,6 +182,8 @@ Learnings and patterns for future agents working on hone.
 - Binary existence verification after build prevents uploading missing artifacts
 - Size logging provides transparency in build process
 - Consistent implementation across major/minor release workflows
+- When calling reusable workflows: caller must have all permissions required by called workflow
+- OIDC publishing requires `id-token: write` permission in both caller and called workflows
 
 ## GitHub Actions Troubleshooting
 
