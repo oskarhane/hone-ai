@@ -247,3 +247,29 @@ Resource Optimization:
 - Strategic timeout allocation by operation complexity
 
 Next Task: task-009
+
+================================================================================
+TASK-009: Name the binary following common convention for macos binaries
+Date: 2026-01-29T19:15:00.000Z
+================================================================================
+
+Summary:
+Implemented macOS binary naming conventions for GitHub releases by renaming binary to 'hone-macos' and creating zip archive with version-specific naming (hone-v{VERSION}-macos.zip). Applied review feedback to fix duplicate code block in release-major.yml workflow.
+
+Files Changed:
+- .github/workflows/release-major.yml (modified - added macOS binary preparation step and fixed duplicate code)
+- .github/workflows/release-minor.yml (modified - added macOS binary preparation step)
+
+Key Decisions:
+- Binary naming: 'hone-macos' follows common macOS binary conventions
+- Archive naming: 'hone-v{VERSION}-macos.zip' includes version and platform identifier
+- Platform-specific preparation step added to both major and minor release workflows
+- Applied review feedback to remove duplicate code block in release-major.yml
+- Used chmod +x to ensure executable permissions on renamed binary
+
+Review Feedback Applied:
+- High priority: Fixed duplicate code block (lines 156-169) in release-major.yml
+- Removed redundant binary preparation commands that were duplicated
+- Maintained consistent workflow structure and functionality
+
+Next Task: task-010

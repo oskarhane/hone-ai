@@ -10,6 +10,12 @@ jobs:
   test:
     name: Test & Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: true
+    env:
+      CI: true
+      BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
     
     steps:
       - name: Checkout code
@@ -29,13 +35,54 @@ jobs:
             ${{ runner.os }}-bun-
           
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: |
+          echo "📦 Installing dependencies..."
+          bun install --frozen-lockfile || {
+            echo "❌ Dependency installation failed"
+            echo "ℹ️  Check network connectivity and lockfile integrity"
+            exit 1
+          }
+          echo "✅ Dependencies installed successfully"
+        timeout-minutes: 2
         
       - name: Run type checking
-        run: bun run tsc --noEmit
+        run: |
+          echo "🔍 Running TypeScript type checking..."
+          bun run tsc --noEmit || {
+            echo "❌ Type checking failed"
+            echo "ℹ️  Fix TypeScript errors before proceeding"
+            exit 1
+          }
+          echo "✅ Type checking passed"
+        timeout-minutes: 3
         
       - name: Run tests
-        run: bun test
+        run: |
+          echo "🧪 Running test suite..."
+          bun test || {
+            echo "❌ Tests failed"
+            echo "ℹ️  Check test failures above and fix before proceeding"
+            exit 1
+          }
+          echo "✅ All tests passed"
+        timeout-minutes: 5
         
       - name: Build validation
-        run: bun run build
+        run: |
+          echo "🔨 Validating build process..."
+          bun run build || {
+            echo "❌ Build failed"
+            echo "ℹ️  Check build errors above and fix compilation issues"
+            exit 1
+          }
+          if [ ! -f "./hone" ]; then
+            echo "❌ Build completed but binary not found"
+            echo "ℹ️  Expected binary at: $(pwd)/hone"
+            exit 1
+          fi
+          echo "✅ Build validation successful"
+          echo "Binary size: $(du -h ./hone | cut -f1)"
+          # Clean up build artifacts to conserve disk space
+          rm -f ./hone ./hone.map
+          echo "🧹 Build artifacts cleaned up"
+        timeout-minutes: 3

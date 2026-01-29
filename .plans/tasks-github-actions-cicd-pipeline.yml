@@ -128,13 +128,13 @@ tasks:
     title: "Name the binary following common convention for macos binaries"
     description: |
       Name the macos binary in the GH release following common convention. and make it a zip file.
-    status: pending
-    dependencies:
+    status: completed
+    dependencies: []
     acceptance_criteria:
       - "the github release artifact name follows common convention"
       - "the macos binary is named following common convention"
       - "the macos binary is zipped"
-    completed_at: null
+    completed_at: 2026-01-29T19:15:00.000Z
 
   - id: task-010
     title: "also publish releases to npm"

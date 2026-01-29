@@ -12,12 +12,18 @@ jobs:
   release-minor:
     name: Minor Version Release
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CI: true
+      BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
     
     steps:
       - name: Validate confirmation
         if: ${{ github.event.inputs.confirm != 'CONFIRM' }}
         run: |
           echo "❌ Minor release not confirmed. Please type 'CONFIRM' to proceed."
+          echo "ℹ️  This is a safety check to prevent accidental minor releases."
+          echo "ℹ️  Minor releases add new features and increment the minor version number."
           exit 1
           
       - name: Checkout code
@@ -40,11 +46,24 @@ jobs:
             ${{ runner.os }}-bun-
           
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: |
+          echo "📦 Installing dependencies for build..."
+          bun install --frozen-lockfile || {
+            echo "❌ Dependency installation failed"
+            echo "ℹ️  Check network connectivity and lockfile integrity"
+            exit 1
+          }
+          echo "✅ Dependencies installed successfully"
+        timeout-minutes: 2
         
       - name: Validate git repository
         run: |
-          git status > /dev/null || (echo "❌ Not a git repository" && exit 1)
+          if ! git status > /dev/null 2>&1; then
+            echo "❌ Not a git repository or git is not available"
+            echo "ℹ️  This workflow requires a valid git repository with proper permissions"
+            exit 1
+          fi
+          echo "✅ Git repository validated"
           
       - name: Get current version
         id: current_version
@@ -91,23 +110,49 @@ jobs:
           UPDATED_VERSION=$(bun --print 'JSON.parse(require("fs").readFileSync("package.json", "utf8")).version')
           echo "Verified updated version: $UPDATED_VERSION"
           if [ "$UPDATED_VERSION" != "${{ steps.new_version.outputs.version }}" ]; then
-            echo "❌ Version update failed"
+            echo "❌ Version update failed - expected ${{ steps.new_version.outputs.version }}, got $UPDATED_VERSION"
+            echo "ℹ️  This indicates a problem with the package.json update process"
             exit 1
           fi
+          echo "✅ Version update verified successfully"
           
       - name: Build standalone binary
         run: |
           echo "Building standalone binary..."
           bun run build
+        timeout-minutes: 3
           
       - name: Verify binary build
         run: |
           if [ ! -f "./hone" ]; then
-            echo "❌ Binary build failed - hone executable not found"
+            echo "❌ Binary build failed - hone executable not found in current directory"
+            echo "ℹ️  Expected binary at: $(pwd)/hone"
+            echo "ℹ️  Check build script configuration and ensure 'bun run build' produces the binary"
+            ls -la . || true
             exit 1
           fi
           echo "✅ Binary build successful"
           ls -la ./hone
+          echo "Binary size: $(du -h ./hone | cut -f1)"
+          
+      - name: Prepare macOS binary for release
+        run: |
+          echo "🍎 Preparing macOS binary for release..."
+          
+          # Rename binary following macOS conventions
+          mv ./hone ./hone-macos
+          chmod +x ./hone-macos
+          
+          # Create zip file with proper naming
+          VERSION="${{ steps.new_version.outputs.version }}"
+          ZIP_NAME="hone-v${VERSION}-macos.zip"
+          zip "$ZIP_NAME" hone-macos
+          
+          echo "✅ macOS binary prepared:"
+          echo "  Binary: hone-macos"
+          echo "  Archive: $ZIP_NAME"
+          ls -la ./hone-macos "./$ZIP_NAME"
+          echo "Archive size: $(du -h "./$ZIP_NAME" | cut -f1)"
           
       - name: Configure Git
         run: |
@@ -121,6 +166,7 @@ jobs:
             echo "🔄 Remote has changes, pulling latest..."
             git pull --rebase origin main || (echo "❌ Failed to sync with remote" && exit 1)
           fi
+        timeout-minutes: 2
           
       - name: Commit version bump
         run: |
@@ -133,10 +179,12 @@ jobs:
           git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
           git push origin "v$NEW_VERSION"
           git push origin main
+        timeout-minutes: 2
           
       - name: Create GitHub Release with binary
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        timeout-minutes: 3
         run: |
            NEW_VERSION="${{ steps.new_version.outputs.version }}"
            CURRENT_VERSION="${{ steps.current_version.outputs.current }}"
@@ -172,15 +220,33 @@ jobs:
            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG:-$(git rev-list --max-parents=0 HEAD)}...v$NEW_VERSION"
            
            # Create GitHub release with auto-generated notes
-           gh release create "v$NEW_VERSION" \
+           echo "🚀 Creating GitHub release..."
+           if ! gh release create "v$NEW_VERSION" \
              --title "Release v$NEW_VERSION" \
              --notes "$RELEASE_NOTES" \
-             --latest
+             --latest; then
+             echo "❌ Failed to create GitHub release"
+             echo "ℹ️  Check GitHub token permissions and repository access"
+             exit 1
+           fi
            
-           # Attach binary to release
-           gh release upload "v$NEW_VERSION" ./hone --clobber
+            # Attach macOS binary archive to release
+            echo "📎 Attaching macOS binary archive to release..."
+            ZIP_NAME="hone-v$NEW_VERSION-macos.zip"
+            if ! gh release upload "v$NEW_VERSION" "./$ZIP_NAME" --clobber; then
+              echo "❌ Failed to upload binary archive to release"
+              echo "ℹ️  Release created but binary attachment failed"
+              echo "ℹ️  You may need to manually attach the binary archive"
+              exit 1
+            fi
+            
+            echo "✅ GitHub release created with auto-generated notes and macOS binary archive"
            
-           echo "✅ GitHub release created with auto-generated notes and binary attachment"
+      - name: Clean up build artifacts
+        run: |
+          echo "🧹 Cleaning up build artifacts..."
+          rm -f ./hone-macos ./hone-v${{ steps.new_version.outputs.version }}-macos.zip ./hone.map 2>/dev/null || true
+          echo "✅ Build artifacts cleaned up"
           
       - name: Release summary
         run: |
@@ -188,5 +254,5 @@ jobs:
           echo "Version: ${{ steps.current_version.outputs.current }} → ${{ steps.new_version.outputs.version }}"
           echo "Git tag: v${{ steps.new_version.outputs.version }} created"
           echo "Package.json updated and committed"
-          echo "Standalone binary built and attached to GitHub release"
+          echo "macOS binary built, zipped, and attached to GitHub release as hone-v${{ steps.new_version.outputs.version }}-macos.zip"
           echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"
