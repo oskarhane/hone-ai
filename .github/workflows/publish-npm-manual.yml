@@ -20,6 +20,9 @@ jobs:
   publish-npm:
     name: NPM Publication
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     timeout-minutes: 5
     env:
       CI: true
