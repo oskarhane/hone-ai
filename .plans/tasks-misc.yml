@@ -193,3 +193,17 @@ tasks:
     acceptance_criteria:
       - "hone --<unknown> prints help for all unknown commands"
     completed_at: 2026-01-29T23:30:00Z
+
+  - id: task-011
+    title: "the build command is platform-specific"
+    description: |
+      bun run build, builds for the platform it's running on.
+      I want to be able to build for a different platform.
+      But I also want to be able to build for linux.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "bun run build - builds for all platforms"
+      - "bun run build:linux - builds for linux"
+      - "bun run build:macos - builds for macos"
+    completed_at: null
