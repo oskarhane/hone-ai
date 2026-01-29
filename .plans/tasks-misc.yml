@@ -228,3 +228,13 @@ tasks:
     acceptance_criteria:
       - "the artifacts are zipped inside a folder"
     completed_at: 2026-01-29T20:45:00Z
+
+  - id: task-014
+    title: "fix failing tests"
+    description: |
+      fix failing tests, bun run test
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "all tests pass"
+    completed_at: null
