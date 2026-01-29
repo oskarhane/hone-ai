@@ -49,7 +49,7 @@ tasks:
     title: "Update all test files to remove commitPrefix usage"
     description: |
       Remove commitPrefix from all test configurations and expectations in config.test.ts and other test files. Update test data to reflect new config structure without commitPrefix.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -57,7 +57,7 @@ tasks:
       - "Test expectations updated to not expect commitPrefix"
       - "All existing tests pass with updated config structure"
       - "New tests added for deprecated config validation"
-    completed_at: null
+    completed_at: "2026-01-29T10:55:12.000Z"
 
   - id: task-005
     title: "Remove commitPrefix from README.md documentation"
