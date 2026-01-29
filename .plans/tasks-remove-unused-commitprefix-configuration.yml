@@ -77,7 +77,7 @@ tasks:
     title: "Clean up commitPrefix from existing .plans config files"
     description: |
       Update the existing .plans/hone.config.yml and any other config files in the .plans directory to remove the commitPrefix setting, ensuring the codebase itself doesn't contain the deprecated config.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -85,7 +85,7 @@ tasks:
       - "All .plans config files updated to new format"
       - "Config files load successfully after cleanup"
       - "No commitPrefix references in project config files"
-    completed_at: null
+    completed_at: "2026-01-29T15:05:00.000Z"
 
   - id: task-007
     title: "Run comprehensive test suite and validate changes"

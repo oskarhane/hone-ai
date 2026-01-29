@@ -54,3 +54,21 @@ Key Decisions:
 - Preserved all other README content and configuration examples
 
 Next Task: task-006
+
+================================================================================
+TASK-006: Clean up commitPrefix from existing .plans config files
+Date: 2026-01-29T15:05:00.000Z
+================================================================================
+
+Summary:
+Successfully removed commitPrefix from .plans/hone.config.yml to clean up the project's own configuration files. The change ensures the codebase itself doesn't contain the deprecated config option.
+
+Files Changed:
+- .plans/hone.config.yml (modified - removed commitPrefix line from project config)
+
+Key Decisions:
+- Simple removal of unused commitPrefix config from project's own config file
+- Config continues to load successfully after cleanup
+- Maintains consistency between codebase and configuration
+
+Next Task: task-007
