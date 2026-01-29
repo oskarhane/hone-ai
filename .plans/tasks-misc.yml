@@ -238,3 +238,13 @@ tasks:
     acceptance_criteria:
       - "all tests pass"
     completed_at: 2026-01-29T23:45:00Z
+
+  - id: task-015
+    title: "harden version test"
+    description: |
+      the version in package json will change with every release, make sure that the -v tests don't fail
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "all tests pass, even after version bumps in package.json"
+    completed_at: null
