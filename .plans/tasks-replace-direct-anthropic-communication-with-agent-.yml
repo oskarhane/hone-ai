@@ -200,9 +200,9 @@ tasks:
     completed_at: 2026-01-29T20:15:00.000Z
 
   - id: task-013
-    title: "less verbose output from prd"
+    title: "less verbose output from agents"
     description: |
-      the output from the hone prd-to-tasks and prd <msg> command should be less verbose.
+      the output from the hone should be less verbose.
       We could add a verbose flag to see everything, but the default should be more user friendly.
 
       [AgentClient] Initiating request to opencode with model claude-sonnet-4-20250514
@@ -215,6 +215,6 @@ tasks:
     status: pending
     dependencies:
     acceptance_criteria:
-      - "--verbose flag to show all details from the prd and prd-to-tasks commands"
+      - "--verbose flag to show all details from the hone commands"
       - "default output should be less verbose"
     completed_at: null
