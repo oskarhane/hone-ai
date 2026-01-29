@@ -10,6 +10,8 @@ Transform feature ideas into working code through autonomous development with hu
 
    ```bash
    npm install -g hone-ai
+   # or
+   bun add -g hone-ai
    ```
 
 2. **Install an AI agent** ([OpenCode](https://opencode.ai) or [Claude Code](https://docs.anthropic.com/claude/docs/claude-code))
@@ -41,6 +43,8 @@ That's it! hone will implement the feature, run tests, and commit changes automa
 
 ```bash
 npm install -g hone-ai
+# or
+bun add -g hone-ai
 ```
 
 ### From Source
@@ -55,11 +59,22 @@ Use `bun src/index.ts` instead of `hone` for all commands.
 
 ### Standalone Binary
 
-Build a self-contained executable:
+Download pre-built binaries from [GitHub Releases](https://github.com/oskarhane/hone-ai/releases).
+
+**macOS users**: Remove the quarantine attribute after downloading:
+
+```bash
+unzip hone-v*-macos.zip
+xattr -d com.apple.quarantine hone-v*-macos/hone
+cp hone-v*-macos/hone /usr/local/bin/
+```
+
+Or build from source:
 
 ```bash
 bun run build
-cp hone /usr/local/bin/
+cp hone-macos /usr/local/bin/hone  # macOS
+cp hone-linux /usr/local/bin/hone  # Linux
 ```
 
 ## Common Commands
