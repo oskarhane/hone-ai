@@ -239,3 +239,15 @@ tasks:
     acceptance_criteria:
       - "no double output from prd command when asking user questions"
     completed_at: null
+
+  - id: task-015
+    title: "investigate the codebase before asking questions on prd"
+    description: |
+      some of the questions asked when running the prd command are quite dumb and can be found out by inspecting the codebase.
+      Pass on a reference to @AGENTS.md with the prompt, and look around a bit before asking the users questions about the PRD.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "ask prd questions based on the codebase"
+      - "investigate the codebase before asking questions on prd"
+    completed_at: null
