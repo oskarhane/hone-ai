@@ -5,14 +5,15 @@
   "keywords": ["ai", "agent", "orchestrator", "automation", "prd", "development", "claude", "opencode"],
   "author": "Oskar Hane",
   "license": "MIT",
+  "files": ["src/", "README.md", "package.json"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/oskarhane/hone.git"
+    "url": "https://github.com/oskarhane/hone-ai.git"
   },
   "bugs": {
-    "url": "https://github.com/oskarhane/hone/issues"
+    "url": "https://github.com/oskarhane/hone-ai/issues"
   },
-  "homepage": "https://github.com/oskarhane/hone#readme",
+  "homepage": "https://github.com/oskarhane/hone-ai#readme",
   "module": "src/index.ts",
   "type": "module",
   "bin": {

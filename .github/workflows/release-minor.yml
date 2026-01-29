@@ -242,12 +242,38 @@ jobs:
             
             echo "✅ GitHub release created with auto-generated notes and macOS binary archive"
            
+      - name: Publish to NPM
+        run: |
+          echo "📦 Publishing to NPM..."
+          
+          # Configure npm registry authentication
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          
+          # Verify authentication
+          if ! npm whoami; then
+            echo "❌ NPM authentication failed"
+            echo "ℹ️  Please ensure NPM_TOKEN secret is configured with a valid npm access token"
+            exit 1
+          fi
+          
+          # Publish to npm
+          if ! npm publish; then
+            echo "❌ NPM publishing failed"
+            echo "ℹ️  Check package.json configuration and npm registry permissions"
+            echo "ℹ️  Version may already exist or package name may be taken"
+            exit 1
+          fi
+          
+          echo "✅ Successfully published to NPM"
+          echo "NPM package: https://www.npmjs.com/package/hone-ai"
+        timeout-minutes: 2
+           
       - name: Clean up build artifacts
         run: |
           echo "🧹 Cleaning up build artifacts..."
           rm -f ./hone-macos ./hone-v${{ steps.new_version.outputs.version }}-macos.zip ./hone.map 2>/dev/null || true
           echo "✅ Build artifacts cleaned up"
-          
+           
       - name: Release summary
         run: |
           echo "✅ Minor release completed successfully!"
@@ -255,4 +281,5 @@ jobs:
           echo "Git tag: v${{ steps.new_version.outputs.version }} created"
           echo "Package.json updated and committed"
           echo "macOS binary built, zipped, and attached to GitHub release as hone-v${{ steps.new_version.outputs.version }}-macos.zip"
-          echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"
+          echo "Published to NPM: https://www.npmjs.com/package/hone-ai"
+          echo "GitHub Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"

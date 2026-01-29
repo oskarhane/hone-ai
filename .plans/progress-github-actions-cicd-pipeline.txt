@@ -273,3 +273,39 @@ Review Feedback Applied:
 - Maintained consistent workflow structure and functionality
 
 Next Task: task-010
+
+================================================================================
+TASK-010: also publish releases to npm
+Date: 2026-01-29T21:30:15.000Z
+================================================================================
+
+Summary:
+Added NPM publishing functionality to both major and minor release workflows. Integrated authentication, security validation, error handling, and applied review feedback to improve package.json configuration.
+
+Files Changed:
+- .github/workflows/release-major.yml (modified - added NPM publish step with authentication and error handling)
+- .github/workflows/release-minor.yml (modified - added NPM publish step with authentication and error handling)
+- package.json (modified - added 'files' field and updated repository URLs to match package name)
+
+Key Decisions:
+- Used secrets.NPM_TOKEN for secure authentication
+- Added npm whoami validation step to verify authentication before publishing
+- Positioned NPM publishing after successful GitHub release creation
+- Implemented 2-minute timeout to prevent hanging workflows
+- Added comprehensive error messages with troubleshooting guidance
+- Applied consistent implementation across both major and minor release workflows
+
+Review Feedback Applied:
+- Added 'files' field to package.json to control NPM package contents
+- Updated repository URLs from 'hone' to 'hone-ai' to match package name
+- All critical and medium priority feedback addressed successfully
+
+NPM Publishing Features:
+- Secure authentication using NPM_TOKEN secret
+- Pre-publish authentication verification with npm whoami
+- Clear error messages for authentication and publishing failures
+- Timeout protection to prevent workflow hanging
+- User-friendly progress indicators and success messages
+- Error handling for version conflicts and permission issues
+
+Next Task: All tasks complete

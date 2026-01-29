@@ -140,8 +140,8 @@ tasks:
     title: "also publish releases to npm"
     description: |
       publish the release to npm as well as to gh release.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "the release is published to npm"
-    completed_at: null
+    completed_at: 2026-01-29T21:30:15.000Z
