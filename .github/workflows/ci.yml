@@ -75,14 +75,16 @@ jobs:
             echo "ℹ️  Check build errors above and fix compilation issues"
             exit 1
           }
-          if [ ! -f "./hone" ]; then
-            echo "❌ Build completed but binary not found"
-            echo "ℹ️  Expected binary at: $(pwd)/hone"
+          if [ ! -f "./hone-linux" ] || [ ! -f "./hone-macos" ]; then
+            echo "❌ Build completed but binaries not found"
+            echo "ℹ️  Expected: hone-linux and hone-macos"
+            ls -la ./hone* 2>/dev/null || echo "No hone binaries found"
             exit 1
           fi
           echo "✅ Build validation successful"
-          echo "Binary size: $(du -h ./hone | cut -f1)"
+          echo "Linux binary: $(du -h ./hone-linux | cut -f1)"
+          echo "macOS binary: $(du -h ./hone-macos | cut -f1)"
           # Clean up build artifacts to conserve disk space
-          rm -f ./hone ./hone.map
+          rm -f ./hone-linux ./hone-macos ./hone-linux.map ./hone-macos.map
           echo "🧹 Build artifacts cleaned up"
         timeout-minutes: 3
