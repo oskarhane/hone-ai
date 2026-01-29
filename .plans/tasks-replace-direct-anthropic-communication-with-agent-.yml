@@ -116,12 +116,12 @@ tasks:
       test files for agent are in wrong place.
       move them.
       Integration tests for agent service should be placed in the same directory as the agent service implementation.
-    status: pending
+    status: completed
     dependencies:
       - task-007
     acceptance_criteria:
       - "Agent tests files moved to correct place"
-    completed_at: null
+    completed_at: 2026-01-29T17:45:00.000Z
 
   - id: task-008
     title: "Implement error handling and user feedback"

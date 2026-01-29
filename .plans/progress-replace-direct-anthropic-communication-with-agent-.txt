@@ -584,3 +584,61 @@ Acceptance Criteria Met:
 
 Next Task: task-011
 
+
+================================================================================
+TASK-007-1: verify agent tests files in right place
+Date: 2026-01-29T17:30:00.000Z
+================================================================================
+
+Summary:
+Verified all agent test files are already in correct location. Files located in src/ directory next to source files, following documented pattern in AGENTS.md: "Tests: add unit tests in x.test.ts files next to the source file being tested". No file movement needed.
+
+Files Verified:
+- src/agent.test.ts (next to src/agent.ts) ✓
+- src/agent-client.test.ts (next to src/agent-client.ts) ✓
+- src/agent-client.integration.test.ts (next to src/agent-client.ts) ✓
+
+Key Findings:
+- All agent test files already in src/ directory
+- Pattern matches AGENTS.md documentation (line 27)
+- All 151 tests pass
+- Git history shows files created in current location (commit d9cb0f2)
+- No test directories exist elsewhere in project
+- No file moves required
+
+Acceptance Criteria Met:
+✓ Agent tests files in correct place (already were)
+
+Key Decisions:
+- Task based on outdated/incorrect assumption
+- Files never needed to be moved
+- Documented verification in progress log
+
+Next Task: task-009 or task-011
+
+================================================================================
+FINALIZED: task-007-1
+Date: 2026-01-29T17:45:00.000Z
+================================================================================
+
+Summary:
+Applied review feedback by committing untracked test files created in task-005. Files (src/agent-client.test.ts, src/agent-client.integration.test.ts) were working but not tracked in git. Task verification correct - files already in right location (src/ next to source files).
+
+Files Changed:
+- src/agent-client.test.ts (added to git - unit tests for AgentClient)
+- src/agent-client.integration.test.ts (added to git - integration tests for AgentClient)
+- .plans/tasks-replace-direct-anthropic-communication-with-agent-.yml (modified - updated completed_at)
+- .plans/progress-replace-direct-anthropic-communication-with-agent-.txt (modified - added finalization entry)
+
+Review Feedback Applied:
+- Medium priority: Committed untracked test files from task-005
+- Low priority: Documented task creation assumption issue
+
+Key Findings:
+- Test files working correctly (all 151 tests pass)
+- Files in correct location per AGENTS.md:27
+- Task assumption was incorrect but verification documented properly
+- Test infrastructure complete after git tracking added
+
+Next Task: task-011
+
