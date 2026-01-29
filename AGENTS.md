@@ -78,6 +78,7 @@ Learnings and patterns for future agents working on hone.
 - Git commits ONLY happen in finalize phase - implement phase explicitly forbids commits
 - Feedback loops should ONLY run after task implementation complete, not during exploration
 - Finalize phase runs feedback loops only if changes made to address review feedback
+- Task isolation: implement prompt explicitly forbids selecting tasks from other task files
 
 ## Error Handling & Failure Recovery
 

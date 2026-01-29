@@ -104,6 +104,9 @@ function getPhaseInstructions(
 function getImplementInstructions(feedbackCommand: string, lintCommand?: string): string {
   let instructions = `# TASK SELECTION
 
+CRITICAL: You MUST only choose tasks from the task file referenced in CONTEXT FILES above.
+Do NOT select tasks from any other task file, even if you can access them.
+
 Pick the next single task that's not completed yet. Prioritize from this list (where 1 is highest priority):
 
 1. Dependencies

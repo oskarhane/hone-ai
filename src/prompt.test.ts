@@ -263,4 +263,20 @@ describe('constructPrompt', () => {
     expect(prompt).toContain('task will remain pending');
     expect(prompt).toContain('Only output this marker if the task is fully complete');
   });
+  
+  test('implement phase enforces task file isolation', () => {
+    writeFileSync(
+      join(TEST_PLANS_DIR, 'tasks-test.yml'),
+      'tasks:\n  - id: task-001\n    status: pending\n'
+    );
+    
+    const prompt = constructPrompt({
+      phase: 'implement',
+      featureName: 'test',
+      config: mockConfig
+    });
+    
+    expect(prompt).toContain('CRITICAL: You MUST only choose tasks from the task file referenced in CONTEXT FILES');
+    expect(prompt).toContain('Do NOT select tasks from any other task file');
+  });
 });

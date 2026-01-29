@@ -16,4 +16,25 @@ Key Decisions:
 - Pure rename refactor with no logic changes to minimize risk
 - Updated test workspace path from .test-workspace-do to .test-workspace-run for consistency
 
-Next Task: All tasks complete
+Next Task: task-002
+
+================================================================================
+TASK-002: harden the task choosing step to make sure only tasks from the passed in tasks file are chosen
+Date: 2026-01-29T11:45:00Z
+================================================================================
+
+Summary:
+Added task file isolation guardrails to implement phase prompts. Added CRITICAL warning 
+in task selection instructions explicitly forbidding selecting tasks from other files.
+
+Files Changed:
+- src/prompt.ts (added CRITICAL warning about task file isolation in IMPLEMENT_PHASE instructions)
+- src/prompt.test.ts (added test validating warning text appears in prompt)
+- AGENTS.md (documented task isolation pattern under "Prompt Construction" section)
+
+Key Decisions:
+- Used CRITICAL marker to emphasize the restriction in prompt instructions
+- Added test coverage to prevent regression
+- Documented pattern in AGENTS.md for future reference
+
+Next Task: task-003
