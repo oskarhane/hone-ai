@@ -2,6 +2,7 @@ import { describe, test, expect, beforeEach, afterEach, beforeAll, afterAll } fr
 import { existsSync, rmSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { spawnSync } from 'child_process'
+import packageJson from '../package.json'
 
 // Set test environment
 const originalEnv = process.env.BUN_ENV
@@ -313,14 +314,14 @@ describe('CLI Integration Tests', () => {
       const result = runCli(['--version'])
 
       expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('0.6.0')
+      expect(result.stdout).toContain(packageJson.version)
     })
 
     test('-v shows version', () => {
       const result = runCli(['-v'])
 
       expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain('0.6.0')
+      expect(result.stdout).toContain(packageJson.version)
     })
 
     test('unknown option shows help instead of error', () => {

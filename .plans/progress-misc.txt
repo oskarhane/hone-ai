@@ -328,4 +328,23 @@ Key Decisions:
 - Used Bun's mock.module() for reliable test isolation
 - All 160 tests now pass consistently
 
-All Tasks Completed! 🎉
+================================================================================
+TASK-015: harden version test
+Date: 2026-01-30T00:15:00Z
+================================================================================
+
+Summary:
+Fixed hardcoded version expectations in tests by implementing dynamic version import from package.json.
+Tests now use actual package version instead of hardcoded strings, preventing failures on version bumps.
+
+Files Changed:
+- src/index.integration.test.ts (added dynamic import of package.json, replaced hardcoded '0.6.0' with packageJson.version in both --version and -v test assertions)
+- AGENTS.md (documented pattern for dynamic package.json imports to prevent hardcoded version expectations)
+
+Key Decisions:
+- Used ES6 dynamic import to get version from package.json at test runtime
+- Applied consistent pattern to both --version and -v flag tests
+- Added learning to AGENTS.md about using dynamic package.json imports for version tests
+- Solution is future-proof - automatically adapts to any version changes
+
+Next Task: All tasks complete

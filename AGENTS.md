@@ -26,6 +26,7 @@ Learnings and patterns for future agents working on hone.
 - Config: `.plans/hone.config.yml`
 - Tests: add unit tests in x.test.ts files next to the source file being tested
 - Integration tests: src/integration-test.ts provides comprehensive agent integration testing
+- Version tests: use dynamic package.json import to avoid hardcoded version expectations that break on version updates
 
 ## Task Dependency Logic
 
