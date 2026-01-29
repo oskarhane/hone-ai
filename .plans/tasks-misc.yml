@@ -14,3 +14,27 @@ tasks:
       - "run command still works"
       - "tests pass"
     completed_at: 2026-01-29T10:30:00Z
+
+  - id: task-002
+    title: "harden the task choosing step to make sure only tasks from the passed in tasks file are chosen"
+    description: |
+      It has happend that tasks from a different tasks file was chosen when all tasks were done in the passed in file.
+      It's strictly forbidden to choose tasks from a different tasks file.
+      Ensure that the task choosing step only selects tasks from the passed in tasks file.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "tasks are chosen from the passed in tasks file"
+    completed_at: null
+
+  - id: task-003
+    title: "make config in yaml instead of json"
+    description: |
+      Convert the configuration file from JSON to YAML format, and support reading the config.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "the config file is in YAML format"
+      - "the config file can be read"
+      - "init command creates the config file, in yaml format"
+    completed_at: null
