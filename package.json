@@ -1,6 +1,6 @@
 {
   "name": "hone-ai",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "AI coding agent orchestrator - orchestrate AI agents to implement features based on PRDs",
   "keywords": [
     "ai",
