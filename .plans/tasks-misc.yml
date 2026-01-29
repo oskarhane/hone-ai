@@ -188,8 +188,8 @@ tasks:
     title: "fallback to help for unknown command"
     description: |
       hone --unknown should print help for all unknown commands
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "hone --<unknown> prints help for all unknown commands"
-    completed_at: null
+    completed_at: 2026-01-29T23:30:00Z

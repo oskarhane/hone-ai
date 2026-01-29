@@ -219,4 +219,24 @@ Key Decisions:
 - Added -v shorthand alias with explicit version flag configuration for better UX
 - Applied consistent prettier formatting across integration test file
 
-Next Task: task-010
+================================================================================
+TASK-010: fallback to help for unknown command
+Date: 2026-01-29T23:30:00Z
+================================================================================
+
+Summary:
+Added fallback behavior for unknown commands and options to display help instead of error.
+Used Commander.js exitOverride and configureOutput to handle unknown commands gracefully.
+
+Files Changed:
+- src/index.ts (added exitOverride and configureOutput handlers for unknown commands/options)
+- src/index.integration.test.ts (added 3 test cases for unknown command/option handling)
+
+Key Decisions:
+- Used exitOverride to catch commander.unknownOption and commander.unknownCommand errors
+- Added configureOutput to suppress error messages for unknown commands/options
+- Exit with code 0 for unknown commands/options to indicate successful help display
+- Added comprehensive tests covering unknown options, commands, and multiple unknown options
+- Preserved normal error handling for other command errors (like missing required options)
+
+All Tasks Completed! 🎉

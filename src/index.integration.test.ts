@@ -322,6 +322,32 @@ describe('CLI Integration Tests', () => {
       expect(result.exitCode).toBe(0)
       expect(result.stdout).toContain('0.5.0')
     })
+
+    test('unknown option shows help instead of error', () => {
+      const result = runCli(['--unknown'])
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout).toContain('Usage: hone [options] [command]')
+      expect(result.stdout).toContain('AI Coding Agent Orchestrator')
+      expect(result.stderr).not.toContain('unknown option')
+    })
+
+    test('unknown command shows help instead of error', () => {
+      const result = runCli(['unknown-command'])
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout).toContain('Usage: hone [options] [command]')
+      expect(result.stdout).toContain('AI Coding Agent Orchestrator')
+      expect(result.stderr).not.toContain('unknown command')
+    })
+
+    test('multiple unknown options show help instead of error', () => {
+      const result = runCli(['--test', '--another'])
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout).toContain('Usage: hone [options] [command]')
+      expect(result.stdout).toContain('AI Coding Agent Orchestrator')
+    })
   })
 
   describe('prd-to-tasks command', () => {

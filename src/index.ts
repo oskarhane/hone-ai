@@ -204,4 +204,27 @@ program
     }
   })
 
+// Handle unknown commands and options by showing help
+program.configureOutput({
+  outputError: (str, write) => {
+    // Suppress error messages for unknown commands/options since we show help instead
+    if (!str.includes('unknown option') && !str.includes('unknown command')) {
+      write(str)
+    }
+  },
+})
+
+program.exitOverride(err => {
+  if (err.code === 'commander.unknownOption' || err.code === 'commander.unknownCommand') {
+    program.outputHelp()
+    process.exit(0)
+  }
+  // Re-throw all other errors to maintain normal behavior
+  if (err.exitCode === 0) {
+    // For normal exits (like --version, --help), just exit normally
+    process.exit(0)
+  }
+  throw err
+})
+
 program.parse()
