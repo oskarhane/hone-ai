@@ -306,12 +306,12 @@ describe('CLI Integration Tests', () => {
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Initialized hone successfully!');
       expect(result.stdout).toContain('✓ Created .plans/ directory');
-      expect(result.stdout).toContain('✓ Created .plans/hone.config.json');
+      expect(result.stdout).toContain('✓ Created .plans/hone.config.yml');
       expect(result.stdout).toContain('Next steps:');
       
       // Verify files were created
       expect(existsSync(join(TEST_CWD, '.plans'))).toBe(true);
-      expect(existsSync(join(TEST_CWD, '.plans', 'hone.config.json'))).toBe(true);
+      expect(existsSync(join(TEST_CWD, '.plans', 'hone.config.yml'))).toBe(true);
     });
 
     test('detects when already initialized', () => {
@@ -336,10 +336,10 @@ describe('CLI Integration Tests', () => {
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Initialized hone successfully!');
       expect(result.stdout).toContain('• .plans/ directory already exists');
-      expect(result.stdout).toContain('✓ Created .plans/hone.config.json');
+      expect(result.stdout).toContain('✓ Created .plans/hone.config.yml');
       
       // Verify config was created
-      expect(existsSync(join(TEST_CWD, '.plans', 'hone.config.json'))).toBe(true);
+      expect(existsSync(join(TEST_CWD, '.plans', 'hone.config.yml'))).toBe(true);
     });
   });
 });

@@ -24,7 +24,7 @@ fi
 # Test 2: Verify model configuration
 echo ""
 echo "Test 2: Verify model uses correct format"
-if grep -q "claude-sonnet-4-20250514" .plans/hone.config.json; then
+if grep -q "claude-sonnet-4-20250514" .plans/hone.config.yml; then
   echo "✓ Model configuration is correct"
 else
   echo "✗ Model configuration is incorrect"

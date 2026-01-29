@@ -31,10 +31,10 @@ tasks:
     title: "make config in yaml instead of json"
     description: |
       Convert the configuration file from JSON to YAML format, and support reading the config.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "the config file is in YAML format"
       - "the config file can be read"
       - "init command creates the config file, in yaml format"
-    completed_at: null
+    completed_at: 2026-01-29T12:15:00Z

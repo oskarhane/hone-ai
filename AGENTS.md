@@ -23,7 +23,7 @@ Learnings and patterns for future agents working on hone.
 - Task files: `.plans/tasks-<feature>.yml`
 - PRD files: `.plans/prd-<feature>.md`
 - Progress logs: `.plans/progress-<feature>.txt`
-- Config: `.plans/hone.config.json`
+- Config: `.plans/hone.config.yml`
 - Tests: add unit tests in x.test.ts files next to the source file being tested
 
 ## Task Dependency Logic
@@ -38,7 +38,7 @@ Learnings and patterns for future agents working on hone.
 
 - Model names must use full version format: `claude-sonnet-4-YYYYMMDD` (e.g., `claude-sonnet-4-20250514`)
 - Short names like `claude-sonnet-4` return 404 errors
-- Model config in `.plans/hone.config.json` should always use full version names
+- Model config in `.plans/hone.config.yml` should always use full version names
 - When updating API calls, ensure both default config and fallback values use correct format
 
 ## Task Generation

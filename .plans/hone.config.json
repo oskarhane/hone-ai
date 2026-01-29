@@ -1,8 +1,0 @@
-{
-  "defaultAgent": "opencode",
-  "models": {
-    "opencode": "claude-sonnet-4-20250514"
-  },
-  "commitPrefix": "hone",
-  "feedbackCommand": "bun test"
-}

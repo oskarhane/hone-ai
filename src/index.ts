@@ -52,9 +52,9 @@ program
       }
       
       if (result.configCreated) {
-        console.log('  ✓ Created .plans/hone.config.json');
+        console.log('  ✓ Created .plans/hone.config.yml');
       } else {
-        console.log('  • .plans/hone.config.json already exists');
+        console.log('  • .plans/hone.config.yml already exists');
       }
       
       console.log('');

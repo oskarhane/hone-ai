@@ -38,3 +38,29 @@ Key Decisions:
 - Documented pattern in AGENTS.md for future reference
 
 Next Task: task-003
+
+================================================================================
+TASK-003: make config in yaml instead of json
+Date: 2026-01-29T12:15:00Z
+================================================================================
+
+Summary:
+Converted config from JSON to YAML format. Updated config creation and reading 
+to use js-yaml library. All references updated across codebase.
+
+Files Changed:
+- .plans/hone.config.json → .plans/hone.config.yml (converted and renamed)
+- src/config.ts (updated to use yaml.dump() and yaml.load() instead of JSON methods)
+- src/index.ts (updated default config path reference)
+- src/init.test.ts (updated integration test to check for .yml extension)
+- test-e2e.sh (updated to check for .yml config file)
+- AGENTS.md (updated config file references from .json to .yml)
+- README.md (updated example config to show YAML format)
+
+Key Decisions:
+- Used js-yaml library for parsing/dumping (already in dependencies)
+- Deleted old .json config and created new .yml config
+- Preserved deep merge logic for models field to maintain defaults
+- All 115 tests pass
+
+Next Task: All tasks complete

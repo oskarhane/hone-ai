@@ -47,7 +47,7 @@ bun src/index.ts init
 
 This creates:
 - `.plans/` directory for storing PRDs, tasks, and progress
-- `.plans/hone.config.json` with default configuration
+- `.plans/hone.config.yml` with default configuration
 
 2. Create `.env` file in project root:
 ```bash
@@ -58,19 +58,16 @@ Note: Other commands will auto-initialize if you skip the `init` step.
 
 ## Configuration
 
-Configuration is stored in `.plans/hone.config.json`:
+Configuration is stored in `.plans/hone.config.yml`:
 
-```json
-{
-  "defaultAgent": "claude",
-  "models": {
-    "prd": "claude-sonnet-4-20250514",
-    "tasks": "claude-sonnet-4-20250514"
-  },
-  "commitPrefix": true,
-  "feedbackCommand": "bun test",
-  "lintCommand": null
-}
+```yaml
+defaultAgent: claude
+models:
+  opencode: claude-sonnet-4-20250514
+  claude: claude-sonnet-4-20250514
+commitPrefix: hone
+feedbackCommand: bun test
+lintCommand:
 ```
 
 ## Usage
@@ -169,7 +166,7 @@ The agent has full access to:
 ```
 project-root/
 ├── .plans/
-│   ├── hone.config.json           # Configuration
+│   ├── hone.config.yml            # Configuration
 │   ├── prd-<feature>.md           # PRD files
 │   ├── tasks-<feature>.yml        # Task lists
 │   └── progress-<feature>.txt     # Progress logs

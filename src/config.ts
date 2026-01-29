@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+import * as yaml from 'js-yaml';
 import { exitWithError, ErrorMessages } from './errors';
 
 export interface HoneConfig {
@@ -37,7 +38,7 @@ export function ensurePlansDir(): void {
 }
 
 export function getConfigPath(): string {
-  return join(getPlansDir(), 'hone.config.json');
+  return join(getPlansDir(), 'hone.config.yml');
 }
 
 export async function loadConfig(): Promise<HoneConfig> {
@@ -46,14 +47,19 @@ export async function loadConfig(): Promise<HoneConfig> {
   const configPath = getConfigPath();
   
   if (!existsSync(configPath)) {
-    await writeFile(configPath, JSON.stringify(DEFAULT_CONFIG, null, 2));
+    await writeFile(configPath, yaml.dump(DEFAULT_CONFIG));
     return DEFAULT_CONFIG;
   }
   
   try {
     const content = await readFile(configPath, 'utf-8');
-    const config = JSON.parse(content);
-    return { ...DEFAULT_CONFIG, ...config };
+    const config = yaml.load(content) as Partial<HoneConfig>;
+    // Deep merge models to preserve defaults
+    return { 
+      ...DEFAULT_CONFIG, 
+      ...config,
+      models: { ...DEFAULT_CONFIG.models, ...config.models }
+    };
   } catch (error) {
     console.error('Error reading config, using defaults:', error);
     return DEFAULT_CONFIG;
@@ -63,7 +69,7 @@ export async function loadConfig(): Promise<HoneConfig> {
 export async function saveConfig(config: HoneConfig): Promise<void> {
   ensurePlansDir();
   const configPath = getConfigPath();
-  await writeFile(configPath, JSON.stringify(config, null, 2));
+  await writeFile(configPath, yaml.dump(config));
 }
 
 export function getApiKey(): string | undefined {
@@ -119,7 +125,7 @@ export async function initProject(): Promise<InitResult> {
   
   // Create config file if it doesn't exist
   if (!configExisted) {
-    await writeFile(configPath, JSON.stringify(DEFAULT_CONFIG, null, 2));
+    await writeFile(configPath, yaml.dump(DEFAULT_CONFIG));
   }
   
   return {
