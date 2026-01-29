@@ -121,10 +121,19 @@ Learnings and patterns for future agents working on hone.
 - formatError() uses ✗ symbol matching PRD spec for consistent error display
 - exitWithError() throws in test mode (NODE_ENV/BUN_ENV=test) to allow testing
 - isNetworkError() detects common network errors (ECONNREFUSED, ETIMEDOUT, etc.)
+- isRateLimitError() detects rate limiting errors (429, quota exceeded, etc.)
+- isModelUnavailableError() detects model availability errors (404, model not found, etc.)
+- parseAgentError() analyzes stderr to classify error types and determine retryability
 - retryWithBackoff() implements exponential backoff: delay = min(initial * 2^attempt, maxDelay)
 - Default retry: 3 attempts, 1s initial delay, 10s max delay
-- ErrorMessages object provides structured message/details for common scenarios
-- Network retry integrated into prd-generator and task-generator API calls
+- ErrorMessages object provides structured message/details for common scenarios:
+  - AGENT_SPAWN_FAILED: Agent binary not found or failed to start
+  - MODEL_UNAVAILABLE: Specified model not supported by agent
+  - RATE_LIMIT_ERROR: API rate limit exceeded (includes retry-after if available)
+  - AGENT_ERROR: Generic agent failure with exit code and stderr
+- Network retry integrated into AgentClient with automatic network error detection
+- Agent errors surfaced with user-friendly messages in run.ts phases
+- Only network errors are retried; rate limit, model unavailable, and spawn failures exit immediately
 
 ## Build & Distribution
 

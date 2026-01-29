@@ -4,7 +4,7 @@ import type { AgentType } from './config';
 import { loadConfig, resolveModelForPhase } from './config';
 import { spawnAgent, isAgentAvailable } from './agent';
 import { constructPrompt, type PromptPhase } from './prompt';
-import { exitWithError, ErrorMessages } from './errors';
+import { exitWithError, ErrorMessages, parseAgentError } from './errors';
 
 export interface ExecuteTasksOptions {
   tasksFile: string;
@@ -83,6 +83,21 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
     });
     
     if (implementResult.exitCode !== 0) {
+      // Parse error type for better user feedback
+      const errorInfo = parseAgentError(implementResult.stderr, implementResult.exitCode);
+      
+      if (errorInfo.type === 'model_unavailable') {
+        const { message, details } = ErrorMessages.MODEL_UNAVAILABLE(implementModel, agent);
+        exitWithError(message, details);
+      } else if (errorInfo.type === 'rate_limit') {
+        const { message, details } = ErrorMessages.RATE_LIMIT_ERROR(agent, errorInfo.retryAfter);
+        exitWithError(message, details);
+      } else if (errorInfo.type === 'spawn_failed') {
+        const { message, details } = ErrorMessages.AGENT_SPAWN_FAILED(agent, implementResult.stderr);
+        exitWithError(message, details);
+      }
+      
+      // Generic error message for other failures
       console.error('\n✗ Implement phase failed');
       console.error('\nThe agent encountered an error during task implementation.');
       console.error('The task has NOT been marked as completed.');
@@ -131,6 +146,21 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
       });
       
       if (reviewResult.exitCode !== 0) {
+        // Parse error type for better user feedback
+        const errorInfo = parseAgentError(reviewResult.stderr, reviewResult.exitCode);
+        
+        if (errorInfo.type === 'model_unavailable') {
+          const { message, details } = ErrorMessages.MODEL_UNAVAILABLE(reviewModel, agent);
+          exitWithError(message, details);
+        } else if (errorInfo.type === 'rate_limit') {
+          const { message, details } = ErrorMessages.RATE_LIMIT_ERROR(agent, errorInfo.retryAfter);
+          exitWithError(message, details);
+        } else if (errorInfo.type === 'spawn_failed') {
+          const { message, details } = ErrorMessages.AGENT_SPAWN_FAILED(agent, reviewResult.stderr);
+          exitWithError(message, details);
+        }
+        
+        // Generic error message for other failures
         console.error('\n✗ Review phase failed');
         console.error('\nThe agent encountered an error during task review.');
         console.error('The task has NOT been marked as completed.');
@@ -169,6 +199,21 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
     });
     
     if (finalizeResult.exitCode !== 0) {
+      // Parse error type for better user feedback
+      const errorInfo = parseAgentError(finalizeResult.stderr, finalizeResult.exitCode);
+      
+      if (errorInfo.type === 'model_unavailable') {
+        const { message, details } = ErrorMessages.MODEL_UNAVAILABLE(finalizeModel, agent);
+        exitWithError(message, details);
+      } else if (errorInfo.type === 'rate_limit') {
+        const { message, details } = ErrorMessages.RATE_LIMIT_ERROR(agent, errorInfo.retryAfter);
+        exitWithError(message, details);
+      } else if (errorInfo.type === 'spawn_failed') {
+        const { message, details } = ErrorMessages.AGENT_SPAWN_FAILED(agent, finalizeResult.stderr);
+        exitWithError(message, details);
+      }
+      
+      // Generic error message for other failures
       console.error('\n✗ Finalize phase failed');
       console.error('\nThe agent encountered an error during task finalization.');
       console.error('The task may not have been properly committed or marked as completed.');

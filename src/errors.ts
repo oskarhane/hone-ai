@@ -65,6 +65,74 @@ export function isNetworkError(error: unknown): boolean {
 }
 
 /**
+ * Check if error indicates rate limiting
+ */
+export function isRateLimitError(errorText: string): boolean {
+  const lowerError = errorText.toLowerCase();
+  const rateLimitIndicators = [
+    'rate limit',
+    'rate_limit',
+    'too many requests',
+    '429',
+    'quota exceeded',
+    'rate exceeded'
+  ];
+  
+  return rateLimitIndicators.some(indicator => lowerError.includes(indicator));
+}
+
+/**
+ * Check if error indicates model unavailability
+ */
+export function isModelUnavailableError(errorText: string): boolean {
+  const lowerError = errorText.toLowerCase();
+  const modelErrorIndicators = [
+    'model not found',
+    'model unavailable',
+    'model does not exist',
+    'invalid model',
+    'unknown model',
+    '404',
+    'not found'
+  ];
+  
+  return modelErrorIndicators.some(indicator => lowerError.includes(indicator));
+}
+
+/**
+ * Parse structured error information from agent stderr
+ */
+export interface AgentErrorInfo {
+  type: 'network' | 'rate_limit' | 'model_unavailable' | 'spawn_failed' | 'unknown';
+  retryable: boolean;
+  retryAfter?: number;
+}
+
+export function parseAgentError(stderr: string, exitCode?: number): AgentErrorInfo {
+  if (isNetworkError({ message: stderr })) {
+    return { type: 'network', retryable: true };
+  }
+  
+  if (isRateLimitError(stderr)) {
+    // Try to extract retry-after time from stderr
+    const retryMatch = stderr.match(/retry[- ]after[:\s]+(\d+)/i);
+    const retryAfter = retryMatch && retryMatch[1] ? parseInt(retryMatch[1], 10) : undefined;
+    return { type: 'rate_limit', retryable: false, retryAfter };
+  }
+  
+  if (isModelUnavailableError(stderr)) {
+    return { type: 'model_unavailable', retryable: false };
+  }
+  
+  // Check for spawn-related failures (typically exit code undefined or ENOENT)
+  if (exitCode === undefined || stderr.toLowerCase().includes('enoent')) {
+    return { type: 'spawn_failed', retryable: false };
+  }
+  
+  return { type: 'unknown', retryable: false };
+}
+
+/**
  * Retry a function with exponential backoff
  */
 export async function retryWithBackoff<T>(
@@ -166,5 +234,60 @@ Error: ${message}
 
 Please check your internet connection and try again.`
     };
-  }
+  },
+  
+  AGENT_SPAWN_FAILED: (agent: string, error: string) => ({
+    message: `Error: Failed to start ${agent}`,
+    details: `Could not spawn ${agent} agent process.
+
+Error: ${error}
+
+Please ensure ${agent} is properly installed and in your PATH.`
+  }),
+  
+  MODEL_UNAVAILABLE: (model: string, agent: string) => ({
+    message: `Error: Model not available`,
+    details: `The model "${model}" is not available for agent "${agent}".
+
+Please check:
+  • Model name is correct (format: claude-<tier>-<version>-YYYYMMDD)
+  • Model version is supported by ${agent} (check with: ${agent} --help)
+  • Your ${agent} CLI is up to date
+
+Supported tiers: sonnet, opus
+Example: claude-sonnet-4-20250514`
+  }),
+  
+  RATE_LIMIT_ERROR: (agent: string, retryAfter?: number) => {
+    const retryMsg = retryAfter 
+      ? `Please retry after ${retryAfter} seconds.`
+      : 'Please wait a few minutes before retrying.';
+    
+    return {
+      message: 'Error: Rate limit exceeded',
+      details: `The ${agent} agent has exceeded its rate limit.
+
+${retryMsg}
+
+Consider:
+  • Spacing out your requests
+  • Using a different model if available
+  • Checking your API usage dashboard`
+    };
+  },
+  
+  AGENT_ERROR: (agent: string, exitCode: number, stderr: string) => ({
+    message: `Error: ${agent} agent failed`,
+    details: `The ${agent} agent exited with code ${exitCode}.
+
+Error output:
+${stderr.trim() || '(no error output)'}
+
+This may indicate:
+  • Invalid prompt or parameters
+  • Model configuration issue
+  • Agent internal error
+
+Review the error output above for specific details.`
+  })
 };

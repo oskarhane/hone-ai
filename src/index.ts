@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { Command } from 'commander';
-import { loadConfig, ensurePlansDir, resolveAgent, validateApiKey, initProject } from './config';
+import { loadConfig, ensurePlansDir, resolveAgent, initProject } from './config';
 import type { AgentType } from './config';
 import { listPrds } from './prds';
 import { listIncompleteTaskFiles } from './status';

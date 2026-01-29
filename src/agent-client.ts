@@ -4,7 +4,7 @@
  */
 
 import { spawnAgent } from './agent';
-import { retryWithBackoff, isNetworkError } from './errors';
+import { retryWithBackoff, parseAgentError, ErrorMessages, exitWithError, isNetworkError } from './errors';
 import type { AgentType } from './config';
 
 export interface AgentClientConfig {
@@ -49,29 +49,55 @@ export class AgentClient {
         const prompt = constructPromptFromRequest(request);
         
         // Execute with retry logic for network errors only
-        const result = await retryWithBackoff(async () => {
-          const spawnResult = await spawnAgent({
-            agent: this.config.agent,
-            prompt,
-            workingDir: this.config.workingDir || process.cwd(),
-            model
+        try {
+          const result = await retryWithBackoff(async () => {
+            const spawnResult = await spawnAgent({
+              agent: this.config.agent,
+              prompt,
+              workingDir: this.config.workingDir || process.cwd(),
+              model
+            });
+            
+            // Only retry network errors, throw immediately for other failures
+            if (spawnResult.exitCode !== 0) {
+              // Parse error type from stderr
+              const errorInfo = parseAgentError(spawnResult.stderr, spawnResult.exitCode);
+              
+              // Handle specific error types with user-friendly messages
+              if (errorInfo.type === 'model_unavailable') {
+                const { message, details } = ErrorMessages.MODEL_UNAVAILABLE(model || 'unknown', this.config.agent);
+                exitWithError(message, details);
+              } else if (errorInfo.type === 'rate_limit') {
+                const { message, details } = ErrorMessages.RATE_LIMIT_ERROR(this.config.agent, errorInfo.retryAfter);
+                exitWithError(message, details);
+              } else if (errorInfo.type === 'spawn_failed') {
+                const { message, details } = ErrorMessages.AGENT_SPAWN_FAILED(this.config.agent, spawnResult.stderr);
+                exitWithError(message, details);
+              }
+              
+              // For network errors, allow retry
+              if (errorInfo.retryable) {
+                throw new Error(`Agent exited with code ${spawnResult.exitCode}: ${spawnResult.stderr}`);
+              }
+              
+              // For other unknown errors, provide generic agent error message
+              const { message, details } = ErrorMessages.AGENT_ERROR(this.config.agent, spawnResult.exitCode, spawnResult.stderr);
+              exitWithError(message, details);
+            }
+            
+            return spawnResult;
           });
           
-          // Only retry network errors, throw immediately for other failures
-          if (spawnResult.exitCode !== 0) {
-            const error = new Error(`Agent exited with code ${spawnResult.exitCode}: ${spawnResult.stderr}`);
-            // Check if stderr indicates network error before retrying
-            if (!isNetworkError({ message: spawnResult.stderr })) {
-              throw error; // Non-network error, don't retry
-            }
-            throw error; // Network error, allow retry
+          // Parse response into Anthropic-compatible format
+          return parseAgentResponse(result.stdout);
+        } catch (error) {
+          // Network errors that exhausted retries
+          if (error instanceof Error && error.message.includes('Agent exited with code')) {
+            const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
+            exitWithError(message, details);
           }
-          
-          return spawnResult;
-        });
-        
-        // Parse response into Anthropic-compatible format
-        return parseAgentResponse(result.stdout);
+          throw error;
+        }
       }
     };
   }

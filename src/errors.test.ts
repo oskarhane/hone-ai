@@ -1,7 +1,10 @@
 import { describe, expect, test, beforeEach, mock } from 'bun:test';
 import { 
   formatError, 
-  isNetworkError, 
+  isNetworkError,
+  isRateLimitError,
+  isModelUnavailableError,
+  parseAgentError,
   retryWithBackoff,
   HoneError,
   ErrorMessages
@@ -143,6 +146,72 @@ describe('HoneError', () => {
   });
 });
 
+describe('isRateLimitError', () => {
+  test('detects rate limit variations', () => {
+    expect(isRateLimitError('Rate limit exceeded')).toBe(true);
+    expect(isRateLimitError('rate_limit error')).toBe(true);
+    expect(isRateLimitError('429 Too Many Requests')).toBe(true);
+    expect(isRateLimitError('Quota exceeded')).toBe(true);
+  });
+  
+  test('returns false for non-rate-limit errors', () => {
+    expect(isRateLimitError('Model not found')).toBe(false);
+    expect(isRateLimitError('Network error')).toBe(false);
+  });
+});
+
+describe('isModelUnavailableError', () => {
+  test('detects model unavailability', () => {
+    expect(isModelUnavailableError('Model not found')).toBe(true);
+    expect(isModelUnavailableError('Invalid model name')).toBe(true);
+    expect(isModelUnavailableError('404 Not Found')).toBe(true);
+    expect(isModelUnavailableError('Unknown model')).toBe(true);
+  });
+  
+  test('returns false for non-model errors', () => {
+    expect(isModelUnavailableError('Rate limit exceeded')).toBe(false);
+    expect(isModelUnavailableError('Network timeout')).toBe(false);
+  });
+});
+
+describe('parseAgentError', () => {
+  test('identifies network errors', () => {
+    const result = parseAgentError('ECONNREFUSED', 1);
+    expect(result.type).toBe('network');
+    expect(result.retryable).toBe(true);
+  });
+  
+  test('identifies rate limit errors', () => {
+    const result = parseAgentError('Rate limit exceeded', 1);
+    expect(result.type).toBe('rate_limit');
+    expect(result.retryable).toBe(false);
+  });
+  
+  test('extracts retry-after from rate limit errors', () => {
+    const result = parseAgentError('Rate limit exceeded. Retry after 60 seconds', 1);
+    expect(result.type).toBe('rate_limit');
+    expect(result.retryAfter).toBe(60);
+  });
+  
+  test('identifies model unavailable errors', () => {
+    const result = parseAgentError('Model not found', 1);
+    expect(result.type).toBe('model_unavailable');
+    expect(result.retryable).toBe(false);
+  });
+  
+  test('identifies spawn failures', () => {
+    const result = parseAgentError('ENOENT', 1);
+    expect(result.type).toBe('spawn_failed');
+    expect(result.retryable).toBe(false);
+  });
+  
+  test('returns unknown for other errors', () => {
+    const result = parseAgentError('Some random error', 1);
+    expect(result.type).toBe('unknown');
+    expect(result.retryable).toBe(false);
+  });
+});
+
 describe('ErrorMessages', () => {
   test('MISSING_API_KEY has correct format', () => {
     const { message, details } = ErrorMessages.MISSING_API_KEY;
@@ -173,5 +242,40 @@ describe('ErrorMessages', () => {
     const { message, details } = ErrorMessages.GIT_NOT_INITIALIZED;
     expect(message).toContain('Git');
     expect(details).toContain('git init');
+  });
+  
+  test('AGENT_SPAWN_FAILED includes agent and error', () => {
+    const { message, details } = ErrorMessages.AGENT_SPAWN_FAILED('opencode', 'command not found');
+    expect(message).toContain('opencode');
+    expect(details).toContain('command not found');
+    expect(details).toContain('PATH');
+  });
+  
+  test('MODEL_UNAVAILABLE includes model and agent', () => {
+    const { message, details } = ErrorMessages.MODEL_UNAVAILABLE('claude-sonnet-4-invalid', 'opencode');
+    expect(message).toContain('Model not available');
+    expect(details).toContain('claude-sonnet-4-invalid');
+    expect(details).toContain('opencode');
+    expect(details).toContain('--help');
+  });
+  
+  test('RATE_LIMIT_ERROR without retry-after', () => {
+    const { message, details } = ErrorMessages.RATE_LIMIT_ERROR('opencode');
+    expect(message).toContain('Rate limit');
+    expect(details).toContain('opencode');
+    expect(details).toContain('wait');
+  });
+  
+  test('RATE_LIMIT_ERROR with retry-after', () => {
+    const { message, details } = ErrorMessages.RATE_LIMIT_ERROR('claude', 120);
+    expect(message).toContain('Rate limit');
+    expect(details).toContain('120 seconds');
+  });
+  
+  test('AGENT_ERROR includes details', () => {
+    const { message, details } = ErrorMessages.AGENT_ERROR('opencode', 2, 'Invalid input');
+    expect(message).toContain('opencode');
+    expect(details).toContain('code 2');
+    expect(details).toContain('Invalid input');
   });
 });
