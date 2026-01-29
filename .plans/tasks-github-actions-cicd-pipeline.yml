@@ -356,3 +356,15 @@ tasks:
     acceptance_criteria:
       - "publish to npm works"
     completed_at: 2026-01-29T17:15:00.000Z
+
+  - id: task-020
+    title: "the macos build on ci/cd pipeline doesn't work"
+    description: |
+      The macOS build on the CI/CD pipeline is not working as expected. This task aims to investigate and resolve the issue.
+      the file is downloaded and placed in hone-v0.7.0-macos for you to check.
+      how can we build for macos on linux? or are we able to get macos machines on github actions?
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "builds for macos on github actions works"
+    completed_at: null
