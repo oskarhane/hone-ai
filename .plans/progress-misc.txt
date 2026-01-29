@@ -199,4 +199,24 @@ Key Decisions:
 - Follows existing mocking patterns used in errors.test.ts and logger.test.ts
 - All 156 tests now pass including the problematic CI test
 
-Next Task: All tasks complete
+Next Task: task-009
+
+================================================================================
+TASK-009: hone --version fixes
+Date: 2026-01-29T22:15:00Z
+================================================================================
+
+Summary:
+Fixed version display from hardcoded 0.1.0 to dynamic import from package.json (0.5.0).
+Added shorthand -v alias alongside --version flag for better CLI usability.
+
+Files Changed:
+- src/index.ts (imported package.json, updated .version() call with packageJson.version and added -v alias)
+- src/index.integration.test.ts (updated version tests to expect 0.5.0, added test for -v shorthand alias, applied prettier formatting)
+
+Key Decisions:
+- Used dynamic import from package.json to ensure version stays in sync automatically
+- Added -v shorthand alias with explicit version flag configuration for better UX
+- Applied consistent prettier formatting across integration test file
+
+Next Task: task-010

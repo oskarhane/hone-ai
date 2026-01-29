@@ -177,12 +177,12 @@ tasks:
       hone --version prints the wrong version number.
       It says 0.1.0, and we're on 0.5.0.
       Also add shorthand alias for version, -v
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "hone --version prints the correct version number"
       - "hone -v prints the correct version number"
-    completed_at: null
+    completed_at: 2026-01-29T22:15:00Z
 
   - id: task-010
     title: "fallback to help for unknown command"
