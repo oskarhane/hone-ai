@@ -55,3 +55,36 @@ Recommendations:
 5. Surface agent errors directly to users via stderr
 
 Next Task: task-003
+
+================================================================================
+TASK-003: Design agent communication abstraction layer
+Date: 2026-01-29T11:15:00.000Z
+================================================================================
+
+Summary:
+Designed comprehensive abstraction layer to replace direct Anthropic SDK calls with agent subprocess calls. Created AgentClient class that mirrors Anthropic SDK API, defined model transformation logic (opencode needs 'anthropic/' prefix), prompt construction from message requests, response parsing from stdout, and error handling/retry strategy.
+
+Files Changed:
+- .plans/agent-communication-abstraction-design.md (created - comprehensive design documentation with interfaces, transformation logic, migration strategy)
+- .plans/tasks-replace-direct-anthropic-communication-with-agent-.yml (modified - marked task-003 completed)
+
+Key Decisions:
+- Mirror Anthropic SDK API to minimize migration code changes
+- Extend spawnAgent() with model parameter instead of creating separate function
+- Transform model names: opencode requires 'anthropic/' prefix, claude uses as-is
+- Parse stdout as plain text into Anthropic-compatible response structure
+- Maintain retryWithBackoff pattern treating agent spawn/exit failures as retryable
+- Phase-specific model config deferred to task-004 (optional enhancement)
+- Streaming support documented but not implemented (not needed for current usage)
+- AgentClient constructor takes { agent, model, workingDir } config
+- Response format: { content: [{ type: 'text', text: stdout }] } for compatibility
+
+Migration Path:
+1. Create src/agent-client.ts with AgentClient class
+2. Update src/agent.ts spawnAgent() to accept model parameter
+3. Replace prd-generator.ts calls (2 locations)
+4. Replace task-generator.ts calls (1 location)
+5. Remove Anthropic SDK dependency
+
+Next Task: task-004
+

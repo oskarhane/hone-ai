@@ -34,7 +34,7 @@ Learnings and patterns for future agents working on hone.
 - Cancelled tasks count as completed for status calculation and dependency resolution
 - Task status can be: 'pending', 'in_progress', 'completed', 'failed', or 'cancelled'
 
-## Anthropic API
+## Anthropic API & Agent Client
 
 - Model names must use full version format: `claude-sonnet-4-YYYYMMDD` (e.g., `claude-sonnet-4-20250514`)
 - Short names like `claude-sonnet-4` return 404 errors
@@ -42,7 +42,10 @@ Learnings and patterns for future agents working on hone.
 - When updating API calls, ensure both default config and fallback values use correct format
 - Current direct API usage: prd-generator.ts (2 calls), task-generator.ts (1 call)
 - Phase-specific operations (implement/review/finalize) already use agent subprocess spawning
-- Non-phase operations (PRD/task generation) still use direct Anthropic API via SDK
+- Non-phase operations (PRD/task generation) being migrated to agent client abstraction
+- Agent client mirrors Anthropic SDK API but routes through subprocess spawning
+- Model transformation: opencode needs 'anthropic/' prefix, claude uses model name as-is
+- Agent client response format: { content: [{ type: 'text', text: stdout }] } for compatibility
 
 ## Task Generation
 
@@ -55,6 +58,7 @@ Learnings and patterns for future agents working on hone.
 
 - Use child_process.spawn for spawning opencode/claude
 - Non-interactive mode: claude uses `-p "prompt"`, opencode uses `run "prompt"`
+- Model selection: opencode uses `--model anthropic/<model>`, claude uses `--model <model>`
 - CRITICAL: Do NOT use `shell: true` - causes shell to interpret special chars like @
 - Set stdio: ['inherit', 'pipe', 'pipe'] - inherit stdin, capture stdout/stderr
 - Stream stdout/stderr to console in real-time using process.stdout.write()
