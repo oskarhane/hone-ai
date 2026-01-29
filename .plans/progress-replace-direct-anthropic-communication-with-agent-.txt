@@ -976,3 +976,23 @@ Key Decisions:
 
 Next Task: All tasks complete! Agent integration feature fully implemented.
 
+================================================================================
+TASK-014: remove double output from prd command
+Date: 2026-01-29T21:15:00.000Z
+================================================================================
+
+Summary:
+Fixed double output issue from prd command by adding silent parameter to spawnAgent function. When silent: true is passed, agent subprocess stdout/stderr is not written to console, preventing duplicate output during PRD generation. AgentClient now uses silent mode to avoid interfering with its own output handling.
+
+Files Changed:
+- src/agent.ts (modified - added silent parameter to SpawnAgentOptions interface and conditional output handling)
+- src/agent-client.ts (modified - passes silent: true to spawnAgent to prevent double output)
+
+Key Decisions:
+- Added optional silent parameter to SpawnAgentOptions with default false for backward compatibility
+- AgentClient uses silent: true to prevent agent output from interfering with calling process
+- Silent mode still captures stdout/stderr in variables for return/processing
+- Preserves existing behavior for all other callers (run.ts phases remain verbose)
+
+Next Task: task-015
+

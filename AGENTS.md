@@ -104,6 +104,7 @@ Learnings and patterns for future agents working on hone.
 - CRITICAL: Do NOT use `shell: true` - causes shell to interpret special chars like @
 - Set stdio: ['inherit', 'pipe', 'pipe'] - inherit stdin, capture stdout/stderr
 - Stream stdout/stderr to console in real-time using process.stdout.write()
+- Optional silent parameter: set `silent: true` to prevent stdout/stderr console output while still capturing in variables
 - Do NOT write to child.stdin - args contain the prompt for non-interactive mode
 - Handle 'error' event for spawn failures (e.g., command not found)
 - Handle 'close' event for exit code (treat null as 1)

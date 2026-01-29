@@ -234,11 +234,11 @@ tasks:
         What specific artifacts should be built and attached to GitHub releases? (e.g., the standalone binary executable, source code archives, specific file types/formats)
         2. What specific artifacts should be built and attached to GitHub releases? (e.g., the standalone binary executable, source code archives, specific file types/formats)
         ```
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "no double output from prd command when asking user questions"
-    completed_at: null
+    completed_at: 2026-01-29T21:15:00.000Z
 
   - id: task-015
     title: "investigate the codebase before asking questions on prd"
