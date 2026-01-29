@@ -43,9 +43,12 @@ Learnings and patterns for future agents working on hone.
 - Current direct API usage: prd-generator.ts (2 calls), task-generator.ts (1 call)
 - Phase-specific operations (implement/review/finalize) use agent subprocess spawning with model parameter
 - Non-phase operations (PRD/task generation) being migrated to agent client abstraction
-- Agent client mirrors Anthropic SDK API but routes through subprocess spawning
-- Model transformation: opencode needs 'anthropic/' prefix, claude uses model name as-is
+- Agent client (src/agent-client.ts) implemented - mirrors Anthropic SDK API, routes through subprocess spawning
+- AgentClient usage: `new AgentClient({ agent, model, workingDir? })` then `client.messages.create({ messages, system? })`
+- Model transformation: opencode needs 'anthropic/' prefix, claude uses model name as-is (handled in spawnAgent)
 - Agent client response format: { content: [{ type: 'text', text: stdout }] } for compatibility
+- Error handling: retryWithBackoff only retries network errors (checks stderr with isNetworkError), non-network failures throw immediately
+- Prompt construction: system prompt + messages joined with newlines, assistant messages prefixed "Previous response:"
 
 ## Phase-Specific Model Configuration
 
