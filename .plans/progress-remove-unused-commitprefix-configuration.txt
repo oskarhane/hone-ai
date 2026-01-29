@@ -36,3 +36,21 @@ Key Decisions:
 - Task completed during task-001 but properly tracked as separate completion
 
 Next Task: task-005
+
+================================================================================
+TASK-005: Remove commitPrefix from README.md documentation
+Date: 2026-01-29T14:45:30.000Z
+================================================================================
+
+Summary:
+Successfully removed commitPrefix from README.md documentation, specifically from the example configuration section. This ensures the documentation accurately reflects the available configuration options after the commitPrefix removal.
+
+Files Changed:
+- README.md (modified - removed commitPrefix from example config section)
+
+Key Decisions:
+- Kept example configuration clean and minimal, showing only active config options
+- Maintained documentation consistency with actual codebase changes
+- Preserved all other README content and configuration examples
+
+Next Task: task-006

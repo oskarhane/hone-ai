@@ -77,7 +77,6 @@ models:
   review: claude-sonnet-4-20250514     # Code review
   finalize: claude-sonnet-4-20250514   # Finalization and commits
 
-commitPrefix: hone
 feedbackInstructions: 'test: bun test, type check: bun run tsc'
 lintCommand:
 ```

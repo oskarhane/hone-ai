@@ -63,7 +63,7 @@ tasks:
     title: "Remove commitPrefix from README.md documentation"
     description: |
       Update the README.md file to remove commitPrefix from the example configuration section and any other documentation that references this configuration option.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -71,7 +71,7 @@ tasks:
       - "No references to commitPrefix remain in README documentation"
       - "Example configuration remains valid and consistent"
       - "Documentation accurately reflects available config options"
-    completed_at: null
+    completed_at: "2026-01-29T14:45:30.000Z"
 
   - id: task-006
     title: "Clean up commitPrefix from existing .plans config files"
