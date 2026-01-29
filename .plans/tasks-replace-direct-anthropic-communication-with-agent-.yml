@@ -218,3 +218,24 @@ tasks:
       - "--verbose flag to show all details from the hone commands"
       - "default output should be less verbose"
     completed_at: 2026-01-29T20:30:00.000Z
+
+  - id: task-014
+    title: "remove double output from prd command"
+    description: |
+      when running the prd command, the questions are doubled. see example:
+
+        ```
+        I have a few questions to refine this PRD:
+
+        What testing framework and commands should the GitHub Actions run? (e.g., `bun test`, `npm test`, specific test scripts in package.json)
+        1. What testing framework and commands should the GitHub Actions run? (e.g., `bun test`, `npm test`, specific test scripts in package.json)
+        > bun test
+
+        What specific artifacts should be built and attached to GitHub releases? (e.g., the standalone binary executable, source code archives, specific file types/formats)
+        2. What specific artifacts should be built and attached to GitHub releases? (e.g., the standalone binary executable, source code archives, specific file types/formats)
+        ```
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "no double output from prd command when asking user questions"
+    completed_at: null
