@@ -1,0 +1,107 @@
+feature: remove-unused-commitprefix-configuration
+prd: ./prd-remove-unused-commitprefix-configuration.md
+created_at: 2026-01-29T10:37:36.426Z
+updated_at: 2026-01-29T10:37:36.426Z
+
+tasks:
+  - id: task-001
+    title: "Remove commitPrefix from HoneConfig interface and DEFAULT_CONFIG"
+    description: |
+      Remove the commitPrefix property from the HoneConfig interface in src/config.ts and remove it from the DEFAULT_CONFIG object. This is the core change that eliminates the unused configuration option.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "commitPrefix property removed from HoneConfig interface"
+      - "commitPrefix removed from DEFAULT_CONFIG object"
+      - "TypeScript compilation succeeds after changes"
+      - "No references to config.commitPrefix remain in config.ts"
+    completed_at: null
+
+  - id: task-002
+    title: "Add deprecated config validation for commitPrefix"
+    description: |
+      Enhance the validateConfig function to detect and warn about deprecated commitPrefix usage in user config files. This provides user feedback when they have the removed option in their configs.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "validateConfig detects commitPrefix in loaded config"
+      - "Warning message includes deprecation notice"
+      - "Validation still passes (non-breaking) with warning"
+      - "Warning clearly states commitPrefix has no effect"
+    completed_at: null
+
+  - id: task-003
+    title: "Update loadConfig to gracefully handle legacy commitPrefix"
+    description: |
+      Modify loadConfig function to strip commitPrefix from loaded configurations while preserving all other settings. Ensures backward compatibility by loading existing configs without errors.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Configs with commitPrefix load without errors"
+      - "commitPrefix property removed from final config object"
+      - "All other config properties preserved correctly"
+      - "No breaking changes to existing user configs"
+    completed_at: null
+
+  - id: task-004
+    title: "Update all test files to remove commitPrefix usage"
+    description: |
+      Remove commitPrefix from all test configurations and expectations in config.test.ts and other test files. Update test data to reflect new config structure without commitPrefix.
+    status: pending
+    dependencies:
+      - task-001
+      - task-002
+      - task-003
+    acceptance_criteria:
+      - "All test configs remove commitPrefix property"
+      - "Test expectations updated to not expect commitPrefix"
+      - "All existing tests pass with updated config structure"
+      - "New tests added for deprecated config validation"
+    completed_at: null
+
+  - id: task-005
+    title: "Remove commitPrefix from README.md documentation"
+    description: |
+      Update the README.md file to remove commitPrefix from the example configuration section and any other documentation that references this configuration option.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "commitPrefix removed from example config in README"
+      - "No references to commitPrefix remain in README documentation"
+      - "Example configuration remains valid and consistent"
+      - "Documentation accurately reflects available config options"
+    completed_at: null
+
+  - id: task-006
+    title: "Clean up commitPrefix from existing .plans config files"
+    description: |
+      Update the existing .plans/hone.config.yml and any other config files in the .plans directory to remove the commitPrefix setting, ensuring the codebase itself doesn't contain the deprecated config.
+    status: pending
+    dependencies:
+      - task-001
+      - task-003
+    acceptance_criteria:
+      - "commitPrefix removed from .plans/hone.config.yml"
+      - "All .plans config files updated to new format"
+      - "Config files load successfully after cleanup"
+      - "No commitPrefix references in project config files"
+    completed_at: null
+
+  - id: task-007
+    title: "Run comprehensive test suite and validate changes"
+    description: |
+      Execute the full test suite to ensure all changes work correctly and no regressions were introduced. Verify that config loading, validation, and all related functionality works with the commitPrefix removal.
+    status: pending
+    dependencies:
+      - task-004
+      - task-005
+      - task-006
+    acceptance_criteria:
+      - "All existing tests pass successfully"
+      - "New deprecation warning tests pass"
+      - "Config loading works for both new and legacy configs"
+      - "No functional regressions in any hone commands"
+    completed_at: null
