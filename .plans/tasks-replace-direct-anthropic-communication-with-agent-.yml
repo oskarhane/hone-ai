@@ -182,3 +182,19 @@ tasks:
       - "Error handling scenarios tested"
       - "Performance comparable to direct API calls verified"
     completed_at: null
+
+  - id: task-011
+    title: "update README"
+    description: |
+      Update the README file to reflect the changes made during the agent integration process.
+      USers don't need .env file or env var with anthropic api key.
+      But they do need opencode or claude code installed with access to some models.
+      Also show how to provide model choices for the different ones.
+      This output should also be in the --help flag from the CLI.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "README updated to reflect agent integration changes"
+      - "Model choices for different models shown in README"
+      - "Model choices for different models shown in --help flag"
+    completed_at: null
