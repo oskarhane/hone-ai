@@ -217,3 +217,16 @@ tasks:
     acceptance_criteria:
       - "the unpacked binary name is hone"
     completed_at: 2026-01-29T23:59:45.000Z
+
+  - id: task-015
+    title: "use oidc tokens for npm releases"
+    description: |
+      we don't want ti use long lived npm tokens for releases
+      we want to use oidc tokens for npm releases from github
+      See https://docs.npmjs.com/trusted-publishers
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "the requirement for NPM_TOKEN is gone"
+      - "the release process for both mninor and major uses oidc tokens for npm"
+    completed_at: null
