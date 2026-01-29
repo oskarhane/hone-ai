@@ -38,3 +38,18 @@ tasks:
       - "the config file can be read"
       - "init command creates the config file, in yaml format"
     completed_at: 2026-01-29T12:15:00Z
+
+  - id: task-004
+    title: "feedback command should be more loose"
+    description: |
+      the config feedback command should be more loose
+      and be named to feedbackInstructions or something, suggesting that it's
+      freeform instructions on how to run tests
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "feedbackCommand -> feedbackInstructions"
+      - "write in text, like test: bun test, type check: bun run tsc"
+      - "hono init uses feedbackInstructions"
+      - "prompts use feedbackInstructions"
+    completed_at: null
