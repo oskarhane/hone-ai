@@ -155,3 +155,29 @@ tasks:
     acceptance_criteria:
       - "the github actions are showing up on github"
     completed_at: 2026-01-29T23:15:00.000Z
+
+  - id: task-012
+    title: "fix ci error"
+    description: |
+      See error from test & validation job
+      https://github.com/oskarhane/hone-ai/actions/runs/21480629076/job/61875801532
+
+      Run echo "📦 Installing dependencies..."
+      📦 Installing dependencies...
+      bun install v1.1.42 (50eec002)
+      2 |   "lockfileVersion": 1,
+                               ^
+      error: Unknown lockfile version
+          at bun.lock:2:22
+      InvalidLockfileVersion: failed to parse lockfile: 'bun.lock'
+
+      warn: Ignoring lockfile
+      error: lockfile had changes, but lockfile is frozen
+      ❌ Dependency installation failed
+      ℹ️  Check network connectivity and lockfile integrity
+      Error: Process completed with exit code 1.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "run works on github"
+    completed_at: null
