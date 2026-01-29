@@ -181,3 +181,29 @@ tasks:
     acceptance_criteria:
       - "run works on github"
     completed_at: 2026-01-29T23:52:00.000Z
+
+  - id: task-013
+    title: "fix ci error"
+    description: |
+      See error from minor release job
+      0s
+      0s
+      Run NEW_VERSION="0.2.0"
+        NEW_VERSION="0.2.0"
+        git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
+         git push origin "v$NEW_VERSION"
+         git push origin master
+        shell: /usr/bin/bash -e {0}
+        env:
+          CI: true
+          BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
+      remote: Permission to oskarhane/hone-ai.git denied to github-actions[bot].
+      fatal: unable to access 'https://github.com/oskarhane/hone-ai/': The requested URL returned error: 403
+      Error: Process completed with exit code 128.
+
+      See https://graphite.com/guides/how-to-automate-tagging-and-release-workflows-in-github for info on tagging and realeasing.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "run works on github"
+    completed_at: null
