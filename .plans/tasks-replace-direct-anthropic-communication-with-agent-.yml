@@ -1,0 +1,171 @@
+feature: replace-direct-anthropic-communication-with-agent-
+prd: ./prd-replace-direct-anthropic-communication-with-agent-.md
+created_at: 2026-01-29T09:07:32.013Z
+updated_at: 2026-01-29T09:07:32.013Z
+
+tasks:
+  - id: task-001
+    title: "Audit existing Anthropic API usage in codebase"
+    description: |
+      Conduct comprehensive audit of all direct Anthropic API calls throughout the codebase. Map each usage to understand patterns, parameters, and context. Document current model selection logic and streaming implementations.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "Complete inventory of all direct Anthropic API calls documented"
+      - "Current model selection patterns identified and mapped"
+      - "Streaming response implementations catalogued"
+      - "Error handling patterns for each usage documented"
+      - "Phase-specific vs non-phase usage patterns identified"
+    completed_at: null
+
+  - id: task-002
+    title: "Analyze agent service interfaces and capabilities"
+    description: |
+      Review existing agent service documentation and interfaces to understand available methods, model support, and streaming capabilities. Determine compatibility with current Anthropic API usage patterns.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "Agent service API documentation reviewed and summarized"
+      - "Model selection capabilities in agents documented"
+      - "Streaming response support in agents confirmed"
+      - "Error response formats from agents documented"
+      - "Configuration parameters for agents identified"
+    completed_at: null
+
+  - id: task-003
+    title: "Design agent communication abstraction layer"
+    description: |
+      Create abstraction layer design that maps current Anthropic API calls to agent service calls. Define interfaces for chat, streaming, and model selection while maintaining backward compatibility.
+    status: pending
+    dependencies:
+      - task-001
+      - task-002
+    acceptance_criteria:
+      - "Abstraction layer interface designed and documented"
+      - "Mapping between Anthropic calls and agent calls defined"
+      - "Streaming response handling strategy documented"
+      - "Error handling and retry logic design completed"
+      - "Model selection parameter passing strategy defined"
+    completed_at: null
+
+  - id: task-004
+    title: "Implement phase-specific model configuration schema"
+    description: |
+      Design and implement configuration schema for phase-specific model selection (prd, prd-to-tasks, implement, review, finalize) following existing config file conventions. Include validation and default fallback logic.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Configuration schema defined for all phases"
+      - "Default model (Claude Sonnet) configured properly"
+      - "Configuration validation logic implemented"
+      - "Fallback logic for missing phase configurations"
+      - "Configuration follows existing file conventions"
+    completed_at: null
+
+  - id: task-005
+    title: "Implement agent service communication layer"
+    description: |
+      Create the core agent communication layer that replaces direct Anthropic API calls. Implement chat functionality, streaming responses, and error handling through agent services.
+    status: pending
+    dependencies:
+      - task-003
+      - task-004
+    acceptance_criteria:
+      - "Agent communication layer successfully makes requests"
+      - "Streaming responses work through agent layer"
+      - "Error handling preserves current behavior"
+      - "Model selection parameters passed correctly"
+      - "Request/response formats properly transformed"
+    completed_at: null
+
+  - id: task-006
+    title: "Replace chat service Anthropic calls with agent calls"
+    description: |
+      Systematically replace all direct Anthropic API calls in chat services with agent service calls. Ensure message formatting, response parsing, and streaming functionality are preserved.
+    status: pending
+    dependencies:
+      - task-005
+    acceptance_criteria:
+      - "All chat service Anthropic calls replaced with agent calls"
+      - "Message formatting preserved through agent layer"
+      - "Response parsing works correctly with agent responses"
+      - "Chat streaming functionality maintained"
+      - "Existing chat features work without regression"
+    completed_at: null
+
+  - id: task-007
+    title: "Replace phase-specific LLM calls with agent integration"
+    description: |
+      Replace direct Anthropic calls in phase-specific operations (prd, prd-to-tasks, implement, review, finalize) with agent calls using appropriate model configurations for each phase.
+    status: pending
+    dependencies:
+      - task-005
+      - task-006
+    acceptance_criteria:
+      - "All phase-specific Anthropic calls replaced"
+      - "Correct model selection for each phase implemented"
+      - "Phase operations work through agent layer"
+      - "Model configuration properly applied per phase"
+      - "Error handling maintains current user experience"
+    completed_at: null
+
+  - id: task-008
+    title: "Implement error handling and user feedback"
+    description: |
+      Implement comprehensive error handling for agent service failures, model unavailability, and rate limiting. Surface clear error messages to users when agent services encounter issues.
+    status: pending
+    dependencies:
+      - task-007
+    acceptance_criteria:
+      - "Agent service failures handled gracefully"
+      - "Model unavailability errors surfaced to users"
+      - "Rate limiting errors properly communicated"
+      - "Error messages maintain existing user experience"
+      - "Retry logic implemented where appropriate"
+    completed_at: null
+
+  - id: task-009
+    title: "Add logging for agent service interactions"
+    description: |
+      Implement comprehensive logging for all agent service interactions to support debugging. Log requests, responses, model selections, and error conditions while maintaining existing logging patterns.
+    status: pending
+    dependencies:
+      - task-005
+    acceptance_criteria:
+      - "Agent service requests logged appropriately"
+      - "Model selection decisions logged"
+      - "Response handling logged for debugging"
+      - "Error conditions logged with context"
+      - "Logging follows existing application patterns"
+    completed_at: null
+
+  - id: task-010
+    title: "Clean up unused Anthropic dependencies"
+    description: |
+      Remove unused Anthropic SDK imports, dependencies, and configuration after all direct API calls have been replaced. Update dependency configuration and package files.
+    status: pending
+    dependencies:
+      - task-008
+    acceptance_criteria:
+      - "Unused Anthropic imports removed from codebase"
+      - "Anthropic SDK dependency removed if no longer needed"
+      - "Configuration files cleaned of unused Anthropic settings"
+      - "Package files updated to remove unused dependencies"
+      - "No dead code related to direct Anthropic calls remains"
+    completed_at: null
+
+  - id: task-011
+    title: "Comprehensive testing of agent integration"
+    description: |
+      Conduct thorough testing of all replaced functionality including chat operations, phase-specific operations, streaming responses, and error conditions through the new agent layer.
+    status: pending
+    dependencies:
+      - task-010
+    acceptance_criteria:
+      - "All chat functionality tested through agent layer"
+      - "Phase-specific model selection tested"
+      - "Streaming responses verified working"
+      - "Error handling scenarios tested"
+      - "Performance comparable to direct API calls verified"
+    completed_at: null
