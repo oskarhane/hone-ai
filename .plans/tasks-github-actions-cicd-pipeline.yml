@@ -50,7 +50,7 @@ tasks:
     title: "Create manual minor release workflow"
     description: |
       Implement workflow dispatch trigger for minor version releases. Handle version bumping from current to next minor version (e.g., 1.1.5 → 1.2.0) with package.json updates and git tag creation.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -59,7 +59,7 @@ tasks:
       - "package.json version field updated"
       - "Git tag created with new version"
       - "Release confirmation prompt included"
-    completed_at: null
+    completed_at: 2026-01-29T15:45:12.789Z
 
   - id: task-005
     title: "Implement binary build and artifact attachment"

@@ -1,0 +1,120 @@
+name: Release Minor Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "CONFIRM" to proceed with minor release'
+        required: true
+        default: ''
+
+jobs:
+  release-minor:
+    name: Minor Version Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Validate confirmation
+        if: ${{ github.event.inputs.confirm != 'CONFIRM' }}
+        run: |
+          echo "❌ Minor release not confirmed. Please type 'CONFIRM' to proceed."
+          exit 1
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+          
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+        
+      - name: Validate git repository
+        run: |
+          git status > /dev/null || (echo "❌ Not a git repository" && exit 1)
+          
+      - name: Get current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(bun --print 'JSON.parse(require("fs").readFileSync("package.json", "utf8")).version')
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+          
+      - name: Validate version format
+        run: |
+          CURRENT="${{ steps.current_version.outputs.current }}"
+          if [[ ! $CURRENT =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Current version '$CURRENT' does not match semantic versioning format (x.y.z)"
+            exit 1
+          fi
+          echo "✅ Version format validated"
+          
+      - name: Calculate new minor version
+        id: new_version
+        run: |
+          CURRENT="${{ steps.current_version.outputs.current }}"
+          # Extract major and minor versions, increment minor, reset patch to 0
+          MAJOR=$(echo $CURRENT | cut -d. -f1)
+          MINOR=$(echo $CURRENT | cut -d. -f2)
+          NEW_MINOR=$((MINOR + 1))
+          NEW_VERSION="${MAJOR}.${NEW_MINOR}.0"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version will be: $NEW_VERSION"
+          
+      - name: Update package.json version
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          # Update package.json with new version
+          bun --eval "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$NEW_VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            console.log('Updated package.json to version $NEW_VERSION');
+          "
+          
+      - name: Verify version update
+        run: |
+          UPDATED_VERSION=$(bun --print 'JSON.parse(require("fs").readFileSync("package.json", "utf8")).version')
+          echo "Verified updated version: $UPDATED_VERSION"
+          if [ "$UPDATED_VERSION" != "${{ steps.new_version.outputs.version }}" ]; then
+            echo "❌ Version update failed"
+            exit 1
+          fi
+          
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+      - name: Sync with remote before committing
+        run: |
+          git fetch origin main
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo "🔄 Remote has changes, pulling latest..."
+            git pull --rebase origin main || (echo "❌ Failed to sync with remote" && exit 1)
+          fi
+          
+      - name: Commit version bump
+        run: |
+          git add package.json
+          git commit -m "chore: bump version to ${{ steps.new_version.outputs.version }}"
+          
+      - name: Create and push git tag
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          git tag -a "v$NEW_VERSION" -m "Release version $NEW_VERSION"
+          git push origin "v$NEW_VERSION"
+          git push origin main
+          
+      - name: Release summary
+        run: |
+          echo "✅ Minor release completed successfully!"
+          echo "Version: ${{ steps.current_version.outputs.current }} → ${{ steps.new_version.outputs.version }}"
+          echo "Git tag: v${{ steps.new_version.outputs.version }} created"
+          echo "Package.json updated and committed"

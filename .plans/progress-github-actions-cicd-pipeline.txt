@@ -95,3 +95,44 @@ Review Feedback Applied:
 - Enhanced error handling with clear failure messages
 
 Next Task: task-004
+
+================================================================================
+TASK-004: Create manual minor release workflow
+Date: 2026-01-29T15:45:12.789Z
+================================================================================
+
+Summary:
+Created comprehensive minor version release workflow with manual dispatch trigger, version bumping, and git tag creation. Implemented proper minor version increment logic (e.g., 1.1.5 → 1.2.0) with safety measures and error handling.
+
+Files Changed:
+- .github/workflows/release-minor.yml (created - manual minor release workflow with confirmation safety)
+
+Key Decisions:
+- Used workflow_dispatch with "CONFIRM" input requirement for safety
+- Implemented proper minor version increment logic preserving major, incrementing minor, resetting patch to 0
+- Used Bun's JavaScript evaluation for reliable JSON manipulation of package.json
+- Added comprehensive validation: git repository check, semantic version format validation
+- Included git sync safety with remote pull/rebase before committing
+- Added verification step to ensure version update succeeded
+- Configured proper git credentials for automated commits and tagging
+- Applied all learnings from task-003 review feedback (git sync, version validation, repository checks)
+
+Workflow Features:
+- Manual trigger only via workflow_dispatch (no automatic releases)
+- Safety confirmation requirement ("CONFIRM" input)
+- Current version detection from package.json
+- Automated minor version calculation (major.minor+1.0)
+- Package.json update and verification
+- Git commit with descriptive message
+- Git tag creation with version annotation
+- Push to both tag and main branch
+- Detailed success summary with version progression
+- Comprehensive error handling and validation
+
+Review Feedback Applied:
+- All review feedback was positive ("LGTM") - no changes needed
+- Implementation correctly meets all acceptance criteria
+- Security, correctness, and code quality standards met
+- Best practices applied from previous task learnings
+
+Next Task: task-005
