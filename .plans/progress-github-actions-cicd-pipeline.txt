@@ -500,4 +500,25 @@ Root Cause:
 - Caller workflows (release-major/minor.yml) lacked this permission
 - GitHub Actions validation error: "requesting 'id-token: write', but is only allowed 'id-token: none'"
 
+Next Task: task-018
+
+================================================================================
+TASK-018: fix version bump
+Date: 2026-01-29T14:30:00.000Z
+================================================================================
+
+Summary:
+Fixed GitHub Actions version bump issue by replacing manual version calculation with npm version command and addressing workflow sequence timing. Added npm availability verification to prevent CI failures.
+
+Files Changed:
+- .github/workflows/release-major.yml (modified - replaced manual version bump with npm version major, added npm verification)
+- .github/workflows/release-minor.yml (modified - replaced manual version bump with npm version minor, added npm verification)
+
+Key Decisions:
+- Used `npm version major/minor --no-git-tag-version` for cleaner version management
+- Added npm availability check to prevent CI failures
+- Fixed YAML indentation issues that caused workflow validation errors
+- Maintained existing workflow sequence (NPM publish job still runs after release job completes)
+- Git configuration moves before npm version command for proper CI environment setup
+
 Next Task: All tasks complete

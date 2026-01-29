@@ -185,6 +185,16 @@ Learnings and patterns for future agents working on hone.
 - When calling reusable workflows: caller must have all permissions required by called workflow
 - OIDC publishing requires `id-token: write` permission in both caller and called workflows
 
+## Version Management in GitHub Actions
+
+- Use `npm version major/minor --no-git-tag-version` for clean version bumping
+- Always verify npm availability with `command -v npm` before using npm commands
+- Configure git user/email before npm version operations in CI environment
+- npm version command handles package.json updates more reliably than manual JSON manipulation
+- Workflow sequence: version bump → git commit → git push → NPM publish job runs
+- NPM publish workflow should run after main release job completes (use `needs:` dependency)
+- Add verification step to confirm npm command availability in CI environment
+
 ## GitHub Actions Troubleshooting
 
 - When workflows don't appear: Check branch name mismatch (workflows configured for 'main' vs repo using 'master')
