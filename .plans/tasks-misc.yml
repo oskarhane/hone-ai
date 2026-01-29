@@ -93,3 +93,36 @@ tasks:
     acceptance_criteria:
       - "editing yaml files are faster and more consistent"
     completed_at: 2026-01-29T19:45:00Z
+
+  - id: task-008
+    title: "Fix GitHub Actions CI/CD test error"
+    description: |
+      this error happens in the GitHub Actions CI/CD pipeline.
+      Investigate and fix the issue to ensure a smooth and reliable deployment process.
+      do not rely on claude or opencode being available in CI environment
+
+      Error: Expected substring: "Could not extract feature name"
+         Error: claude command not found\n\nPlease install Claude Code CLI:\nnpm install -g @anthropic-ai/claude-code\n\nOr visit: https://docs.anthropic.com/en/docs/claude-code"
+
+              at <anonymous> (/home/runner/work/hone-ai/hone-ai/src/run.test.ts:68:19)
+              at <anonymous> (/home/runner/work/hone-ai/hone-ai/src/run.test.ts:60:78)
+        63 |
+        64 |       await expect(executeTasks({
+        65 |         tasksFile,
+        66 |         iterations: 1,
+        67 |         agent: 'claude',
+        68 |       })).rejects.toThrow('Could not extract feature name');
+                               ^
+        error: expect(received).toThrow(expected)
+
+        Expected substring: "Could not extract feature name"
+        Received message: "✗ Error: claude command not found\n\nPlease install Claude Code CLI:\nnpm install -g @anthropic-ai/claude-code\n\nOr visit: https://docs.anthropic.com/en/docs/claude-code"
+
+              at <anonymous> (/home/runner/work/hone-ai/hone-ai/src/run.test.ts:68:19)
+              at <anonymous> (/home/runner/work/hone-ai/hone-ai/src/run.test.ts:60:78)
+        (fail) run module > executeTasks > should reject when feature name cannot be extracted from file path [3.00ms]
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "CI tests pass consistently"
+    completed_at: null
