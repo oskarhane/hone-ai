@@ -85,6 +85,12 @@ jobs:
 
           echo "✅ Package version verified: $CURRENT_VERSION"
 
+      - name: Setup Node.js for npm publish
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
       - name: Publish to NPM
         run: |
           echo "📦 Publishing v${{ inputs.version }} to NPM..."
