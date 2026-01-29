@@ -21,7 +21,7 @@ tasks:
     title: "Add deprecated config validation for commitPrefix"
     description: |
       Enhance the validateConfig function to detect and warn about deprecated commitPrefix usage in user config files. This provides user feedback when they have the removed option in their configs.
-    status: pending
+    status: cancelled
     dependencies:
       - task-001
     acceptance_criteria:
@@ -35,7 +35,7 @@ tasks:
     title: "Update loadConfig to gracefully handle legacy commitPrefix"
     description: |
       Modify loadConfig function to strip commitPrefix from loaded configurations while preserving all other settings. Ensures backward compatibility by loading existing configs without errors.
-    status: pending
+    status: cancelled
     dependencies:
       - task-001
     acceptance_criteria:
@@ -52,8 +52,6 @@ tasks:
     status: pending
     dependencies:
       - task-001
-      - task-002
-      - task-003
     acceptance_criteria:
       - "All test configs remove commitPrefix property"
       - "Test expectations updated to not expect commitPrefix"
@@ -82,7 +80,6 @@ tasks:
     status: pending
     dependencies:
       - task-001
-      - task-003
     acceptance_criteria:
       - "commitPrefix removed from .plans/hone.config.yml"
       - "All .plans config files updated to new format"
