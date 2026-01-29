@@ -71,7 +71,8 @@ Learnings and patterns for future agents working on hone.
 - File paths MUST be relative to project root (use path.relative(cwd, path))
 - File references: @.plans/tasks-<feature>.yml, @.plans/progress-<feature>.txt, @AGENTS.md
 - All context files optional - gracefully handle missing files
-- Feedback and lint commands configurable in config (feedbackCommand, lintCommand)
+- Feedback instructions and lint commands configurable in config (feedbackInstructions, lintCommand)
+- feedbackInstructions is freeform text, not a single command (e.g., "test: bun test, type check: bun run tsc")
 - Output markers: TASK_COMPLETED: <id> for implement, FINALIZED: <id> for finalize
 - Prompts tell agent to update task status, progress file, AGENTS.md, and commit
 - constructPrompt() is synchronous - only checks file existence, doesn't read content

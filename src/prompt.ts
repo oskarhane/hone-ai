@@ -85,23 +85,23 @@ function getPhaseInstructions(
   taskId?: string,
   reviewFeedback?: string
 ): string {
-  const feedbackCommand = config.feedbackCommand || 'bun test';
+  const feedbackInstructions = config.feedbackInstructions || 'test: bun test';
   const lintCommand = config.lintCommand;
   
   switch (phase) {
     case 'implement':
-      return getImplementInstructions(feedbackCommand, lintCommand);
+      return getImplementInstructions(feedbackInstructions, lintCommand);
     case 'review':
       return getReviewInstructions(taskId);
     case 'finalize':
-      return getFinalizeInstructions(feedbackCommand, lintCommand, reviewFeedback);
+      return getFinalizeInstructions(feedbackInstructions, lintCommand, reviewFeedback);
   }
 }
 
 /**
  * Instructions for the implement phase.
  */
-function getImplementInstructions(feedbackCommand: string, lintCommand?: string): string {
+function getImplementInstructions(feedbackInstructions: string, lintCommand?: string): string {
   let instructions = `# TASK SELECTION
 
 CRITICAL: You MUST only choose tasks from the task file referenced in CONTEXT FILES above.
@@ -137,14 +137,15 @@ Only run feedback loops AFTER you have fully completed implementing the task.
 
 Run feedback loops ONLY when the task implementation is complete:
 
-- Run: ${feedbackCommand}`;
+${feedbackInstructions}`;
 
   if (lintCommand) {
-    instructions += `\n- Run: ${lintCommand}`;
+    instructions += `\n${lintCommand}`;
   }
   
   instructions += `
-- If CLI or script, run them and verify output.
+
+If CLI or script, run them and verify output.
 
 If tests fail or there are errors you cannot fix, DO NOT output TASK_COMPLETED.
 Instead, exit with an error. The task will remain pending and be retried on the next run.
@@ -204,7 +205,7 @@ Structure your feedback as:
  * Instructions for the finalize phase.
  */
 function getFinalizeInstructions(
-  feedbackCommand: string,
+  feedbackInstructions: string,
   lintCommand: string | undefined,
   reviewFeedback?: string
 ): string {
@@ -225,10 +226,11 @@ ${reviewFeedback || 'No review feedback provided (review was skipped or approved
    - Only run feedback loops if you made changes to address feedback
 
 2. **Run Final Feedback Loops** (if needed)
-   - If you applied feedback or made any changes, run: ${feedbackCommand}`;
+   - If you applied feedback or made any changes:
+   ${feedbackInstructions}`;
 
   if (lintCommand) {
-    instructions += `\n   - Run: ${lintCommand}`;
+    instructions += `\n   ${lintCommand}`;
   }
 
   instructions += `

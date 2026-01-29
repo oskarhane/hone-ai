@@ -63,4 +63,27 @@ Key Decisions:
 - Preserved deep merge logic for models field to maintain defaults
 - All 115 tests pass
 
+Next Task: task-004
+
+================================================================================
+TASK-004: feedback command should be more loose
+Date: 2026-01-29T13:30:00Z
+================================================================================
+
+Summary:
+Renamed `feedbackCommand` to `feedbackInstructions` in config and updated it to accept
+freeform text instructions for running tests and checks, rather than a single command.
+
+Files Changed:
+- src/config.ts (renamed feedbackCommand -> feedbackInstructions in DEFAULT_CONFIG)
+- src/prompt.ts (updated references from feedbackCommand to feedbackInstructions, removed bullet formatting)
+- src/prompt.test.ts (updated test to use feedbackInstructions)
+- AGENTS.md (documented that feedbackInstructions is freeform text with example format)
+- README.md (updated example config to show feedbackInstructions format)
+
+Key Decisions:
+- Kept plain text format (e.g., "test: bun test, type check: bun run tsc") for flexibility
+- Users can format instructions as they prefer (plain, bullets, etc.)
+- All 115 tests pass
+
 Next Task: All tasks complete

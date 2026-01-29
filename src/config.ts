@@ -11,7 +11,7 @@ export interface HoneConfig {
     claude: string;
   };
   commitPrefix: string;
-  feedbackCommand?: string;
+  feedbackInstructions?: string;
   lintCommand?: string;
 }
 
@@ -22,7 +22,7 @@ const DEFAULT_CONFIG: HoneConfig = {
     claude: 'claude-sonnet-4-20250514'
   },
   commitPrefix: 'hone',
-  feedbackCommand: 'bun test',
+  feedbackInstructions: 'test: bun test',
   lintCommand: undefined
 };
 

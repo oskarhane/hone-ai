@@ -34,7 +34,7 @@ const mockConfig: HoneConfig = {
     claude: 'claude-sonnet-4-20250514'
   },
   commitPrefix: 'hone',
-  feedbackCommand: 'bun test',
+  feedbackInstructions: 'test: bun test',
   lintCommand: 'bun run lint'
 };
 
@@ -226,7 +226,7 @@ describe('constructPrompt', () => {
     expect(prompt).toContain('# TASK SELECTION');
   });
   
-  test('uses default feedback command if not configured', () => {
+  test('uses default feedback instructions if not configured', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
       'tasks:\n  - id: task-001\n    status: pending\n'
@@ -234,7 +234,7 @@ describe('constructPrompt', () => {
     
     const configWithoutFeedback: HoneConfig = {
       ...mockConfig,
-      feedbackCommand: undefined
+      feedbackInstructions: undefined
     };
     
     const prompt = constructPrompt({
@@ -243,7 +243,7 @@ describe('constructPrompt', () => {
       config: configWithoutFeedback
     });
     
-    expect(prompt).toContain('bun test');
+    expect(prompt).toContain('test: bun test');
   });
   
   test('implement phase includes failure handling instructions', () => {

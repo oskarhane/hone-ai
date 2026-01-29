@@ -45,11 +45,11 @@ tasks:
       the config feedback command should be more loose
       and be named to feedbackInstructions or something, suggesting that it's
       freeform instructions on how to run tests
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "feedbackCommand -> feedbackInstructions"
       - "write in text, like test: bun test, type check: bun run tsc"
       - "hono init uses feedbackInstructions"
       - "prompts use feedbackInstructions"
-    completed_at: null
+    completed_at: 2026-01-29T13:30:00Z
