@@ -25,6 +25,7 @@ Learnings and patterns for future agents working on hone.
 - Progress logs: `.plans/progress-<feature>.txt`
 - Config: `.plans/hone.config.yml`
 - Tests: add unit tests in x.test.ts files next to the source file being tested
+- Integration tests: src/integration-test.ts provides comprehensive agent integration testing
 
 ## Task Dependency Logic
 

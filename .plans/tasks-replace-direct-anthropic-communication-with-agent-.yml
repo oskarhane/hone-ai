@@ -191,10 +191,10 @@ tasks:
       But they do need opencode or claude code installed with access to some models.
       Also show how to provide model choices for the different ones.
       This output should also be in the --help flag from the CLI.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "README updated to reflect agent integration changes"
       - "Model choices for different models shown in README"
       - "Model choices for different models shown in --help flag"
-    completed_at: null
+    completed_at: 2026-01-29T20:15:00.000Z

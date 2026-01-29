@@ -822,3 +822,87 @@ Key Strengths Confirmed:
 
 Next Task: task-012
 
+
+================================================================================
+TASK-012: update README
+Date: 2026-01-29T19:00:00.000Z
+================================================================================
+
+Summary:
+Updated README.md and CLI help text to reflect agent integration changes. Removed all references to ANTHROPIC_API_KEY and .env file. Added comprehensive documentation for phase-specific model configuration with examples and usage notes. Updated prerequisites, setup, configuration, error handling, and file structure sections.
+
+Files Changed:
+- README.md (modified - removed API key references, added model configuration documentation)
+- src/index.ts (modified - added model configuration help text to --help output)
+- .plans/tasks-replace-direct-anthropic-communication-with-agent-.yml (modified - marked task-012 completed)
+
+Key Changes:
+- Prerequisites: Removed "Anthropic API key" requirement, clarified "CLI with access to Claude models"
+- Setup: Replaced .env file instructions with agent CLI verification steps
+- Configuration: Added comprehensive model configuration section with all 7 model options (agent-specific + 5 phase-specific)
+- Configuration notes: Documented model format requirements, availability checking, resolution priority
+- Error handling: Removed "Missing API key" error, added "Model unavailable" and "Rate limiting" errors
+- File structure: Removed .env file from project structure
+- Development: Updated to reference "agent subprocess spawning" instead of "Anthropic SDK"
+- CLI help: Added "Model Configuration" section showing all model options with comments
+
+Model Configuration Documentation:
+- Agent-specific models (opencode, claude) - required
+- Phase-specific models (prd, prdToTasks, implement, review, finalize) - optional overrides
+- Model format: claude-sonnet-4-YYYYMMDD or claude-opus-4-YYYYMMDD
+- Checking available models: opencode --help or claude --help
+- Resolution priority: phase-specific > agent-specific > default
+
+Test Results:
+- All 151 tests pass (100% pass rate)
+- CLI help text displays correctly with model configuration section
+- README markdown formatting correct
+
+Acceptance Criteria Met:
+✓ README updated to reflect agent integration changes
+✓ Model choices for different models shown in README (7 model options documented with examples)
+✓ Model choices for different models shown in --help flag (comprehensive help text added)
+
+Next Task: All tasks completed! Feature complete.
+
+================================================================================
+FINALIZED: task-012
+Date: 2026-01-29T20:15:00.000Z
+================================================================================
+
+Summary:
+Finalized task-012 after comprehensive review. All acceptance criteria met: README updated with agent integration changes, model configuration documented (7 options: 2 agent-specific + 5 phase-specific), CLI help text enhanced with model configuration section, all API key references removed, clear agent installation instructions added. Review verdict: LGTM - excellent documentation.
+
+Files Changed:
+- README.md (modified - comprehensive documentation updates)
+- src/index.ts (modified - added model configuration help text)
+- .plans/tasks-replace-direct-anthropic-communication-with-agent-.yml (modified - updated completed_at)
+- .plans/progress-replace-direct-anthropic-communication-with-agent-.txt (modified - added finalization entry)
+- AGENTS.md (modified - added integration test note)
+
+Key Documentation Updates:
+- Prerequisites: Removed API key requirement, clarified agent CLI requirements
+- Setup: Replaced .env instructions with agent verification commands
+- Configuration: Added comprehensive model configuration with examples
+- Model options: Documented all 7 choices (opencode/claude + prd/prdToTasks/implement/review/finalize)
+- Configuration notes: Format requirements, availability checking, resolution priority
+- Error handling: Updated to reflect new error types (model unavailable, rate limiting)
+- File structure: Removed .env file reference
+- CLI help: Added "Model Configuration" section
+
+Review Feedback Applied:
+- None needed - review verdict LGTM
+- Only minor informational issues noted (untracked files, example versions, minimal AGENTS.md update)
+- All low priority, no functional impact
+
+Key Review Findings:
+- ✓ All acceptance criteria met
+- ✓ Documentation clear, comprehensive, user-friendly
+- ✓ Examples well-structured with YAML code blocks
+- ✓ Helpful notes about model formats and resolution
+- ✓ All tests pass (151/151)
+- ✓ No regressions introduced
+- ✓ Security improved (no API key exposure risk)
+
+Next Task: All tasks complete! Feature complete.
+
