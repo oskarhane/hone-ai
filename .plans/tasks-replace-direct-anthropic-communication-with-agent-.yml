@@ -198,3 +198,23 @@ tasks:
       - "Model choices for different models shown in README"
       - "Model choices for different models shown in --help flag"
     completed_at: 2026-01-29T20:15:00.000Z
+
+  - id: task-013
+    title: "less verbose output from prd"
+    description: |
+      the output from the hone prd-to-tasks and prd <msg> command should be less verbose.
+      We could add a verbose flag to see everything, but the default should be more user friendly.
+
+      [AgentClient] Initiating request to opencode with model claude-sonnet-4-20250514
+      [AgentClient] Request: 1 message(s) + system prompt
+      [Agent] Spawning opencode agent with model claude-sonnet-4-20250514
+      [Agent] Working directory: /Users/oskarhane/Development/hone-ai
+      [Agent] Command: opencode run --model anthropic/claude-sonnet-4-20250514 "<prompt>"
+
+      None of the bracketed should be shown by default
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "--verbose flag to show all details from the prd and prd-to-tasks commands"
+      - "default output should be less verbose"
+    completed_at: null
