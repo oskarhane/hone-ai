@@ -64,7 +64,8 @@ export class AgentClient {
               agent: this.config.agent,
               prompt,
               workingDir: this.config.workingDir || process.cwd(),
-              model
+              model,
+              silent: true
             });
             
             // Only retry network errors, throw immediately for other failures

@@ -8,6 +8,7 @@ export interface SpawnAgentOptions {
   prompt: string;
   workingDir?: string;
   model?: string;
+  silent?: boolean;
 }
 
 export interface SpawnAgentResult {
@@ -22,7 +23,7 @@ export interface SpawnAgentResult {
  * @returns Promise resolving to exit code and captured output
  */
 export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgentResult> {
-  const { agent, prompt, workingDir = process.cwd(), model } = options;
+  const { agent, prompt, workingDir = process.cwd(), model, silent = false } = options;
   
   // Log agent spawn initiation
   logVerbose(`[Agent] Spawning ${agent} agent${model ? ` with model ${model}` : ''}`);
@@ -65,7 +66,9 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
     if (child.stdout) {
       child.stdout.on('data', (data: Buffer) => {
         const text = data.toString();
-        process.stdout.write(text);
+        if (!silent) {
+          process.stdout.write(text);
+        }
         stdout += text;
       });
     }
@@ -74,7 +77,9 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
     if (child.stderr) {
       child.stderr.on('data', (data: Buffer) => {
         const text = data.toString();
-        process.stderr.write(text);
+        if (!silent) {
+          process.stderr.write(text);
+        }
         stderr += text;
       });
     }

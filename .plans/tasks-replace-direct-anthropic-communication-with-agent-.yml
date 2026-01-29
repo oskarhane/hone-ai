@@ -245,9 +245,9 @@ tasks:
     description: |
       some of the questions asked when running the prd command are quite dumb and can be found out by inspecting the codebase.
       Pass on a reference to @AGENTS.md with the prompt, and look around a bit before asking the users questions about the PRD.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "ask prd questions based on the codebase"
       - "investigate the codebase before asking questions on prd"
-    completed_at: null
+    completed_at: 2026-01-29T21:45:00.000Z

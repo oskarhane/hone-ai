@@ -996,3 +996,48 @@ Key Decisions:
 
 Next Task: task-015
 
+================================================================================
+FINALIZED: TASK-015
+Date: 2026-01-29T21:45:00.000Z
+================================================================================
+
+Summary:
+Enhanced PRD generation to investigate the codebase before asking questions. Added comprehensive analyzeCodebase() function that examines package.json, directory structure, config files, and README to provide intelligent context for question generation. Updated both clarifying question and PRD generation phases to use codebase analysis.
+
+Files Changed:
+- src/prd-generator.ts (modified - removed unused readmeLines variable, added analyzeCodebase function)
+- All functionality already implemented in implementation phase
+
+Key Implementation Details:
+- analyzeCodebase() examines project patterns, frameworks, configs, and structure
+- Analyzes package.json for dependencies, scripts, project name/description
+- Detects frameworks (React, Next.js, Vue), testing (Jest, Vitest, Mocha), CLI tools (commander.js)
+- Checks directory structure (src/, components/, lib/, utils/) and config files
+- Reads README.md for installation and usage sections
+- Integrates AGENTS.md content into question generation and PRD generation prompts
+- Added silent parameter to agent spawning to prevent noise during analysis
+- Codebase analysis displayed to user: "Found: Project: hone-ai, CLI: commander.js, Build: Configured..."
+
+Review Feedback Applied:
+- Minor: Removed unused readmeLines variable from src/prd-generator.ts line 101
+- Tests confirmed passing (156 tests, 100% pass rate)
+
+Key Design Decisions:
+- Run codebase analysis before each question to inform intelligent questioning
+- Pass codebase analysis to both question generation and PRD content generation
+- Include AGENTS.md content for project context and development patterns
+- Graceful error handling for missing files (README.md, AGENTS.md, package.json)
+- Analysis string formatted as comma-separated list for easy parsing by AI
+
+Test Results:
+- All 156 tests pass (100% pass rate)
+- PRD generation produces more intelligent, context-aware questions
+- Questions avoid asking about information discoverable from codebase
+- Better PRD quality with project-specific technical considerations
+
+Acceptance Criteria Met:
+✓ ask prd questions based on the codebase (questions now informed by comprehensive analysis)
+✓ investigate the codebase before asking questions on prd (extensive codebase investigation implemented)
+
+Next Task: All tasks complete! Feature complete.
+
