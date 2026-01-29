@@ -126,3 +126,70 @@ tasks:
     acceptance_criteria:
       - "CI tests pass consistently"
     completed_at: 2026-01-29T20:30:00Z
+
+  - id: task-007
+    title: "install yaml formatter and linting tool"
+    description: |
+      we have issues with yaml formatting and linting.
+      Install a yaml formatter and linting tool to ensure consistency and quality.
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "editing yaml files are faster and more consistent"
+    completed_at: 2026-01-29T19:45:00Z
+
+  - id: task-008
+    title: "Fix GitHub Actions CI/CD test error"
+    description: |
+      this error happens in the GitHub Actions CI/CD pipeline.
+      Investigate and fix the issue to ensure a smooth and reliable deployment process.
+      do not rely on claude or opencode being available in CI environment
+
+      Error: Expected substring: "Could not extract feature name"
+         Error: claude command not found\n\nPlease install Claude Code CLI:\nnpm install -g @anthropic-ai/claude-code\n\nOr visit: https://docs.anthropic.com/en/docs/claude-code"
+
+              at <anonymous> (/home/runner/work/hone-ai/hone-ai/src/run.test.ts:68:19)
+              at <anonymous> (/home/runner/work/hone-ai/hone-ai/src/run.test.ts:60:78)
+        63 |
+        64 |       await expect(executeTasks({
+        65 |         tasksFile,
+        66 |         iterations: 1,
+        67 |         agent: 'claude',
+        68 |       })).rejects.toThrow('Could not extract feature name');
+                               ^
+        error: expect(received).toThrow(expected)
+
+        Expected substring: "Could not extract feature name"
+        Received message: "✗ Error: claude command not found\n\nPlease install Claude Code CLI:\nnpm install -g @anthropic-ai/claude-code\n\nOr visit: https://docs.anthropic.com/en/docs/claude-code"
+
+              at <anonymous> (/home/runner/work/hone-ai/hone-ai/src/run.test.ts:68:19)
+              at <anonymous> (/home/runner/work/hone-ai/hone-ai/src/run.test.ts:60:78)
+        (fail) run module > executeTasks > should reject when feature name cannot be extracted from file path [3.00ms]
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "CI tests pass consistently"
+    completed_at: 2026-01-29T20:30:00Z
+
+  - id: task-009
+    title: "hone --version fixes"
+    description: |
+      hone --version prints the wrong version number.
+      It says 0.1.0, and we're on 0.5.0.
+      Also add shorthand alias for version, -v
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "hone --version prints the correct version number"
+      - "hone -v prints the correct version number"
+    completed_at: null
+
+  - id: task-010
+    title: "fallback to help for unknown command"
+    description: |
+      hone --unknown should print help for all unknown commands
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "hone --<unknown> prints help for all unknown commands"
+    completed_at: null
