@@ -40,15 +40,16 @@ Learnings and patterns for future agents working on hone.
 - Short names like `claude-sonnet-4` return 404 errors
 - Model config in `.plans/hone.config.yml` should always use full version names
 - When updating API calls, ensure both default config and fallback values use correct format
-- Current direct API usage: prd-generator.ts (2 calls), task-generator.ts (1 call)
+- All Anthropic API calls now use AgentClient abstraction (no direct SDK usage)
 - Phase-specific operations (implement/review/finalize) use agent subprocess spawning with model parameter
-- Non-phase operations (PRD/task generation) being migrated to agent client abstraction
+- Non-phase operations (PRD/task generation) now use AgentClient (replaced direct Anthropic SDK)
 - Agent client (src/agent-client.ts) implemented - mirrors Anthropic SDK API, routes through subprocess spawning
 - AgentClient usage: `new AgentClient({ agent, model, workingDir? })` then `client.messages.create({ messages, system? })`
 - Model transformation: opencode needs 'anthropic/' prefix, claude uses model name as-is (handled in spawnAgent)
 - Agent client response format: { content: [{ type: 'text', text: stdout }] } for compatibility
 - Error handling: retryWithBackoff only retries network errors (checks stderr with isNetworkError), non-network failures throw immediately
 - Prompt construction: system prompt + messages joined with newlines, assistant messages prefixed "Previous response:"
+- PRD and task generation no longer require ANTHROPIC_API_KEY - use agent subprocess instead
 
 ## Phase-Specific Model Configuration
 

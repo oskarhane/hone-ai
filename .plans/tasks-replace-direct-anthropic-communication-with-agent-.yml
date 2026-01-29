@@ -83,7 +83,7 @@ tasks:
     title: "Replace chat service Anthropic calls with agent calls"
     description: |
       Systematically replace all direct Anthropic API calls in chat services with agent service calls. Ensure message formatting, response parsing, and streaming functionality are preserved.
-    status: pending
+    status: completed
     dependencies:
       - task-005
     acceptance_criteria:
@@ -92,7 +92,7 @@ tasks:
       - "Response parsing works correctly with agent responses"
       - "Chat streaming functionality maintained"
       - "Existing chat features work without regression"
-    completed_at: null
+    completed_at: 2026-01-29T09:42:32.000Z
 
   - id: task-007
     title: "Replace phase-specific LLM calls with agent integration"

@@ -256,3 +256,66 @@ Deferred Feedback (low/medium priority):
 
 Next Task: task-006
 
+================================================================================
+TASK-006: Replace chat service Anthropic calls with agent calls
+Date: 2026-01-29T09:15:00.000Z
+================================================================================
+
+Summary:
+Replaced all direct Anthropic SDK calls in prd-generator.ts and task-generator.ts with AgentClient. Removed validateApiKey() calls from prd and prd-to-tasks commands since API key no longer needed. All tests pass (137 tests, 100% pass rate).
+
+Files Changed:
+- src/prd-generator.ts (modified - replaced Anthropic SDK with AgentClient, removed getApiKey import)
+- src/task-generator.ts (modified - replaced Anthropic SDK with AgentClient, removed retryWithBackoff import)
+- src/index.ts (modified - removed validateApiKey() calls from prd and prd-to-tasks commands)
+- AGENTS.md (modified - updated documentation to reflect PRD/task generation now use AgentClient)
+
+Key Implementation Details:
+- prd-generator.ts: Replaced 2 Anthropic SDK calls with AgentClient.messages.create()
+- task-generator.ts: Replaced 1 Anthropic SDK call with AgentClient.messages.create()
+- Error handling moved to try-catch wrapping client.messages.create() instead of .catch() chain
+- retryWithBackoff now inside AgentClient, so try-catch only catches final failures
+- Message formatting and response parsing preserved through agent layer
+- Model resolution correctly uses resolveModelForPhase() for phase-specific models
+
+Key Decisions:
+- Removed API key validation from prd/prd-to-tasks commands (no longer needed)
+- Kept API key config for backward compatibility with other commands
+- Error handling structure improved: retryable errors handled in AgentClient, only final failures throw
+- Documentation updated to reflect all operations now use agent subprocess
+
+Review Feedback Applied:
+- CRITICAL: Removed validateApiKey() calls from prd and prd-to-tasks commands in src/index.ts
+- MEDIUM: Updated AGENTS.md to reflect PRD/task generation now use AgentClient
+- Verified all imports cleaned up correctly (getApiKey, retryWithBackoff removed where appropriate)
+
+Next Task: task-007
+
+================================================================================
+FINALIZED: task-006
+Date: 2026-01-29T09:42:32.000Z
+================================================================================
+
+Summary:
+Applied critical review feedback by removing API key validation from prd and prd-to-tasks commands. These operations now use AgentClient which spawns agent subprocess, so ANTHROPIC_API_KEY not required. Updated AGENTS.md documentation to reflect complete migration.
+
+Files Changed:
+- src/index.ts (modified - removed validateApiKey() calls from prd/prd-to-tasks commands)
+- AGENTS.md (modified - added note "PRD and task generation no longer require ANTHROPIC_API_KEY")
+- .plans/tasks-replace-direct-anthropic-communication-with-agent-.yml (modified - marked task-006 completed)
+
+Review Findings:
+- Implementation successfully replaced direct Anthropic SDK with AgentClient
+- Message formatting, response parsing, error handling preserved
+- All 137 tests pass (100% pass rate)
+- Critical issue fixed: API key validation removed from operations that don't need it
+- Documentation updated to reflect current state
+
+Key Changes:
+- Removed validateApiKey() from prd command (line 136 in src/index.ts)
+- Removed validateApiKey() from prd-to-tasks command (line 149 in src/index.ts)
+- Added documentation note in AGENTS.md about API key no longer required
+- All acceptance criteria met: chat service calls replaced, formatting preserved, no regressions
+
+Next Task: task-007
+

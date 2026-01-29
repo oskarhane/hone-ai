@@ -133,7 +133,6 @@ program
   .description('Generate PRD interactively from feature description')
   .action(async (description: string) => {
     try {
-      validateApiKey();
       await generatePRD(description);
     } catch (error) {
       console.error('\n✗ Error generating PRD:', error instanceof Error ? error.message : error);
@@ -146,7 +145,6 @@ program
   .description('Generate task list from PRD file')
   .action(async (prdFile: string) => {
     try {
-      validateApiKey();
       await generateTasksFromPRD(prdFile);
     } catch (error) {
       console.error('\n✗ Error generating tasks:', error instanceof Error ? error.message : error);
