@@ -89,8 +89,8 @@ jobs:
         run: |
           echo "📦 Publishing v${{ inputs.version }} to NPM..."
 
-          # Publish to npm using OIDC trusted publishing (no token required)
-          if ! npm publish; then
+          # Publish to npm using OIDC trusted publishing (--provenance enables OIDC auth)
+          if ! npm publish --provenance --access public; then
             echo "❌ NPM publishing failed"
             echo "ℹ️  Check package.json configuration and npm registry permissions"
             echo "ℹ️  Version may already exist or package name may be taken"
