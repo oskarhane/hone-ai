@@ -81,7 +81,7 @@ tasks:
     title: "Add GitHub release creation with auto-generated notes"
     description: |
       Integrate GitHub Release creation into version workflows with automatic release notes generation from commit history. Configure proper release metadata and changelog formatting.
-    status: pending
+    status: completed
     dependencies:
       - task-005
     acceptance_criteria:
@@ -90,7 +90,7 @@ tasks:
       - "Release title includes version number"
       - "Release marked as latest appropriately"
       - "Idempotent - safe to re-run workflows"
-    completed_at: null
+    completed_at: 2026-01-29T16:52:18.000Z
 
   - id: task-007
     title: "Configure Bun runtime environment for all workflows"

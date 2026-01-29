@@ -157,4 +157,32 @@ Key Decisions:
 - Enhanced release summary with binary information and release URL
 - Consistent implementation across both major and minor release workflows
 
-Next Task: task-006
+================================================================================
+TASK-006: Add GitHub release creation with auto-generated notes
+Date: 2026-01-29T16:52:18.000Z
+================================================================================
+
+Summary:
+Enhanced both major and minor release workflows with sophisticated auto-generated release notes from commit history. Replaced basic release creation with structured changelog generation and professional release documentation.
+
+Files Changed:
+- .github/workflows/release-major.yml (modified - added auto-generated release notes with commit history)
+- .github/workflows/release-minor.yml (modified - added auto-generated release notes with commit history)
+
+Key Decisions:
+- Used `git log --pretty=format:"- %s (%h)"` for generating clean changelog entries
+- Limited changelog to 20 commits to prevent excessive release notes
+- Implemented edge case handling for repositories without previous tags
+- Added fallback messages for empty changelogs ("No significant changes found" or "Initial release")
+- Used structured release note templates with version headers and changelog sections
+- Differentiated between major and minor release note templates
+- Maintained existing workflow structure and safety measures
+
+Review Feedback Applied:
+- All review feedback was positive ("LGTM") - no changes needed
+- Implementation fully satisfies all acceptance criteria
+- Auto-generated release notes feature properly implemented with error handling
+- Edge case management for missing git history and empty changelogs
+- Code quality, security, and performance standards met
+
+Next Task: task-007
