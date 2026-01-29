@@ -230,3 +230,18 @@ tasks:
       - "the requirement for NPM_TOKEN is gone"
       - "the release process for both mninor and major uses oidc tokens for npm"
     completed_at: 2026-01-29T12:03:00.000Z
+
+  - id: task-016
+    title: "have a single release to npm worksflow"
+    description: |
+      the npm settings for oidc requires specification of a single github workflow
+      to allow publishing from.
+      Right now we have two workflows, one for minor and one for major releases and both publish to npm.
+      still automatically publish to npm if possible, but if not manual is ok.
+      Feel free to web search for more information on how to configure oidc tokens for npm releases.
+      https://docs.npmjs.com/trusted-publishers#supported-cicd-providers
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "single github workflow for the publishing to npm"
+    completed_at: null
