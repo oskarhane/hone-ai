@@ -566,3 +566,49 @@ NPM Trusted Publisher Configuration Required:
 - Environment name: (leave empty)
 
 Next Task: All tasks complete
+
+
+================================================================================
+TASK-020: the macos build on ci/cd pipeline doesn't work
+Date: 2026-01-29T17:30:00.000Z
+================================================================================
+
+Summary:
+Fixed macOS build on CI/CD pipeline by switching from cross-compilation on Ubuntu to native macOS builds using GitHub Actions' macos-latest runners. Implemented proper job separation with Linux and macOS builds running in parallel on their respective native platforms.
+
+Files Changed:
+- .github/workflows/release-major.yml (modified - restructured to separate prepare/build/release jobs with native macOS building)
+- .github/workflows/release-minor.yml (modified - restructured to separate prepare/build/release jobs with native macOS building)
+
+Key Decisions:
+- GitHub Actions provides macos-latest runners - no need for cross-compilation
+- Separated build concerns into independent platform-specific jobs
+- Linux builds on ubuntu-latest, macOS builds on macos-latest
+- Used GitHub Actions artifacts for passing binaries between jobs
+- Implemented proper job dependencies with needs declarations
+- Added macOS-specific verification with ./hone-macos --version and file type checks
+
+Technical Implementation:
+- Job structure: prepare-release → build-linux/build-macos → create-release  
+- prepare-release handles version bumping and git operations on Ubuntu
+- build-linux compiles bun-linux-x64 target on ubuntu-latest
+- build-macos compiles bun-darwin-arm64 target on macos-latest
+- create-release downloads artifacts from both builds and creates GitHub release
+- Artifacts configured with 1-day retention for efficient CI
+- Added comprehensive error checking and progress logging
+- Platform-specific timeouts and resource optimization
+
+Root Cause Analysis:
+- Previous cross-compilation approach (building macOS binaries on Linux) wasn't producing functional executables
+- Bun's cross-compilation from Linux to macOS may have platform-specific runtime issues
+- Native macOS builds on macos-latest runners produce properly functioning binaries
+- GitHub Actions provides the infrastructure needed - no external solutions required
+
+Architecture Benefits:
+- Better separation of concerns with dedicated jobs for each platform
+- Parallel builds improve CI performance
+- Native compilation ensures binary functionality
+- Scalable approach for future platform additions
+- Proper artifact management between jobs
+
+Next Task: All tasks complete
