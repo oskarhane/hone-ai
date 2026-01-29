@@ -68,3 +68,17 @@ tasks:
       - "hone prd <text> should ask user questions to sort out any vagueness"
       - "hone prd <text> should ask user questions to sort out any ambiguity"
     completed_at: 2026-01-29T17:45:00Z
+
+  - id: task-006
+    title: "Make README more user-friendly"
+    description: |
+      the readme has some duplication and is not user-friendly.
+      It should be rewritten to be more concise and easy to understand.
+      Put getting started instructions up front.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "make README more user-friendly"
+      - "rewrite README to be more concise and easy to understand"
+      - "put getting started instructions up front"
+    completed_at: null
