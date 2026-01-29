@@ -170,3 +170,13 @@ Learnings and patterns for future agents working on hone.
 - Binary can be copied to /usr/local/bin or other PATH location for system-wide use
 - Build output (hone, hone.map) added to .gitignore
 - README documents both source installation and binary build process
+
+## GitHub Actions CI/CD
+
+- Release workflows use `workflow_dispatch` with manual confirmation for safety
+- Binary builds integrated into release workflows with verification steps
+- Use `--clobber` flag for `gh release upload` to handle re-runs safely
+- Build steps positioned before git operations for logical workflow ordering
+- Binary existence verification after build prevents uploading missing artifacts
+- Size logging provides transparency in build process
+- Consistent implementation across major/minor release workflows

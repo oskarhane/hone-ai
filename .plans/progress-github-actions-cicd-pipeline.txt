@@ -136,3 +136,25 @@ Review Feedback Applied:
 - Best practices applied from previous task learnings
 
 Next Task: task-005
+
+================================================================================
+TASK-005: Implement binary build and artifact attachment
+Date: 2026-01-29T16:45:32.000Z
+================================================================================
+
+Summary:
+Added binary compilation step to both major and minor release workflows using 'bun run build' command. Integrated standalone binary attachment to GitHub releases with proper version tagging and verification steps.
+
+Files Changed:
+- .github/workflows/release-major.yml (modified - added binary build, verification, and GitHub release upload steps)
+- .github/workflows/release-minor.yml (modified - added binary build, verification, and GitHub release upload steps)
+
+Key Decisions:
+- Added build step before git operations for logical ordering
+- Included binary existence verification after build completion
+- Used `--clobber` flag for release uploads to handle re-runs safely
+- Added binary size logging for transparency in build process
+- Enhanced release summary with binary information and release URL
+- Consistent implementation across both major and minor release workflows
+
+Next Task: task-006

@@ -87,6 +87,20 @@ jobs:
             exit 1
           fi
           
+      - name: Build standalone binary
+        run: |
+          echo "Building standalone binary..."
+          bun run build
+          
+      - name: Verify binary build
+        run: |
+          if [ ! -f "./hone" ]; then
+            echo "❌ Binary build failed - hone executable not found"
+            exit 1
+          fi
+          echo "✅ Binary build successful"
+          ls -la ./hone
+          
       - name: Configure Git
         run: |
           git config --local user.email "action@github.com"
@@ -112,9 +126,28 @@ jobs:
           git push origin "v$NEW_VERSION"
           git push origin main
           
+      - name: Create GitHub Release with binary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          
+          # Create GitHub release
+          gh release create "v$NEW_VERSION" \
+            --title "Release v$NEW_VERSION" \
+            --notes "Minor release v$NEW_VERSION - automatically generated from commit history." \
+            --latest
+          
+          # Attach binary to release
+          gh release upload "v$NEW_VERSION" ./hone --clobber
+          
+          echo "✅ GitHub release created with binary attachment"
+          
       - name: Release summary
         run: |
           echo "✅ Minor release completed successfully!"
           echo "Version: ${{ steps.current_version.outputs.current }} → ${{ steps.new_version.outputs.version }}"
           echo "Git tag: v${{ steps.new_version.outputs.version }} created"
           echo "Package.json updated and committed"
+          echo "Standalone binary built and attached to GitHub release"
+          echo "Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"
