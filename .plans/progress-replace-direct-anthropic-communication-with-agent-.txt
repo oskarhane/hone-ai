@@ -19,3 +19,39 @@ Key Decisions:
 - Next phase will focus on analyzing agent service interfaces
 
 Next Task: task-002
+
+================================================================================
+TASK-002: Analyze agent service interfaces and capabilities
+Date: 2026-01-29T10:45:00.000Z
+================================================================================
+
+Summary:
+Completed comprehensive analysis of opencode and claude agent interfaces. Both agents support model selection via command-line flags, streaming responses, and non-interactive operation. Documented command syntax, model formats, streaming capabilities, error handling, and configuration parameters.
+
+Files Changed:
+- .plans/agent-service-analysis.md (created - comprehensive agent interface documentation)
+- .plans/tasks-replace-direct-anthropic-communication-with-agent-.yml (modified - marked task-002 completed)
+
+Key Findings:
+- OpenCode: Uses `opencode run` with `--model provider/model` format (e.g., `anthropic/claude-sonnet-4-20250514`)
+- Claude: Uses `claude -p` with `--model` flag supporting aliases (sonnet/opus) or full names
+- Both support streaming: opencode via `--format json`, claude via `--output-format stream-json`
+- Error handling via exit codes and stderr output
+- Current spawnAgent() implementation needs model parameter support
+- Model name transformation required: config value → agent-specific format
+
+Key Decisions:
+- OpenCode requires `anthropic/` prefix for model names
+- Claude can use model names as-is from config
+- Streaming support not required initially (no current usage)
+- Error handling will parse stderr for user-facing messages
+- Phase-specific model config will be added to HoneConfig interface
+
+Recommendations:
+1. Extend spawnAgent() to accept model parameter
+2. Implement model name transformation logic
+3. Add phase-specific model configuration to config schema
+4. Maintain retry logic for agent spawn failures
+5. Surface agent errors directly to users via stderr
+
+Next Task: task-003
