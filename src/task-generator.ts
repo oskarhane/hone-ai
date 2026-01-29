@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { getApiKey, loadConfig } from './config';
+import { getApiKey, loadConfig, resolveModelForPhase } from './config';
 import { readFile, writeFile } from 'fs/promises';
 import { join, basename } from 'path';
 import { existsSync } from 'fs';
@@ -77,7 +77,7 @@ async function generateTasksWithAI(prdContent: string): Promise<Task[]> {
   }
   
   const config = await loadConfig();
-  const model = config.models?.claude || 'claude-sonnet-4-20250514';
+  const model = resolveModelForPhase(config, 'prdToTasks');
   
   const client = new Anthropic({ apiKey });
   

@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { getApiKey, loadConfig } from './config';
+import { getApiKey, loadConfig, resolveModelForPhase } from './config';
 import { readFile, writeFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -85,7 +85,7 @@ async function generateClarifyingQuestion(
   }
   
   const config = await loadConfig();
-  const model = config.models?.claude || 'claude-sonnet-4-20250514';
+  const model = resolveModelForPhase(config, 'prd');
   
   const client = new Anthropic({ apiKey });
   
@@ -144,7 +144,7 @@ async function generatePRDContent(
   }
   
   const config = await loadConfig();
-  const model = config.models?.claude || 'claude-sonnet-4-20250514';
+  const model = resolveModelForPhase(config, 'prd');
   
   const client = new Anthropic({ apiKey });
   

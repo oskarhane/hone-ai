@@ -41,11 +41,22 @@ Learnings and patterns for future agents working on hone.
 - Model config in `.plans/hone.config.yml` should always use full version names
 - When updating API calls, ensure both default config and fallback values use correct format
 - Current direct API usage: prd-generator.ts (2 calls), task-generator.ts (1 call)
-- Phase-specific operations (implement/review/finalize) already use agent subprocess spawning
+- Phase-specific operations (implement/review/finalize) use agent subprocess spawning with model parameter
 - Non-phase operations (PRD/task generation) being migrated to agent client abstraction
 - Agent client mirrors Anthropic SDK API but routes through subprocess spawning
 - Model transformation: opencode needs 'anthropic/' prefix, claude uses model name as-is
 - Agent client response format: { content: [{ type: 'text', text: stdout }] } for compatibility
+
+## Phase-Specific Model Configuration
+
+- Config supports optional phase-specific model overrides: `prd`, `prdToTasks`, `implement`, `review`, `finalize`
+- Model resolution priority: phase-specific model > agent-specific model > default model
+- `resolveModelForPhase(config, phase?, agent?)` resolves correct model for any phase
+- Phase-specific models in config.models are optional - system falls back gracefully
+- Validation via `validateConfig()` ensures model names follow correct format
+- Model version availability depends on agent (check `opencode --help` or `claude --help` for supported versions)
+- All phases (implement/review/finalize) pass resolved model to `spawnAgent()`
+- PRD generation and task generation use `resolveModelForPhase()` for consistency
 
 ## Task Generation
 

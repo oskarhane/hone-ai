@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import type { AgentType } from './config';
-import { loadConfig } from './config';
+import { loadConfig, resolveModelForPhase } from './config';
 import { spawnAgent, isAgentAvailable } from './agent';
 import { constructPrompt, type PromptPhase } from './prompt';
 import { exitWithError, ErrorMessages } from './errors';
@@ -73,10 +73,13 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
       config
     });
     
+    const implementModel = resolveModelForPhase(config, 'implement', agent);
+    
     const implementResult = await spawnAgent({
       agent,
       prompt: implementPrompt,
-      workingDir: process.cwd()
+      workingDir: process.cwd(),
+      model: implementModel
     });
     
     if (implementResult.exitCode !== 0) {
@@ -118,10 +121,13 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
         taskId: completedTaskId
       });
       
+      const reviewModel = resolveModelForPhase(config, 'review', agent);
+      
       const reviewResult = await spawnAgent({
         agent,
         prompt: reviewPrompt,
-        workingDir: process.cwd()
+        workingDir: process.cwd(),
+        model: reviewModel
       });
       
       if (reviewResult.exitCode !== 0) {
@@ -153,10 +159,13 @@ export async function executeTasks(options: ExecuteTasksOptions): Promise<void> 
       reviewFeedback
     });
     
+    const finalizeModel = resolveModelForPhase(config, 'finalize', agent);
+    
     const finalizeResult = await spawnAgent({
       agent,
       prompt: finalizePrompt,
-      workingDir: process.cwd()
+      workingDir: process.cwd(),
+      model: finalizeModel
     });
     
     if (finalizeResult.exitCode !== 0) {

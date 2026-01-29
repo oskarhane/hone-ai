@@ -88,3 +88,84 @@ Migration Path:
 
 Next Task: task-004
 
+================================================================================
+TASK-004: Implement phase-specific model configuration schema
+Date: 2026-01-29T12:00:00.000Z
+================================================================================
+
+Summary:
+Implemented phase-specific model configuration allowing different models per phase (prd, prdToTasks, implement, review, finalize). Extended config schema with optional phase overrides, created resolveModelForPhase() function with priority fallback (phase > agent > default), and updated all phase operations to use resolved models.
+
+Files Changed:
+- src/config.ts (modified - added phase-specific model fields to HoneConfig, implemented resolveModelForPhase(), added validateConfig())
+- src/config.test.ts (modified - added comprehensive tests for model resolution and validation)
+- src/agent.ts (modified - added model parameter to SpawnAgentOptions and command building logic)
+- src/run.ts (modified - updated implement/review/finalize phases to resolve and pass models)
+- src/prd-generator.ts (modified - updated to use resolveModelForPhase() for 'prd' phase)
+- src/task-generator.ts (modified - updated to use resolveModelForPhase() for 'prdToTasks' phase)
+- AGENTS.md (modified - documented phase-specific model configuration patterns)
+
+Key Implementation Details:
+- Config schema extended with optional models.prd, models.prdToTasks, models.implement, models.review, models.finalize
+- Model resolution priority: phase-specific > agent-specific > default ('claude-sonnet-4-20250514')
+- resolveModelForPhase(config, phase?, agent?) returns appropriate model for any phase
+- validateConfig() checks model name format: claude-(sonnet|opus)-\d+-\d{8}
+- spawnAgent() model parameter triggers --model flag: opencode uses 'anthropic/' prefix, claude uses as-is
+- All phase operations (implement, review, finalize) now pass resolved model to spawnAgent()
+- PRD and task generation use resolveModelForPhase() for consistency (still using Anthropic SDK)
+- Backward compatible: phase-specific models are optional, falls back gracefully
+
+Test Coverage:
+- 28 config tests pass (including 8 new tests for resolveModelForPhase, 6 for validateConfig)
+- Model resolution tested for all phases, fallback behavior, priority handling
+- Validation tested for valid/invalid formats, agent models, phase models, empty configs
+- All 128 existing tests still pass - no regressions
+
+Configuration Example:
+```yaml
+defaultAgent: opencode
+models:
+  opencode: claude-sonnet-4-20250514
+  claude: claude-sonnet-4-20250514
+  # Optional phase-specific overrides
+  implement: claude-opus-4-20250514  # Use Opus for implementation
+  review: claude-sonnet-4-20250601   # Use newer Sonnet for review
+```
+
+Key Decisions:
+- Phase-specific models are optional - system works without them
+- Validation is informational - doesn't block config loading (for backward compat)
+- Model format regex enforces full version names to prevent 404 errors
+- Agent parameter in resolveModelForPhase defaults to config.defaultAgent
+- Empty/missing models fall back to hard-coded default 'claude-sonnet-4-20250514'
+
+Next Task: task-005
+
+================================================================================
+FINALIZED: task-004
+Date: 2026-01-29T12:30:00.000Z
+================================================================================
+
+Summary:
+Applied review feedback by adding documentation note about checking model version availability. All acceptance criteria met: configuration schema implemented with optional phase-specific overrides, validation logic in place, fallback strategy working, full backward compatibility maintained. Implementation received LGTM from review with only minor documentation enhancement applied.
+
+Files Changed:
+- AGENTS.md (modified - added note about checking model version availability via --help)
+- src/config.ts (modified - confirmed comprehensive tests and validation working correctly)
+- All other changes from implementation phase verified through testing
+
+Key Review Findings:
+- Implementation excellent, thoroughly tested (128 tests pass, 28 config tests)
+- Correct priority fallback: phase > agent > default
+- Proper backward compatibility: phase-specific models optional
+- Edge cases handled: empty/missing models fall back gracefully
+- Security: model validation prevents injection via regex enforcement
+- Performance: O(1) lookups, no unnecessary I/O
+
+Review Feedback Applied:
+- Added documentation: "Model version availability depends on agent (check `opencode --help` or `claude --help` for supported versions)"
+- Ran final test suite: all 128 tests pass
+- No code changes required, implementation already correct
+
+Next Task: task-005
+

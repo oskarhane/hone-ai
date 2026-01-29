@@ -11,6 +11,8 @@ import {
   isValidAgent,
   resolveAgent,
   initProject,
+  resolveModelForPhase,
+  validateConfig,
   type HoneConfig 
 } from './config';
 
@@ -207,5 +209,215 @@ describe('Config Management', () => {
     expect(result.plansCreated).toBe(false);
     expect(result.configCreated).toBe(true);
     expect(existsSync(getConfigPath())).toBe(true);
+  });
+});
+
+describe('Model Resolution', () => {
+  test('resolveModelForPhase returns default model when no phase specified', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const model = resolveModelForPhase(config);
+    expect(model).toBe('claude-sonnet-4-20250514');
+  });
+
+  test('resolveModelForPhase returns phase-specific model when configured', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        implement: 'claude-opus-4-20250514'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const model = resolveModelForPhase(config, 'implement');
+    expect(model).toBe('claude-opus-4-20250514');
+  });
+
+  test('resolveModelForPhase falls back to agent-specific model', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'custom-opencode-model',
+        claude: 'claude-sonnet-4-20250514'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const model = resolveModelForPhase(config, 'implement', 'opencode');
+    expect(model).toBe('custom-opencode-model');
+  });
+
+  test('resolveModelForPhase prioritizes phase-specific over agent-specific', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'opencode-default',
+        claude: 'claude-default',
+        review: 'review-specific-model'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const model = resolveModelForPhase(config, 'review', 'opencode');
+    expect(model).toBe('review-specific-model');
+  });
+
+  test('resolveModelForPhase uses defaultAgent when agent not specified', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'opencode-model',
+        claude: 'claude-model'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const model = resolveModelForPhase(config, 'prd');
+    expect(model).toBe('opencode-model');
+  });
+
+  test('resolveModelForPhase returns default when phase and agent models missing', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: '',
+        claude: ''
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const model = resolveModelForPhase(config, 'finalize');
+    expect(model).toBe('claude-sonnet-4-20250514');
+  });
+
+  test('resolveModelForPhase handles all phase types', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'base-model',
+        claude: 'base-model',
+        prd: 'prd-model',
+        prdToTasks: 'tasks-model',
+        implement: 'impl-model',
+        review: 'review-model',
+        finalize: 'final-model'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    expect(resolveModelForPhase(config, 'prd')).toBe('prd-model');
+    expect(resolveModelForPhase(config, 'prdToTasks')).toBe('tasks-model');
+    expect(resolveModelForPhase(config, 'implement')).toBe('impl-model');
+    expect(resolveModelForPhase(config, 'review')).toBe('review-model');
+    expect(resolveModelForPhase(config, 'finalize')).toBe('final-model');
+  });
+});
+
+describe('Config Validation', () => {
+  test('validateConfig accepts valid model formats', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-opus-4-20251231'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const result = validateConfig(config);
+    expect(result.valid).toBe(true);
+    expect(result.errors.length).toBe(0);
+  });
+
+  test('validateConfig accepts valid phase-specific models', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        implement: 'claude-opus-4-20250601',
+        review: 'claude-sonnet-4-20250701'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const result = validateConfig(config);
+    expect(result.valid).toBe(true);
+    expect(result.errors.length).toBe(0);
+  });
+
+  test('validateConfig rejects invalid agent model format', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'invalid-model',
+        claude: 'claude-sonnet-4-20250514'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.length).toBe(1);
+    expect(result.errors[0]).toContain('opencode');
+    expect(result.errors[0]).toContain('invalid-model');
+  });
+
+  test('validateConfig rejects invalid phase model format', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        implement: 'wrong-format'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.length).toBe(1);
+    expect(result.errors[0]).toContain('implement');
+  });
+
+  test('validateConfig handles multiple invalid models', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'bad-opencode',
+        claude: 'bad-claude',
+        implement: 'bad-implement'
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.length).toBe(3);
+  });
+
+  test('validateConfig allows empty phase-specific models', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514'
+        // No phase-specific models
+      },
+      commitPrefix: 'hone'
+    };
+    
+    const result = validateConfig(config);
+    expect(result.valid).toBe(true);
+    expect(result.errors.length).toBe(0);
   });
 });

@@ -6,6 +6,7 @@ export interface SpawnAgentOptions {
   agent: AgentType;
   prompt: string;
   workingDir?: string;
+  model?: string;
 }
 
 export interface SpawnAgentResult {
@@ -20,15 +21,26 @@ export interface SpawnAgentResult {
  * @returns Promise resolving to exit code and captured output
  */
 export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgentResult> {
-  const { agent, prompt, workingDir = process.cwd() } = options;
+  const { agent, prompt, workingDir = process.cwd(), model } = options;
   
   // Build command and args based on agent type
-  // claude: claude -p "prompt text"
-  // opencode: opencode run "prompt text"
+  // opencode: opencode run [--model anthropic/<model>] "prompt text"
+  // claude: claude -p "prompt text" [--model <model>]
   const command = agent === 'opencode' ? 'opencode' : 'claude';
-  const args: string[] = agent === 'opencode' 
-    ? ['run', prompt]
-    : ['-p', prompt];
+  const args: string[] = [];
+  
+  if (agent === 'opencode') {
+    args.push('run');
+    if (model) {
+      args.push('--model', `anthropic/${model}`);
+    }
+    args.push(prompt);
+  } else {
+    args.push('-p', prompt);
+    if (model) {
+      args.push('--model', model);
+    }
+  }
   
   return new Promise((resolve, reject) => {
     const child: ChildProcess = spawn(command, args, {

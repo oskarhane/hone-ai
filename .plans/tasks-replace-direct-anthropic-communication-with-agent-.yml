@@ -52,7 +52,7 @@ tasks:
     title: "Implement phase-specific model configuration schema"
     description: |
       Design and implement configuration schema for phase-specific model selection (prd, prd-to-tasks, implement, review, finalize) following existing config file conventions. Include validation and default fallback logic.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -61,7 +61,7 @@ tasks:
       - "Configuration validation logic implemented"
       - "Fallback logic for missing phase configurations"
       - "Configuration follows existing file conventions"
-    completed_at: null
+    completed_at: 2026-01-29T12:30:00.000Z
 
   - id: task-005
     title: "Implement agent service communication layer"

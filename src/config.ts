@@ -9,6 +9,12 @@ export interface HoneConfig {
   models: {
     opencode: string;
     claude: string;
+    // Phase-specific model overrides (optional)
+    prd?: string;
+    prdToTasks?: string;
+    implement?: string;
+    review?: string;
+    finalize?: string;
   };
   commitPrefix: string;
   feedbackInstructions?: string;
@@ -131,5 +137,64 @@ export async function initProject(): Promise<InitResult> {
   return {
     plansCreated: !plansExisted,
     configCreated: !configExisted
+  };
+}
+
+export type ModelPhase = 'prd' | 'prdToTasks' | 'implement' | 'review' | 'finalize';
+
+/**
+ * Resolve the model to use for a specific phase.
+ * Priority: phase-specific model > agent-specific model > default model
+ */
+export function resolveModelForPhase(
+  config: HoneConfig,
+  phase?: ModelPhase,
+  agent?: AgentType
+): string {
+  const resolvedAgent = agent || config.defaultAgent;
+  
+  // 1. Check phase-specific model override
+  if (phase && config.models[phase]) {
+    return config.models[phase]!;
+  }
+  
+  // 2. Fall back to agent-specific model
+  if (config.models[resolvedAgent]) {
+    return config.models[resolvedAgent];
+  }
+  
+  // 3. Fall back to default model
+  return 'claude-sonnet-4-20250514';
+}
+
+/**
+ * Validate configuration for phase-specific models.
+ * Ensures model names follow the correct format.
+ */
+export function validateConfig(config: HoneConfig): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  const modelRegex = /^claude-(sonnet|opus)-\d+-\d{8}$/;
+  
+  // Validate agent-specific models
+  if (config.models.opencode && !modelRegex.test(config.models.opencode)) {
+    errors.push(`Invalid model format for opencode: ${config.models.opencode}`);
+  }
+  
+  if (config.models.claude && !modelRegex.test(config.models.claude)) {
+    errors.push(`Invalid model format for claude: ${config.models.claude}`);
+  }
+  
+  // Validate phase-specific models if present
+  const phases: ModelPhase[] = ['prd', 'prdToTasks', 'implement', 'review', 'finalize'];
+  for (const phase of phases) {
+    const model = config.models[phase];
+    if (model && !modelRegex.test(model)) {
+      errors.push(`Invalid model format for phase ${phase}: ${model}`);
+    }
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors
   };
 }
