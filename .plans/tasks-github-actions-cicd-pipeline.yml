@@ -290,3 +290,69 @@ tasks:
     acceptance_criteria:
       - "the version bump works and the package.json is updated in an expected way"
     completed_at: 2026-01-29T14:30:00.000Z
+
+  - id: task-019
+    title: "fix npm publish"
+    description: |
+      see issue:
+        Publishing v0.5.0 to NPM...
+       Release type: minor
+       npm warn publish npm auto-corrected some errors in your package.json when publishing.  Please run "npm pkg fix" to address these errors.
+       npm warn publish errors corrected:
+       npm warn publish "bin[hone]" script name was cleaned
+       npm warn publish "repository.url" was normalized to "git+https://github.com/oskarhane/hone-ai.git"
+       npm notice
+       npm notice 📦  hone-ai@0.5.0
+       npm notice Tarball Contents
+       npm notice 3.8kB README.md
+       npm notice 1.3kB package.json
+       npm notice 3.0kB src/agent-client.integration.test.ts
+       npm notice 1.5kB src/agent-client.test.ts
+       npm notice 6.2kB src/agent-client.ts
+       npm notice 951B src/agent.test.ts
+       npm notice 5.8kB src/agent.ts
+       npm notice 11.2kB src/config.test.ts
+       npm notice 5.0kB src/config.ts
+       npm notice 9.3kB src/errors.test.ts
+       npm notice 8.5kB src/errors.ts
+       npm notice 12.8kB src/index.integration.test.ts
+       npm notice 6.7kB src/index.ts
+       npm notice 8.3kB src/integration-test.ts
+       npm notice 2.6kB src/logger.test.ts
+       npm notice 890B src/logger.ts
+       npm notice 2.9kB src/prd-generator.integration.test.ts
+       npm notice 1.1kB src/prd-generator.test.ts
+       npm notice 13.5kB src/prd-generator.ts
+       npm notice 4.4kB src/prds.test.ts
+       npm notice 3.5kB src/prds.ts
+       npm notice 8.1kB src/prompt.test.ts
+       npm notice 8.9kB src/prompt.ts
+       npm notice 3.4kB src/run.test.ts
+       npm notice 9.7kB src/run.ts
+       npm notice 5.6kB src/status.test.ts
+       npm notice 2.5kB src/status.ts
+       npm notice 3.1kB src/task-generator.test.ts
+       npm notice 7.2kB src/task-generator.ts
+       npm notice Tarball Details
+       npm notice name: hone-ai
+       npm notice version: 0.5.0
+       npm notice filename: hone-ai-0.5.0.tgz
+       npm notice package size: 36.8 kB
+       npm notice unpacked size: 161.8 kB
+       npm notice shasum: f46fde89c600f11adc5ac7aa031f6f255ed0c5ae
+       npm notice integrity: sha512-AsZpIptmyW4ou[...]obgPGmmw3ezMQ==
+       npm notice total files: 29
+       npm notice
+       npm error code ENEEDAUTH
+       npm error need auth This command requires you to be logged in to https://registry.npmjs.org/
+       npm error need auth You need to authorize this machine using `npm adduser`
+       npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-01-29T16_38_43_644Z-debug-0.log
+       ❌ NPM publishing failed
+       ℹ️  Check package.json configuration and npm registry permissions
+       ℹ️  Version may already exist or package name may be taken
+       ℹ️  Ensure trusted publisher is configured on npmjs.com for this repository
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "publish to npm works"
+    completed_at: null
