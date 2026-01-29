@@ -257,17 +257,9 @@ jobs:
           echo "macOS binary built, zipped as 'hone', and attached to GitHub release as hone-v${{ steps.new_version.outputs.version }}-macos.zip"
           echo "GitHub Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.new_version.outputs.version }}"
 
-  publish-to-npm:
-    name: Publish to NPM
-    needs: release-minor
-    uses: ./.github/workflows/publish-npm.yml
-    with:
-      version: ${{ needs.release-minor.outputs.new_version }}
-      release-type: "minor"
-
   final-summary:
     name: Final Summary
-    needs: [release-minor, publish-to-npm]
+    needs: [release-minor]
     runs-on: ubuntu-latest
     steps:
       - name: Complete release summary
@@ -275,5 +267,14 @@ jobs:
           echo "🎉 Minor release v${{ needs.release-minor.outputs.new_version }} completed successfully!"
           echo "📋 Release Summary:"
           echo "  • GitHub Release: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.release-minor.outputs.new_version }}"
-          echo "  • NPM Package: https://www.npmjs.com/package/hone-ai"
           echo "  • macOS Binary: Available in GitHub release as hone-v${{ needs.release-minor.outputs.new_version }}-macos.zip"
+          echo ""
+          echo "📦 To publish to NPM:"
+          echo "  1. Go to: https://github.com/${{ github.repository }}/actions/workflows/publish-npm-manual.yml"
+          echo "  2. Click 'Run workflow' button"
+          echo "  3. Enter version: ${{ needs.release-minor.outputs.new_version }}"
+          echo "  4. Type 'CONFIRM' to proceed"
+          echo ""
+          echo "🔧 NPM Trusted Publisher Configuration:"
+          echo "  Configure at: https://www.npmjs.com/package/hone-ai/access"
+          echo "  Workflow filename: publish-npm-manual.yml"

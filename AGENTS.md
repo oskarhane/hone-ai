@@ -199,3 +199,19 @@ Learnings and patterns for future agents working on hone.
 
 - When workflows don't appear: Check branch name mismatch (workflows configured for 'main' vs repo using 'master')
 - Git remote 'oskarhane' instead of 'origin' is valid configuration pattern for this project
+
+## NPM Trusted Publisher with GitHub Actions
+
+- NPM trusted publisher requires exact workflow filename match on npmjs.com configuration
+- Each package can only have ONE trusted publisher configuration
+- When using `workflow_call`, NPM validates against the calling workflow name, not the called workflow
+- Multiple release workflows calling shared NPM workflow creates unsolvable configuration conflict
+- Solution: Single dedicated manual workflow (e.g., publish-npm-manual.yml) triggered after releases
+- OIDC authentication requires `id-token: write` permission
+- Configuration fields are case-sensitive and must match exactly:
+  - Organization/user: GitHub username or org name
+  - Repository: Repository name (case-sensitive)
+  - Workflow filename: Exact filename including .yml extension
+  - Environment name: Optional, leave empty if not using GitHub environments
+- Common ENEEDAUTH errors indicate misconfigured or missing trusted publisher setup
+- Trusted publisher configuration URL: https://www.npmjs.com/package/{package-name}/access

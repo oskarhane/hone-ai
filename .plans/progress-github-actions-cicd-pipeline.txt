@@ -521,4 +521,48 @@ Key Decisions:
 - Maintained existing workflow sequence (NPM publish job still runs after release job completes)
 - Git configuration moves before npm version command for proper CI environment setup
 
+Next Task: task-019
+
+================================================================================
+TASK-019: fix npm publish (FINALIZED)
+Date: 2026-01-29T17:15:00.000Z
+================================================================================
+
+Summary:
+Fixed NPM publish authentication issue by creating dedicated manual NPM publishing workflow. Root cause was NPM trusted publisher limitation allowing only one workflow per package, but release workflows were calling shared workflow.
+
+Files Changed:
+- .github/workflows/publish-npm-manual.yml (created - dedicated manual NPM publish workflow for trusted publisher configuration)
+- .github/workflows/release-major.yml (modified - removed automatic NPM publish, added manual instructions)
+- .github/workflows/release-minor.yml (modified - removed automatic NPM publish, added manual instructions)  
+- .github/workflows/publish-npm.yml (modified - marked as deprecated with explanation)
+
+Key Decisions:
+- NPM trusted publisher requires exact workflow filename match, and only allows one per package
+- Multiple release workflows calling shared NPM workflow creates configuration conflict
+- Solution: Single manual workflow (publish-npm-manual.yml) that can be triggered after any release
+- Added clear instructions in release workflows for triggering manual NPM publish
+- Maintained security with OIDC trusted publishing approach
+- Added comprehensive configuration documentation in workflow output
+
+Root Cause Analysis:
+- NPM OIDC authentication failed with ENEEDAUTH error
+- When using workflow_call, NPM validates against the calling workflow name, not the called workflow
+- Multiple calling workflows (release-major.yml, release-minor.yml) but NPM only allows one trusted publisher
+- Configuration needed to match specific workflow filename but couldn't accommodate both
+
+Technical Implementation:
+- Created publish-npm-manual.yml with workflow_dispatch trigger
+- Added safety confirmation requirement (must type "CONFIRM")
+- Included version verification and clear error messages
+- Added configuration instructions for NPM trusted publisher setup
+- Updated release workflows to provide step-by-step NPM publishing instructions
+
+NPM Trusted Publisher Configuration Required:
+- URL: https://www.npmjs.com/package/hone-ai/access
+- Workflow filename: publish-npm-manual.yml (exact match required)
+- Organization: oskarhane
+- Repository: hone-ai
+- Environment name: (leave empty)
+
 Next Task: All tasks complete

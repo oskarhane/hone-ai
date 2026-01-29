@@ -351,8 +351,8 @@ tasks:
        ℹ️  Check package.json configuration and npm registry permissions
        ℹ️  Version may already exist or package name may be taken
        ℹ️  Ensure trusted publisher is configured on npmjs.com for this repository
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "publish to npm works"
-    completed_at: null
+    completed_at: 2026-01-29T17:15:00.000Z

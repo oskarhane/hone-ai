@@ -1,16 +1,16 @@
-name: Publish to NPM
+name: Publish to NPM (Manual)
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       version:
-        description: "Version to publish"
+        description: "Version to publish (e.g., 0.5.0)"
         required: true
         type: string
-      release-type:
-        description: "Release type (major/minor)"
+      confirm:
+        description: 'Type "CONFIRM" to proceed with NPM publish'
         required: true
-        type: string
+        default: ""
 
 permissions:
   id-token: write # Required for OIDC trusted publishing to npm
@@ -26,6 +26,13 @@ jobs:
       BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
 
     steps:
+      - name: Validate confirmation
+        if: ${{ github.event.inputs.confirm != 'CONFIRM' }}
+        run: |
+          echo "❌ NPM publish not confirmed. Please type 'CONFIRM' to proceed."
+          echo "ℹ️  This is a safety check to prevent accidental NPM publishes."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -71,7 +78,8 @@ jobs:
 
           if [ "$CURRENT_VERSION" != "$EXPECTED_VERSION" ]; then
             echo "❌ Version mismatch - package.json has $CURRENT_VERSION but expected $EXPECTED_VERSION"
-            echo "ℹ️  This suggests the release workflow did not properly update package.json"
+            echo "ℹ️  Please ensure the version has been updated in package.json first"
+            echo "ℹ️  You may need to run a release workflow first"
             exit 1
           fi
 
@@ -80,7 +88,6 @@ jobs:
       - name: Publish to NPM
         run: |
           echo "📦 Publishing v${{ inputs.version }} to NPM..."
-          echo "Release type: ${{ inputs.release-type }}"
 
           # Publish to npm using OIDC trusted publishing (no token required)
           if ! npm publish; then
@@ -88,6 +95,7 @@ jobs:
             echo "ℹ️  Check package.json configuration and npm registry permissions"
             echo "ℹ️  Version may already exist or package name may be taken"
             echo "ℹ️  Ensure trusted publisher is configured on npmjs.com for this repository"
+            echo "ℹ️  Trusted publisher should be configured for workflow: publish-npm-manual.yml"
             exit 1
           fi
 
@@ -99,5 +107,11 @@ jobs:
         run: |
           echo "✅ NPM publication completed successfully!"
           echo "Version: v${{ inputs.version }}"
-          echo "Release type: ${{ inputs.release-type }}"
           echo "Package URL: https://www.npmjs.com/package/hone-ai"
+          echo ""
+          echo "🔧 Configuration reminder:"
+          echo "  Make sure NPM trusted publisher is configured at:"
+          echo "  https://www.npmjs.com/package/hone-ai/access"
+          echo "  Workflow filename: publish-npm-manual.yml"
+          echo "  Organization: oskarhane"
+          echo "  Repository: hone-ai"
