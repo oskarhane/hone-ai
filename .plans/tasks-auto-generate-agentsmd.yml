@@ -202,3 +202,17 @@ tasks:
       - "AGENTS.md output improved to be concise and informative"
       - "When linking to files, provide a very concise (1-2 sentences) and informative summary of each section before inserting the link to the file that has more info."
     completed_at: 2026-01-30T13:02:12.000Z
+
+  - id: task-013
+    title: "verify that agents-md command uses agent in config file, if it exists"
+    description: |
+      At the moment it looks like the agents-md command is not using the agent in the config file.
+      We need to ensure that the command is using the agent in the config file, if the files exists.
+      If the config file doesn't exist, we should use the default agent.
+      We also should add a model configuration to the command in the config file, like we have for the other steps/commands like prd, review etc.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "agents-md command uses agent in config file"
+      - "model configuration added to agents-md command in config file"
+    completed_at: null
