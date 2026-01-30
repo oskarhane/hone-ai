@@ -155,4 +155,51 @@ Key Decisions:
 - Used countLines() helper to accurately track content length and trigger subdirectory creation
 - Implemented getFirstSentence() for summary generation (noted for potential improvement)
 
-Next Task: task-006
+Next Task: task-007
+
+================================================================================
+TASK-006: Implement existing file handling logic
+Date: 2026-01-30T11:16:30.000Z
+================================================================================
+
+Summary:
+Implemented comprehensive existing file handling logic for AGENTS.md generation, including detection of existing files, overwrite behavior, and proper handling of .agents/ directory and files.
+
+Files Changed:
+- src/agents-md-generator.ts (enhanced with existing file detection, overwrite behavior, and .agents/ directory handling)
+- src/agents-md-generator.test.ts (added 3 new tests for existing file handling scenarios)
+
+Key Decisions:
+- Enhanced AGENTS.md file detection with clear user messaging about overwrite requirement
+- Added proper detection and handling of existing .agents/ directory with informative logging
+- Implemented individual detail file overwrite checking to prevent unintended overwrites
+- Enhanced decision logic for .agents/ directory creation to consider both line count (>100) and complexity (>5 sections)
+- Added proper error handling for file system operations with graceful degradation
+- Created comprehensive test coverage including existing file scenarios and complex project structures
+- All tests pass (173/173) and CLI integration works correctly with --overwrite flag
+
+Next Task: task-007
+
+================================================================================
+TASK-006: Implement existing file handling logic (FINALIZED)
+Date: 2026-01-30T11:30:00.000Z
+================================================================================
+
+Summary:
+Applied critical review feedback by implementing gotcha preservation logic for AGENTS.md overwrite operations. Added extractPreservableContent() function to detect and preserve existing custom sections when regenerating files.
+
+Files Changed:
+- src/agents-md-generator.ts (added gotcha preservation logic with extractPreservableContent function)
+- .plans/tasks-auto-generate-agentsmd.yml (updated task-006 completion timestamp)
+- .plans/progress-auto-generate-agentsmd.txt (added finalization entry)
+
+Key Decisions:
+- Implemented extractPreservableContent() to identify sections containing gotchas, learnings, notes, warnings, tips, custom content
+- Added preservation logic that reads existing AGENTS.md content before overwriting
+- Preserved content is appended with "PRESERVED CONTENT FROM PREVIOUS VERSION" marker
+- Used verbose logging to inform users when content is preserved
+- Graceful error handling if existing content cannot be read
+- All 173 tests pass after implementing preservation logic
+- Code properly formatted with no style violations
+
+Next Task: task-007

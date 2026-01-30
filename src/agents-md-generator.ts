@@ -39,6 +39,54 @@ interface TemplateSection {
 }
 
 /**
+ * Extract preservable content (gotchas, custom learnings) from existing AGENTS.md
+ * This function looks for custom sections that should be preserved when regenerating
+ */
+function extractPreservableContent(existingContent: string): string | null {
+  const lines = existingContent.split('\n')
+  const preservedSections: string[] = []
+  let currentSection: string[] = []
+  let inPreservableSection = false
+  let sectionTitle = ''
+
+  for (const line of lines) {
+    if (!line) continue
+
+    // Look for section headers that might contain gotchas/learnings
+    if (line.startsWith('## ') || line.startsWith('# ')) {
+      // Save previous section if it was preservable
+      if (inPreservableSection && currentSection.length > 0) {
+        preservedSections.push(`## ${sectionTitle}\n\n${currentSection.join('\n').trim()}`)
+      }
+
+      // Check if this is a section we want to preserve
+      const title = line.replace(/^#+\s*/, '').toLowerCase()
+      sectionTitle = line.replace(/^#+\s*/, '')
+      inPreservableSection =
+        title.includes('gotcha') ||
+        title.includes('learning') ||
+        title.includes('note') ||
+        title.includes('warning') ||
+        title.includes('tip') ||
+        title.includes('custom') ||
+        title.includes('specific') ||
+        line.includes('PRESERVED CONTENT')
+
+      currentSection = []
+    } else if (inPreservableSection) {
+      currentSection.push(line)
+    }
+  }
+
+  // Don't forget the last section
+  if (inPreservableSection && currentSection.length > 0) {
+    preservedSections.push(`## ${sectionTitle}\n\n${currentSection.join('\n').trim()}`)
+  }
+
+  return preservedSections.length > 0 ? preservedSections.join('\n\n') : null
+}
+
+/**
  * Analyze project structure and gather context for AGENTS.md generation
  */
 async function analyzeProject(projectPath: string): Promise<ProjectAnalysis> {
@@ -541,11 +589,17 @@ async function generateContent(
 
   logVerbose(`Generated content has ${lineCount} lines (limit: 100)`)
 
-  // Decide whether to use .agents/ subdirectory
-  const useAgentsDir = lineCount > 100
+  // Decide whether to use .agents/ subdirectory based on content length and complexity
+  const useAgentsDir = lineCount > 100 || sections.length > 5
 
   if (useAgentsDir) {
-    log('Content exceeds 100-line limit. Creating .agents/ subdirectory for detailed information.')
+    if (lineCount > 100) {
+      log(
+        'Content exceeds 100-line limit. Creating .agents/ subdirectory for detailed information.'
+      )
+    } else {
+      log('Project has complex structure. Creating .agents/ subdirectory for better organization.')
+    }
   }
 
   const mainContent = generateCompactContent(sections, useAgentsDir)
@@ -572,14 +626,31 @@ export async function generateAgentsMd(
     log('Loading configuration...')
     const config = await loadConfig()
 
-    // Check if AGENTS.md already exists
+    // Check if AGENTS.md already exists and handle accordingly
     const agentsPath = join(projectPath, 'AGENTS.md')
-    if (existsSync(agentsPath) && !options.overwrite) {
-      log('AGENTS.md already exists. Use --overwrite to replace it.')
-      return {
-        success: false,
-        filesCreated: [],
-        error: new Error('AGENTS.md already exists'),
+    const existingAgentsDirPath = join(projectPath, '.agents')
+
+    if (existsSync(agentsPath)) {
+      if (!options.overwrite) {
+        log('AGENTS.md already exists. Use --overwrite to replace it.')
+        return {
+          success: false,
+          filesCreated: [],
+          error: new Error('AGENTS.md already exists'),
+        }
+      } else {
+        log('AGENTS.md exists. Overwriting with new content.')
+      }
+    }
+
+    // Also check for existing .agents/ directory and inform user
+    if (existsSync(existingAgentsDirPath)) {
+      if (!options.overwrite) {
+        logVerbose(
+          '.agents/ directory already exists. Detail files will be skipped unless --overwrite is used.'
+        )
+      } else {
+        logVerbose('.agents/ directory exists. Detail files will be overwritten.')
       }
     }
 
@@ -591,7 +662,23 @@ export async function generateAgentsMd(
     )
 
     log('Writing AGENTS.md file...')
-    await writeFile(agentsPath, mainContent, 'utf-8')
+
+    // Preserve existing gotchas/learnings if overwriting
+    let finalContent = mainContent
+    if (options.overwrite && existsSync(agentsPath)) {
+      try {
+        const existingContent = await readFile(agentsPath, 'utf-8')
+        const preservedContent = extractPreservableContent(existingContent)
+        if (preservedContent) {
+          finalContent = `${mainContent}\n\n<!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->\n${preservedContent}`
+          logVerbose('Preserved existing gotchas/learnings from previous AGENTS.md')
+        }
+      } catch (error) {
+        logVerboseError(`Could not preserve existing content: ${error}`)
+      }
+    }
+
+    await writeFile(agentsPath, finalContent, 'utf-8')
     const filesCreated = [agentsPath]
 
     // Create .agents/ directory and detail files if needed
@@ -599,7 +686,16 @@ export async function generateAgentsMd(
     if (useAgentsDir && detailSections) {
       agentsDirPath = join(projectPath, '.agents')
 
-      if (!existsSync(agentsDirPath)) {
+      // Handle existing .agents/ directory
+      if (existsSync(agentsDirPath)) {
+        if (!options.overwrite) {
+          log(
+            '.agents/ directory already exists. Use --overwrite to replace existing detail files.'
+          )
+        } else {
+          log('.agents/ directory exists. Overwriting existing detail files.')
+        }
+      } else {
         await mkdir(agentsDirPath, { recursive: true })
         log('Created .agents/ directory for detailed information')
       }
@@ -608,7 +704,15 @@ export async function generateAgentsMd(
       for (const section of detailSections) {
         if (section.detailFile) {
           const detailPath = join(agentsDirPath, section.detailFile)
-          const detailContent = `# ${section.title}
+
+          // Check if detail file already exists
+          if (existsSync(detailPath) && !options.overwrite) {
+            logVerbose(`Skipping existing detail file: ${section.detailFile}`)
+            continue
+          }
+
+          try {
+            const detailContent = `# ${section.title}
 
 ${section.content}
 
@@ -616,9 +720,17 @@ ${section.content}
 
 *This file is part of the AGENTS.md documentation system.*
 `
-          await writeFile(detailPath, detailContent, 'utf-8')
-          filesCreated.push(detailPath)
-          logVerbose(`Created detail file: ${section.detailFile}`)
+            await writeFile(detailPath, detailContent, 'utf-8')
+            filesCreated.push(detailPath)
+            logVerbose(
+              `${existsSync(detailPath) && options.overwrite ? 'Updated' : 'Created'} detail file: ${section.detailFile}`
+            )
+          } catch (fileError) {
+            logVerbose(
+              `Failed to write detail file ${section.detailFile}: ${fileError instanceof Error ? fileError.message : fileError}`
+            )
+            // Continue with other files rather than failing completely
+          }
         }
       }
     }

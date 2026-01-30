@@ -480,10 +480,10 @@ ${qaHistory ? `\n\nPrevious Q&A Session:\n${qaHistory}` : ''}`
     await writeFile(filepath, fallbackContent, 'utf-8')
 
     console.log(`✓ Generated fallback PRD: .plans/${filename}`)
-    console.log('Note: This PRD contains basic structure. Consider regenerating when system is available.\n')
     console.log(
-      `Review and edit the PRD and then execute "hone prd-to-tasks .plans/${filename}"\n`
+      'Note: This PRD contains basic structure. Consider regenerating when system is available.\n'
     )
+    console.log(`Review and edit the PRD and then execute "hone prd-to-tasks .plans/${filename}"\n`)
 
     return filename
   }

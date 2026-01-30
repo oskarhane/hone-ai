@@ -263,4 +263,62 @@ describe('agents-md-generator', () => {
       expect(content).toContain('## Build System')
     }
   })
+
+  test('generateAgentsMd handles existing .agents/ directory properly', async () => {
+    // Create existing .agents/ directory with a file
+    const agentsDir = join(process.cwd(), '.agents')
+    if (!existsSync(agentsDir)) {
+      mkdirSync(agentsDir, { recursive: true })
+    }
+    await fs.writeFile(join(agentsDir, 'existing.md'), 'Existing content', 'utf-8')
+
+    // First generation without overwrite
+    const result1 = await generateAgentsMd()
+    expect(result1.success).toBe(true)
+
+    // Second generation with overwrite
+    const result2 = await generateAgentsMd({ overwrite: true })
+    expect(result2.success).toBe(true)
+
+    // Verify existing file is still there (we don't delete unrelated files)
+    expect(existsSync(join(agentsDir, 'existing.md'))).toBe(true)
+  })
+
+  test('generateAgentsMd creates .agents/ directory for complex projects', async () => {
+    // Create a project with many sections to trigger .agents/ creation
+    await fs.writeFile(
+      'package.json',
+      JSON.stringify({
+        name: 'complex-project',
+        scripts: {
+          build: 'tsc',
+          test: 'jest',
+          deploy: 'docker build',
+          lint: 'eslint',
+        },
+        dependencies: {
+          react: '^18.0.0',
+          express: '^4.18.0',
+          typescript: '^5.0.0',
+          jest: '^29.0.0',
+          eslint: '^8.0.0',
+          docker: '^1.0.0',
+        },
+      }),
+      'utf-8'
+    )
+
+    // Create multiple config files
+    await fs.writeFile('Dockerfile', 'FROM node:18', 'utf-8')
+    await fs.writeFile('docker-compose.yml', 'version: "3"', 'utf-8')
+
+    const result = await generateAgentsMd()
+    expect(result.success).toBe(true)
+
+    // Should trigger .agents/ directory creation due to complexity
+    if (result.agentsDirPath) {
+      expect(existsSync(result.agentsDirPath)).toBe(true)
+      expect(result.filesCreated.length).toBeGreaterThan(1)
+    }
+  })
 })

@@ -230,3 +230,11 @@ Learnings and patterns for future agents working on hone.
 - "Access token expired or revoked" with successful provenance signing = npm version too old
 - Trusted publisher configuration URL: https://www.npmjs.com/package/{package-name}/access
 - Provenance is automatic with trusted publishing - no need for `--provenance` flag
+
+## AGENTS.md Generation
+
+- When overwriting existing AGENTS.md files, preserve existing gotchas/learnings using extractPreservableContent()
+- Look for sections containing: gotcha, learning, note, warning, tip, custom, specific, PRESERVED CONTENT
+- Append preserved content with "PRESERVED CONTENT FROM PREVIOUS VERSION" marker
+- Use verbose logging to inform users when content is preserved from previous versions
+- Graceful error handling if existing content cannot be read - proceed with generation anyway

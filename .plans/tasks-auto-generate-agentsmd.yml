@@ -92,8 +92,10 @@ tasks:
   - id: task-006
     title: "Implement existing file handling logic"
     description: |
-      Add logic to detect existing AGENTS.md files and handle overwrite behavior. Implement decision logic for when to create .agents/ subdirectory files versus keeping everything in main file.
-    status: pending
+      Add logic to detect existing AGENTS.md files and handle overwrite behavior.
+      Implement decision logic for when to create .agents/ subdirectory files versus keeping everything in main file.
+      Keep any gotchas that already exist in the AGENTS.md
+    status: completed
     dependencies:
       - task-005
     acceptance_criteria:
@@ -102,7 +104,8 @@ tasks:
       - "Decision logic for .agents/ subdirectory creation"
       - "Handling of existing .agents/ directory and files"
       - "Proper file system operations with error handling"
-    completed_at: null
+      - "Keep any gotchas that already exist in the AGENTS.md"
+    completed_at: 2026-01-30T11:30:00.000Z
 
   - id: task-007
     title: "Add output formatting and feedback system"
