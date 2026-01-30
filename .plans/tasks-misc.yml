@@ -248,3 +248,16 @@ tasks:
     acceptance_criteria:
       - "all tests pass, even after version bumps in package.json"
     completed_at: 2026-01-30T00:15:00Z
+
+  - id: task-016
+    title: "remove feedback section in config file"
+    description: |
+      now that we have the agents-md command, we don't need the feedback section in the config file anymore
+      as we can now run hone agents-md to generate the markdown file and it will have the feedback section
+      No need to be backwards compatible with older versions of hone. Remove it from the init command, and don't read it anywhere.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "init command doesn't create feedback section in the config file"
+      - "don't use feedback section in config file, if it exists"
+    completed_at: null
