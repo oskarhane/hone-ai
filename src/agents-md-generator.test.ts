@@ -322,4 +322,29 @@ describe('agents-md-generator', () => {
       expect(result.filesCreated.length).toBeGreaterThan(1)
     }
   })
+
+  test('should generate AGENTS.md without unhelpful agent preambles', async () => {
+    // Test that generated AGENTS.md files don't contain "Based on my..." text
+    // This validates the fix for task-011 where agent preambles were cluttering the output
+
+    // Create minimal test project
+    await fs.writeFile('package.json', JSON.stringify({ name: 'test-project' }), 'utf-8')
+
+    const result = await generateAgentsMd({ overwrite: true })
+    expect(result.success).toBe(true)
+
+    if (result.success && result.mainFilePath) {
+      const content = await fs.readFile(result.mainFilePath, 'utf-8')
+
+      // Verify that unhelpful agent preambles are NOT in the AGENTS.md summary
+      expect(content).not.toMatch(/Based on my analysis.*?here's.*?/i)
+      expect(content).not.toMatch(/Based on my architectural analysis.*?/i)
+      expect(content).not.toMatch(/Based on my exploration.*?/i)
+      expect(content).not.toMatch(/Here's.*?analysis.*?:/i)
+
+      // The content should have meaningful section headers
+      expect(content).toMatch(/## Project Overview/)
+      expect(content).toMatch(/## Build System/)
+    }
+  })
 })

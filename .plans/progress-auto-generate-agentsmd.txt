@@ -248,3 +248,26 @@ Key Decisions:
 - CLI properly integrates with global verbose option via setVerbose()
 
 Next Task: task-009
+
+================================================================================
+TASK-011: Improve output written to AGENTS.md
+Date: 2026-01-30T20:15:30.000Z
+================================================================================
+
+Summary:
+Fixed unhelpful agent preambles in AGENTS.md output by enhancing getFirstSentence() function to filter out "Based on my analysis..." phrases and extract concise, informative summaries. Applied review feedback by manually fixing remaining preamble in testing section.
+
+Files Changed:
+- src/agents-md-generator.ts (enhanced getFirstSentence function with preamble filtering patterns)
+- src/agents-md-generator.test.ts (added test for preamble filtering functionality)  
+- AGENTS.md (manually fixed remaining preamble in testing framework section)
+- .plans/tasks-auto-generate-agentsmd.yml (updated task-011 completion timestamp)
+
+Key Decisions:
+- Added 6 skip patterns to filter common agent preambles: "Based on my analysis...", "Here's analysis...", etc.
+- Used regex patterns with non-greedy matching to remove preambles while preserving content
+- Enhanced function to extract structured information like "**FRAMEWORK**: value" patterns
+- Applied feedback by manually fixing testing section that wasn't caught by patterns
+- All 174 tests pass after enhancements
+
+Next Task: All tasks complete

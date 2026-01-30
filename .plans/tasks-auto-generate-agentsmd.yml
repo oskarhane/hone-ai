@@ -176,9 +176,9 @@ tasks:
 
         these are not helpful for future agents.
         Provide a very concise (1-2 sentences) and informative summary of each section before inserting the link to the file that har more info.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "AGENTS.md output improved to be concise and informative"
       - "Based on my ... are gone from AGENTS.md"
-    completed_at: null
+    completed_at: 2026-01-30T20:15:30.000Z

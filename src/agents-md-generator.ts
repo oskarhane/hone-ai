@@ -548,25 +548,57 @@ See [@.agents/${section.detailFile}](.agents/${section.detailFile}) for detailed
 }
 
 /**
- * Extract first sentence or line from content for compact display
+ * Extract concise, informative summary from agent-generated content
+ * Skips unhelpful preambles like "Based on my analysis..."
  */
 function getFirstSentence(content: string): string {
   if (!content) return 'Information not available.'
 
+  // Skip common unhelpful agent preambles
+  const skipPatterns = [
+    /^Based on my analysis.*?here's.*?:\s*/i,
+    /^Based on my architectural analysis.*?:\s*/i,
+    /^Based on my exploration.*?:\s*/i,
+    /^Here's.*?analysis.*?:\s*/i,
+    /^I'll analyze.*?:\s*/i,
+    /^Looking at.*?here's.*?:\s*/i,
+    /^After analyzing.*?:\s*/i,
+  ]
+
+  let cleanContent = content.trim()
+
+  // Remove matching preamble patterns (including following whitespace/newlines)
+  for (const pattern of skipPatterns) {
+    cleanContent = cleanContent.replace(pattern, '').trim()
+  }
+
+  // Look for structured information markers (uppercase patterns)
+  const lines = cleanContent.split('\n').filter(line => line.trim())
+
+  // Try to find lines with structured info like "**FRAMEWORK**: value" or "LANGUAGES: value"
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (trimmed.match(/^\*\*[A-Z][A-Z\s]+\*\*:|^[A-Z][A-Z\s]+:/)) {
+      if (trimmed.length <= 120) {
+        return trimmed
+      }
+    }
+  }
+
   // Try to get the first meaningful sentence or line
-  const firstLine = content.split('\n')[0]?.trim() ?? ''
+  const firstLine = lines[0]?.trim() ?? ''
   if (firstLine.length > 0 && firstLine.length <= 120) {
     return firstLine
   }
 
   // If first line is too long, try to get first sentence
-  const sentences = content.split(/[.!?]+/)
+  const sentences = cleanContent.split(/[.!?]+/)
   if (sentences.length > 0 && sentences[0]?.trim().length && sentences[0].trim().length <= 120) {
     return sentences[0].trim() + '.'
   }
 
   // Fallback: truncate to reasonable length
-  return content.substring(0, 120).trim() + '...'
+  return cleanContent.substring(0, 120).trim() + '...'
 }
 
 /**
