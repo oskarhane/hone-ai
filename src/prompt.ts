@@ -1,15 +1,15 @@
-import { existsSync } from 'fs';
-import { join, relative } from 'path';
-import { getPlansDir, type HoneConfig } from './config';
+import { existsSync } from 'fs'
+import { join, relative } from 'path'
+import { getPlansDir, type HoneConfig } from './config'
 
-export type PromptPhase = 'implement' | 'review' | 'finalize';
+export type PromptPhase = 'implement' | 'review' | 'finalize'
 
 export interface PromptOptions {
-  phase: PromptPhase;
-  featureName: string;
-  config: HoneConfig;
-  taskId?: string;
-  reviewFeedback?: string;
+  phase: PromptPhase
+  featureName: string
+  config: HoneConfig
+  taskId?: string
+  reviewFeedback?: string
 }
 
 /**
@@ -17,49 +17,49 @@ export interface PromptOptions {
  * References files using @<path> syntax instead of embedding content.
  */
 export function constructPrompt(options: PromptOptions): string {
-  const { phase, featureName, config, taskId, reviewFeedback } = options;
-  
-  const parts: string[] = [];
-  
+  const { phase, featureName, config, taskId, reviewFeedback } = options
+
+  const parts: string[] = []
+
   // Build list of file references (relative to project root)
-  const fileRefs: string[] = [];
-  const cwd = process.cwd();
-  
+  const fileRefs: string[] = []
+  const cwd = process.cwd()
+
   // Add task file reference (required)
-  const taskPath = join(getPlansDir(), `tasks-${featureName}.yml`);
+  const taskPath = join(getPlansDir(), `tasks-${featureName}.yml`)
   if (existsSync(taskPath)) {
-    const relPath = relative(cwd, taskPath);
-    fileRefs.push(`@${relPath}`);
+    const relPath = relative(cwd, taskPath)
+    fileRefs.push(`@${relPath}`)
   }
-  
+
   // Add progress file reference if exists
-  const progressPath = join(getPlansDir(), `progress-${featureName}.txt`);
+  const progressPath = join(getPlansDir(), `progress-${featureName}.txt`)
   if (existsSync(progressPath)) {
-    const relPath = relative(cwd, progressPath);
-    fileRefs.push(`@${relPath}`);
+    const relPath = relative(cwd, progressPath)
+    fileRefs.push(`@${relPath}`)
   }
-  
+
   // Add AGENTS.md reference if exists
-  const agentsPath = join(cwd, 'AGENTS.md');
+  const agentsPath = join(cwd, 'AGENTS.md')
   if (existsSync(agentsPath)) {
-    fileRefs.push(`@AGENTS.md`);
+    fileRefs.push(`@AGENTS.md`)
   }
-  
+
   // Add phase-specific header with file references
-  parts.push(getPhaseHeader(phase));
-  parts.push('');
-  
+  parts.push(getPhaseHeader(phase))
+  parts.push('')
+
   if (fileRefs.length > 0) {
-    parts.push('# CONTEXT FILES');
-    parts.push('');
-    parts.push(fileRefs.join(' '));
-    parts.push('');
+    parts.push('# CONTEXT FILES')
+    parts.push('')
+    parts.push(fileRefs.join(' '))
+    parts.push('')
   }
-  
+
   // Add phase-specific instructions
-  parts.push(getPhaseInstructions(phase, config, taskId, reviewFeedback));
-  
-  return parts.join('\n');
+  parts.push(getPhaseInstructions(phase, config, taskId, reviewFeedback))
+
+  return parts.join('\n')
 }
 
 /**
@@ -68,11 +68,11 @@ export function constructPrompt(options: PromptOptions): string {
 function getPhaseHeader(phase: PromptPhase): string {
   switch (phase) {
     case 'implement':
-      return '# HONE: IMPLEMENT PHASE';
+      return '# HONE: IMPLEMENT PHASE'
     case 'review':
-      return '# HONE: REVIEW PHASE';
+      return '# HONE: REVIEW PHASE'
     case 'finalize':
-      return '# HONE: FINALIZE PHASE';
+      return '# HONE: FINALIZE PHASE'
   }
 }
 
@@ -85,16 +85,16 @@ function getPhaseInstructions(
   taskId?: string,
   reviewFeedback?: string
 ): string {
-  const feedbackInstructions = config.feedbackInstructions || 'test: bun test';
-  const lintCommand = config.lintCommand;
-  
+  const feedbackInstructions = config.feedbackInstructions || 'test: bun test'
+  const lintCommand = config.lintCommand
+
   switch (phase) {
     case 'implement':
-      return getImplementInstructions(feedbackInstructions, lintCommand);
+      return getImplementInstructions(feedbackInstructions, lintCommand)
     case 'review':
-      return getReviewInstructions(taskId);
+      return getReviewInstructions(taskId)
     case 'finalize':
-      return getFinalizeInstructions(feedbackInstructions, lintCommand, reviewFeedback);
+      return getFinalizeInstructions(feedbackInstructions, lintCommand, reviewFeedback)
   }
 }
 
@@ -137,12 +137,12 @@ Only run feedback loops AFTER you have fully completed implementing the task.
 
 Run feedback loops ONLY when the task implementation is complete:
 
-${feedbackInstructions}`;
+${feedbackInstructions}`
 
   if (lintCommand) {
-    instructions += `\n${lintCommand}`;
+    instructions += `\n${lintCommand}`
   }
-  
+
   instructions += `
 
 If CLI or script, run them and verify output.
@@ -161,9 +161,9 @@ At the end, output on a single line:
 TASK_COMPLETED: <task-id>
 
 This allows hone to track which task you completed.
-Only output this marker if the task is fully complete and all feedback loops pass.`;
+Only output this marker if the task is fully complete and all feedback loops pass.`
 
-  return instructions;
+  return instructions
 }
 
 /**
@@ -198,7 +198,7 @@ Provide specific, actionable feedback. If everything looks good, say "LGTM" (Loo
 Structure your feedback as:
 - **Issue**: Description of the problem
 - **Suggestion**: How to fix it
-- **Priority**: critical | high | medium | low`;
+- **Priority**: critical | high | medium | low`
 }
 
 /**
@@ -227,10 +227,10 @@ ${reviewFeedback || 'No review feedback provided (review was skipped or approved
 
 2. **Run Final Feedback Loops** (if needed)
    - If you applied feedback or made any changes:
-   ${feedbackInstructions}`;
+   ${feedbackInstructions}`
 
   if (lintCommand) {
-    instructions += `\n   ${lintCommand}`;
+    instructions += `\n   ${lintCommand}`
   }
 
   instructions += `
@@ -287,9 +287,7 @@ If you cannot commit (e.g., no changes to commit), that indicates a problem - in
 At the end, output on a single line:
 FINALIZED: <task-id>
 
-Only output this marker AFTER you have successfully created the git commit.`;
+Only output this marker AFTER you have successfully created the git commit.`
 
-  return instructions;
+  return instructions
 }
-
-

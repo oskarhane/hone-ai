@@ -1,33 +1,33 @@
-import { readdirSync, existsSync } from 'fs';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import yaml from 'js-yaml';
-import { getPlansDir } from './config';
+import { readdirSync, existsSync } from 'fs'
+import { readFile } from 'fs/promises'
+import { join } from 'path'
+import yaml from 'js-yaml'
+import { getPlansDir } from './config'
 
 export interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
-  dependencies?: string[];
-  acceptance_criteria?: string[];
-  completed_at?: string | null;
+  id: string
+  title: string
+  description: string
+  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled'
+  dependencies?: string[]
+  acceptance_criteria?: string[]
+  completed_at?: string | null
 }
 
 export interface TaskFile {
-  feature: string;
-  prd: string;
-  created_at: string;
-  updated_at: string;
-  tasks: Task[];
+  feature: string
+  prd: string
+  created_at: string
+  updated_at: string
+  tasks: Task[]
 }
 
 export interface PrdInfo {
-  filename: string;
-  taskFile?: string;
-  status: 'not started' | 'in progress' | 'completed';
-  completedCount?: number;
-  totalCount?: number;
+  filename: string
+  taskFile?: string
+  status: 'not started' | 'in progress' | 'completed'
+  completedCount?: number
+  totalCount?: number
 }
 
 /**
@@ -35,40 +35,40 @@ export interface PrdInfo {
  * e.g., "prd-hone.md" -> "hone"
  */
 export function extractFeatureName(prdFilename: string): string {
-  return prdFilename.replace(/^prd-/, '').replace(/\.md$/, '');
+  return prdFilename.replace(/^prd-/, '').replace(/\.md$/, '')
 }
 
 /**
  * Get all PRD files in .plans/ directory
  */
 export function listPrdFiles(): string[] {
-  const plansDir = getPlansDir();
+  const plansDir = getPlansDir()
   if (!existsSync(plansDir)) {
-    return [];
+    return []
   }
-  
-  const files = readdirSync(plansDir);
-  return files.filter(file => file.startsWith('prd-') && file.endsWith('.md'));
+
+  const files = readdirSync(plansDir)
+  return files.filter(file => file.startsWith('prd-') && file.endsWith('.md'))
 }
 
 /**
  * Load and parse a task file
  */
 export async function loadTaskFile(taskFilename: string): Promise<TaskFile | null> {
-  const plansDir = getPlansDir();
-  const taskPath = join(plansDir, taskFilename);
-  
+  const plansDir = getPlansDir()
+  const taskPath = join(plansDir, taskFilename)
+
   if (!existsSync(taskPath)) {
-    return null;
+    return null
   }
-  
+
   try {
-    const content = await readFile(taskPath, 'utf-8');
-    const parsed = yaml.load(content) as TaskFile;
-    return parsed;
+    const content = await readFile(taskPath, 'utf-8')
+    const parsed = yaml.load(content) as TaskFile
+    return parsed
   } catch (error) {
-    console.error(`Error parsing task file ${taskFilename}:`, error);
-    return null;
+    console.error(`Error parsing task file ${taskFilename}:`, error)
+    return null
   }
 }
 
@@ -77,23 +77,25 @@ export async function loadTaskFile(taskFilename: string): Promise<TaskFile | nul
  * Cancelled tasks are counted towards completion
  */
 export function calculateStatus(taskFile: TaskFile | null): {
-  status: 'not started' | 'in progress' | 'completed';
-  completedCount: number;
-  totalCount: number;
+  status: 'not started' | 'in progress' | 'completed'
+  completedCount: number
+  totalCount: number
 } {
   if (!taskFile || !taskFile.tasks || taskFile.tasks.length === 0) {
-    return { status: 'not started', completedCount: 0, totalCount: 0 };
+    return { status: 'not started', completedCount: 0, totalCount: 0 }
   }
-  
-  const totalCount = taskFile.tasks.length;
-  const completedCount = taskFile.tasks.filter(t => t.status === 'completed' || t.status === 'cancelled').length;
-  
+
+  const totalCount = taskFile.tasks.length
+  const completedCount = taskFile.tasks.filter(
+    t => t.status === 'completed' || t.status === 'cancelled'
+  ).length
+
   if (completedCount === 0) {
-    return { status: 'not started', completedCount, totalCount };
+    return { status: 'not started', completedCount, totalCount }
   } else if (completedCount === totalCount) {
-    return { status: 'completed', completedCount, totalCount };
+    return { status: 'completed', completedCount, totalCount }
   } else {
-    return { status: 'in progress', completedCount, totalCount };
+    return { status: 'in progress', completedCount, totalCount }
   }
 }
 
@@ -101,28 +103,28 @@ export function calculateStatus(taskFile: TaskFile | null): {
  * Get PRD info including status
  */
 export async function getPrdInfo(prdFilename: string): Promise<PrdInfo> {
-  const featureName = extractFeatureName(prdFilename);
-  const taskFilename = `tasks-${featureName}.yml`;
-  const plansDir = getPlansDir();
-  const taskPath = join(plansDir, taskFilename);
-  
-  const taskFile = existsSync(taskPath) ? await loadTaskFile(taskFilename) : null;
-  const { status, completedCount, totalCount } = calculateStatus(taskFile);
-  
+  const featureName = extractFeatureName(prdFilename)
+  const taskFilename = `tasks-${featureName}.yml`
+  const plansDir = getPlansDir()
+  const taskPath = join(plansDir, taskFilename)
+
+  const taskFile = existsSync(taskPath) ? await loadTaskFile(taskFilename) : null
+  const { status, completedCount, totalCount } = calculateStatus(taskFile)
+
   return {
     filename: prdFilename,
     taskFile: taskFile ? taskFilename : undefined,
     status,
     completedCount: taskFile ? completedCount : undefined,
-    totalCount: taskFile ? totalCount : undefined
-  };
+    totalCount: taskFile ? totalCount : undefined,
+  }
 }
 
 /**
  * List all PRDs with their info
  */
 export async function listPrds(): Promise<PrdInfo[]> {
-  const prdFiles = listPrdFiles();
-  const prds = await Promise.all(prdFiles.map(file => getPrdInfo(file)));
-  return prds;
+  const prdFiles = listPrdFiles()
+  const prds = await Promise.all(prdFiles.map(file => getPrdInfo(file)))
+  return prds
 }

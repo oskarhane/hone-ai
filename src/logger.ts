@@ -3,14 +3,14 @@
  * Provides verbose/quiet logging controls
  */
 
-let isVerbose = false;
+let isVerbose = false
 
 export function setVerbose(verbose: boolean): void {
-  isVerbose = verbose;
+  isVerbose = verbose
 }
 
 export function getVerbose(): boolean {
-  return isVerbose;
+  return isVerbose
 }
 
 /**
@@ -18,7 +18,7 @@ export function getVerbose(): boolean {
  */
 export function logVerbose(message: string): void {
   if (isVerbose) {
-    console.log(message);
+    console.log(message)
   }
 }
 
@@ -27,7 +27,7 @@ export function logVerbose(message: string): void {
  */
 export function logVerboseError(message: string): void {
   if (isVerbose) {
-    console.error(message);
+    console.error(message)
   }
 }
 
@@ -35,12 +35,12 @@ export function logVerboseError(message: string): void {
  * Always log - for critical messages regardless of verbose mode
  */
 export function log(message: string): void {
-  console.log(message);
+  console.log(message)
 }
 
 /**
  * Always log error - for critical errors regardless of verbose mode
  */
 export function logError(message: string): void {
-  console.error(message);
+  console.error(message)
 }

@@ -34,6 +34,7 @@
   },
   "scripts": {
     "build": "bun run build:linux && bun run build:macos",
+    "format": "prettier --write \"**/*.ts\"",
     "build:linux": "bun build --compile --minify --sourcemap --target=bun-linux-x64 ./src/index.ts --outfile hone-linux",
     "build:macos": "bun build --compile --minify --sourcemap --target=bun-darwin-arm64 ./src/index.ts --outfile hone-macos",
     "format:yaml": "prettier --write \"**/*.yml\" \"**/*.yaml\"",

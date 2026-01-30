@@ -3,26 +3,32 @@
  * Mirrors Anthropic SDK API but routes through agent subprocess spawning
  */
 
-import { spawnAgent } from './agent';
-import { retryWithBackoff, parseAgentError, ErrorMessages, exitWithError, isNetworkError } from './errors';
-import type { AgentType } from './config';
-import { logVerbose, logVerboseError } from './logger';
+import { spawnAgent } from './agent'
+import {
+  retryWithBackoff,
+  parseAgentError,
+  ErrorMessages,
+  exitWithError,
+  isNetworkError,
+} from './errors'
+import type { AgentType } from './config'
+import { logVerbose, logVerboseError } from './logger'
 
 export interface AgentClientConfig {
-  agent: AgentType;
-  model?: string;
-  workingDir?: string;
+  agent: AgentType
+  model?: string
+  workingDir?: string
 }
 
 export interface AgentMessageRequest {
-  model?: string;
-  max_tokens?: number;
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
-  system?: string;
+  model?: string
+  max_tokens?: number
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>
+  system?: string
 }
 
 export interface AgentMessageResponse {
-  content: Array<{ type: 'text'; text: string }>;
+  content: Array<{ type: 'text'; text: string }>
 }
 
 /**
@@ -30,12 +36,12 @@ export interface AgentMessageResponse {
  * Routes message creation through agent subprocess calls
  */
 export class AgentClient {
-  private config: AgentClientConfig;
-  
+  private config: AgentClientConfig
+
   constructor(config: AgentClientConfig) {
-    this.config = config;
+    this.config = config
   }
-  
+
   /**
    * Messages API with create method
    * Mirrors Anthropic client.messages.create() interface
@@ -44,19 +50,23 @@ export class AgentClient {
     return {
       create: async (request: AgentMessageRequest): Promise<AgentMessageResponse> => {
         // Use model from request, fall back to client config
-        const model = request.model || this.config.model;
-        
+        const model = request.model || this.config.model
+
         // Log agent request initiation
-        logVerbose(`[AgentClient] Initiating request to ${this.config.agent}${model ? ` with model ${model}` : ''}`);
-        
+        logVerbose(
+          `[AgentClient] Initiating request to ${this.config.agent}${model ? ` with model ${model}` : ''}`
+        )
+
         // Construct prompt from request
-        const prompt = constructPromptFromRequest(request);
-        
+        const prompt = constructPromptFromRequest(request)
+
         // Log request details
-        const messageCount = request.messages.length;
-        const hasSystem = !!request.system;
-        logVerbose(`[AgentClient] Request: ${messageCount} message(s)${hasSystem ? ' + system prompt' : ''}`);
-        
+        const messageCount = request.messages.length
+        const hasSystem = !!request.system
+        logVerbose(
+          `[AgentClient] Request: ${messageCount} message(s)${hasSystem ? ' + system prompt' : ''}`
+        )
+
         // Execute with retry logic for network errors only
         try {
           const result = await retryWithBackoff(async () => {
@@ -66,63 +76,83 @@ export class AgentClient {
               workingDir: this.config.workingDir || process.cwd(),
               model,
               silent: true,
-              timeout: 120000 // 2 minute timeout for PRD questions
-            });
-            
+              timeout: 120000, // 2 minute timeout for PRD questions
+            })
+
             // Only retry network errors, throw immediately for other failures
             if (spawnResult.exitCode !== 0) {
               // Parse error type from stderr
-              const errorInfo = parseAgentError(spawnResult.stderr, spawnResult.exitCode);
-              logVerboseError(`[AgentClient] Agent exited with code ${spawnResult.exitCode}, error type: ${errorInfo.type}`);
-              
+              const errorInfo = parseAgentError(spawnResult.stderr, spawnResult.exitCode)
+              logVerboseError(
+                `[AgentClient] Agent exited with code ${spawnResult.exitCode}, error type: ${errorInfo.type}`
+              )
+
               // Handle specific error types with user-friendly messages
               if (errorInfo.type === 'model_unavailable') {
-                const { message, details } = ErrorMessages.MODEL_UNAVAILABLE(model || 'unknown', this.config.agent);
-                exitWithError(message, details);
+                const { message, details } = ErrorMessages.MODEL_UNAVAILABLE(
+                  model || 'unknown',
+                  this.config.agent
+                )
+                exitWithError(message, details)
               } else if (errorInfo.type === 'rate_limit') {
-                const { message, details } = ErrorMessages.RATE_LIMIT_ERROR(this.config.agent, errorInfo.retryAfter);
-                exitWithError(message, details);
+                const { message, details } = ErrorMessages.RATE_LIMIT_ERROR(
+                  this.config.agent,
+                  errorInfo.retryAfter
+                )
+                exitWithError(message, details)
               } else if (errorInfo.type === 'spawn_failed') {
-                const { message, details } = ErrorMessages.AGENT_SPAWN_FAILED(this.config.agent, spawnResult.stderr);
-                exitWithError(message, details);
+                const { message, details } = ErrorMessages.AGENT_SPAWN_FAILED(
+                  this.config.agent,
+                  spawnResult.stderr
+                )
+                exitWithError(message, details)
               } else if (errorInfo.type === 'timeout') {
-                const timeoutMs = 120000; // Default timeout
-                const { message, details } = ErrorMessages.AGENT_TIMEOUT(this.config.agent, timeoutMs);
-                exitWithError(message, details);
+                const timeoutMs = 120000 // Default timeout
+                const { message, details } = ErrorMessages.AGENT_TIMEOUT(
+                  this.config.agent,
+                  timeoutMs
+                )
+                exitWithError(message, details)
               }
-              
+
               // For network errors, allow retry
               if (errorInfo.retryable) {
-                logVerbose(`[AgentClient] Network error detected, will retry`);
-                throw new Error(`Agent exited with code ${spawnResult.exitCode}: ${spawnResult.stderr}`);
+                logVerbose(`[AgentClient] Network error detected, will retry`)
+                throw new Error(
+                  `Agent exited with code ${spawnResult.exitCode}: ${spawnResult.stderr}`
+                )
               }
-              
+
               // For other unknown errors, provide generic agent error message
-              const { message, details } = ErrorMessages.AGENT_ERROR(this.config.agent, spawnResult.exitCode, spawnResult.stderr);
-              exitWithError(message, details);
+              const { message, details } = ErrorMessages.AGENT_ERROR(
+                this.config.agent,
+                spawnResult.exitCode,
+                spawnResult.stderr
+              )
+              exitWithError(message, details)
             }
-            
-            logVerbose(`[AgentClient] Request completed successfully`);
-            return spawnResult;
-          });
-          
+
+            logVerbose(`[AgentClient] Request completed successfully`)
+            return spawnResult
+          })
+
           // Log response details
-          const responseLength = result.stdout.trim().length;
-          logVerbose(`[AgentClient] Response: ${responseLength} characters`);
-          
+          const responseLength = result.stdout.trim().length
+          logVerbose(`[AgentClient] Response: ${responseLength} characters`)
+
           // Parse response into Anthropic-compatible format
-          return parseAgentResponse(result.stdout);
+          return parseAgentResponse(result.stdout)
         } catch (error) {
           // Network errors that exhausted retries
           if (error instanceof Error && error.message.includes('Agent exited with code')) {
-            logVerboseError(`[AgentClient] All retry attempts exhausted`);
-            const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error);
-            exitWithError(message, details);
+            logVerboseError(`[AgentClient] All retry attempts exhausted`)
+            const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error)
+            exitWithError(message, details)
           }
-          throw error;
+          throw error
         }
-      }
-    };
+      },
+    }
   }
 }
 
@@ -131,26 +161,26 @@ export class AgentClient {
  * Converts Anthropic message format to agent prompt string
  */
 function constructPromptFromRequest(request: AgentMessageRequest): string {
-  const parts: string[] = [];
-  
+  const parts: string[] = []
+
   // Add system prompt if present
   if (request.system) {
-    parts.push('# System');
-    parts.push(request.system);
-    parts.push('');
+    parts.push('# System')
+    parts.push(request.system)
+    parts.push('')
   }
-  
+
   // Add conversation messages
   for (const message of request.messages) {
     if (message.role === 'user') {
-      parts.push(message.content);
+      parts.push(message.content)
     } else {
       // Handle assistant messages (for multi-turn conversations)
-      parts.push(`Previous response: ${message.content}`);
+      parts.push(`Previous response: ${message.content}`)
     }
   }
-  
-  return parts.join('\n');
+
+  return parts.join('\n')
 }
 
 /**
@@ -158,9 +188,11 @@ function constructPromptFromRequest(request: AgentMessageRequest): string {
  */
 function parseAgentResponse(stdout: string): AgentMessageResponse {
   return {
-    content: [{
-      type: 'text',
-      text: stdout.trim()
-    }]
-  };
+    content: [
+      {
+        type: 'text',
+        text: stdout.trim(),
+      },
+    ],
+  }
 }
