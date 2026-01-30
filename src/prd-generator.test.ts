@@ -41,11 +41,17 @@ describe('PRD system prompts', () => {
 
     // Verify clarifying questions prompt includes file/URL instructions
     expect(sourceFile).toContain('FILE AND URL PROCESSING:')
-    expect(sourceFile).toContain('automatically read and incorporate their content using the Read tool')
-    expect(sourceFile).toContain('automatically fetch and incorporate their content using the WebFetch tool')
+    expect(sourceFile).toContain(
+      'automatically read and incorporate their content using the Read tool'
+    )
+    expect(sourceFile).toContain(
+      'automatically fetch and incorporate their content using the WebFetch tool'
+    )
 
     // Verify both prompts contain the instructions
-    const fileUrlInstructions = sourceFile.match(/FILE AND URL PROCESSING:(.*?)(?=\n\n|\nRules:|\nGenerate)/gs)
+    const fileUrlInstructions = sourceFile.match(
+      /FILE AND URL PROCESSING:(.*?)(?=\n\n|\nRules:|\nGenerate)/gs
+    )
     expect(fileUrlInstructions).toBeTruthy()
     expect(fileUrlInstructions?.length).toBe(2) // One in clarifying questions, one in PRD generation
   })
@@ -56,8 +62,14 @@ describe('PRD system prompts', () => {
     // Verify specific reference failure handling instructions
     expect(sourceFile).toContain('REFERENCE ACCESS FAILURES: When file reads or URL fetches fail:')
     expect(sourceFile).toContain('Continue with question generation using available context')
-    expect(sourceFile).toContain('Ask clarifying questions about the inaccessible reference\'s intended purpose or relevance')
-    expect(sourceFile).toContain('I couldn\'t access [file/URL]. What was its relevance to this feature?')
-    expect(sourceFile).toContain('Prioritize these clarification questions early in the Q&A session when references are critical')
+    expect(sourceFile).toContain(
+      "Ask clarifying questions about the inaccessible reference's intended purpose or relevance"
+    )
+    expect(sourceFile).toContain(
+      "I couldn't access [file/URL]. What was its relevance to this feature?"
+    )
+    expect(sourceFile).toContain(
+      'Prioritize these clarification questions early in the Q&A session when references are critical'
+    )
   })
 })
