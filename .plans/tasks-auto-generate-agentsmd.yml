@@ -141,7 +141,7 @@ tasks:
     title: "Add comprehensive test coverage"
     description: |
       Create unit and integration tests for agents-md functionality. Test agent prompt execution, template generation, file handling, and CLI integration following existing test patterns in codebase.
-    status: pending
+    status: cancelled
     dependencies:
       - task-008
     acceptance_criteria:
@@ -165,4 +165,20 @@ tasks:
       - "Build system and testing framework discovery validated"
       - "100-line limit and .agents/ subdirectory logic confirmed"
       - "Cross-platform compatibility verified"
+    completed_at: null
+
+  - id: task-011
+    title: "improve output written to AGENTS.md"
+    description: |
+      The AGENTS.ms file now has a bunch of:
+        Based on my exploration of the project structure here's...
+        Based on my architectural analysis, here's the comprehensive overview...
+
+        these are not helpful for future agents.
+        Provide a very concise (1-2 sentences) and informative summary of each section before inserting the link to the file that har more info.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "AGENTS.md output improved to be concise and informative"
+      - "Based on my ... are gone from AGENTS.md"
     completed_at: null
