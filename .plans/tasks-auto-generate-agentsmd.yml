@@ -52,12 +52,12 @@ tasks:
     title: "Fix so running tests don't delete AGENTS.md"
     description: |
       Running the tests in this project should not delete AGENTS.md file, which it currently does. This issue needs to be addressed to ensure the integrity of the documentation.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
       - "AGENTS.md file is not deleted during tests"
-    completed_at: null
+    completed_at: 2026-01-30T17:30:45.000Z
 
   - id: task-004
     title: "Implement agent-based project scanning"

@@ -1,10 +1,13 @@
 import { describe, expect, test, beforeEach, afterEach, mock } from 'bun:test'
 import { generateAgentsMd } from './agents-md-generator'
 import type { AgentsMdGeneratorOptions, GenerationResult } from './agents-md-generator'
-import { existsSync } from 'fs'
-import { unlink } from 'fs/promises'
+import { existsSync, mkdirSync, rmSync } from 'fs'
 import { join } from 'path'
 import * as fs from 'fs/promises'
+
+// Test workspace setup
+const TEST_WORKSPACE = join(process.cwd(), '.test-agents-md-workspace')
+const originalCwd = process.cwd()
 
 // Mock console and logger functions
 const originalLog = console.log
@@ -17,6 +20,15 @@ beforeEach(() => {
   logCalls = []
   errorCalls = []
 
+  // Create isolated test workspace
+  if (existsSync(TEST_WORKSPACE)) {
+    rmSync(TEST_WORKSPACE, { recursive: true, force: true })
+  }
+  mkdirSync(TEST_WORKSPACE, { recursive: true })
+
+  // Change to test workspace
+  process.chdir(TEST_WORKSPACE)
+
   // Mock console functions
   console.log = mock((message: string) => {
     logCalls.push(message)
@@ -27,20 +39,16 @@ beforeEach(() => {
   })
 })
 
-afterEach(async () => {
-  // Clean up any test files
-  const testAgentsPath = join(process.cwd(), 'AGENTS.md')
-  if (existsSync(testAgentsPath)) {
-    try {
-      await unlink(testAgentsPath)
-    } catch {
-      // Ignore cleanup errors
-    }
-  }
-
+afterEach(() => {
   // Restore console functions
   console.log = originalLog
   console.error = originalError
+
+  // Return to original directory and clean up
+  process.chdir(originalCwd)
+  if (existsSync(TEST_WORKSPACE)) {
+    rmSync(TEST_WORKSPACE, { recursive: true, force: true })
+  }
 })
 
 describe('agents-md-generator', () => {

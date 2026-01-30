@@ -88,3 +88,23 @@ Key Decisions:
 - All review feedback addressed successfully
 
 Next Task: task-004
+
+================================================================================
+TASK-003-1: Fix so running tests don't delete AGENTS.md
+Date: 2026-01-30T17:30:45.000Z
+================================================================================
+
+Summary:
+Fixed test isolation issue where running tests was deleting the project's AGENTS.md file. Implemented workspace isolation pattern to prevent tests from affecting project files.
+
+Files Changed:
+- src/agents-md-generator.test.ts (modified to use isolated test workspace)
+
+Key Decisions:
+- Used .test-agents-md-workspace/ directory for test isolation
+- Implemented proper test setup/teardown with process.chdir() for workspace isolation  
+- Stored and restored original working directory in beforeEach/afterEach hooks
+- Pattern prevents tests from creating/deleting files in actual project directory
+- All 168 tests pass and AGENTS.md file is preserved after test runs
+
+Next Task: task-004
