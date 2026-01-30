@@ -66,6 +66,9 @@ export async function generateTasksFromPRD(prdFilePath: string): Promise<string>
 
   console.log(`✓ Generated ${tasks.length} tasks`)
   console.log(`✓ Saved to .plans/${tasksFilename}\n`)
+  console.log(
+    `Now run "hone run .plans/${tasksFilename} -i ${tasks.length}" to execute the tasks\n`
+  )
 
   return tasksFilename
 }
@@ -99,7 +102,7 @@ Generate an ordered list of tasks following these guidelines:
    - Standard features
    - Polish and refinements
 
-3. **Dependencies**: 
+3. **Dependencies**:
    - Identify which tasks must complete before others
    - Use task IDs in dependencies array
    - Keep dependency chains reasonable (don't over-constrain)
@@ -122,7 +125,7 @@ Example output:
     "completed_at": null
   },
   {
-    "id": "task-002", 
+    "id": "task-002",
     "title": "Implement core API client",
     "description": "Create API client with authentication, error handling, and retry logic. Should support all required endpoints.",
     "status": "pending",
