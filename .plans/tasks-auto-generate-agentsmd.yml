@@ -196,9 +196,9 @@ tasks:
 
         In task-011, we tried to make some improvements to the AGENTS.md file, but the above unhelpful statements are still there.
         They should be replaced with a short summary of each section before inserting the link to the file that has more info.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "AGENTS.md output improved to be concise and informative"
       - "When linking to files, provide a very concise (1-2 sentences) and informative summary of each section before inserting the link to the file that has more info."
-    completed_at: null
+    completed_at: 2026-01-30T13:02:12.000Z

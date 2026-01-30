@@ -270,4 +270,25 @@ Key Decisions:
 - Applied feedback by manually fixing testing section that wasn't caught by patterns
 - All 174 tests pass after enhancements
 
+Next Task: task-012
+
+================================================================================
+TASK-012: Improve output written to AGENTS.md, even more
+Date: 2026-01-30T13:03:40Z
+================================================================================
+
+Summary:
+Enhanced preamble filtering in getFirstSentence() with extended skip patterns and secondary filtering. Updated DISCOVERY_PROMPTS to include explicit no-preamble instructions at source.
+
+Files Changed:
+- src/agents-md-generator.ts (extended skip patterns to 8, added secondary filtering loop, increased char limit to 150, added CRITICAL prompt instructions)
+- src/agents-md-generator.test.ts (added comprehensive preamble-free output verification tests)
+
+Key Decisions:
+- Extended skip patterns from 7 to 8 comprehensive regex patterns for preamble detection
+- Added secondary filtering loop to skip lines starting with common preambles
+- Increased character limits from 120 to 150 for better summary extraction
+- Added "CRITICAL: Your response MUST start directly with the structured format" to prompts
+- Reverted unrelated config file changes that caused test failures
+
 Next Task: All tasks complete

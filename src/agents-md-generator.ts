@@ -221,7 +221,8 @@ IMPORTANT LANGUAGE DETECTION RULES:
 - For TypeScript projects, note if it's primarily TypeScript or mixed JS/TS
 - For frontend projects, distinguish between client-side and server-side languages
 
-Respond with a concise summary in this format:
+CRITICAL: Your response MUST start directly with the structured format below. NO preambles like "Based on my analysis..." or "Here's what I found..." - start IMMEDIATELY with "PRIMARY LANGUAGES:".
+
 PRIMARY LANGUAGES: [language 1, language 2, ...]
 USAGE CONTEXT: [brief explanation of how each language is used in the project]`,
 
@@ -241,7 +242,8 @@ BUILD SYSTEM DETECTION RULES:
 - Make: Look for Makefile
 - Custom build scripts in various languages
 
-Respond with:
+CRITICAL: Your response MUST start directly with the structured format below. NO preambles like "Based on my analysis..." or "Here's what I found..." - start IMMEDIATELY with "BUILD SYSTEMS:".
+
 BUILD SYSTEMS: [system 1, system 2, ...]
 BUILD COMMANDS: [key build commands developers should know]
 BUNDLING: [bundling tools if applicable]`,
@@ -265,7 +267,8 @@ Look for:
 - Mock/stub patterns
 - E2E testing setup
 
-Respond with:
+CRITICAL: Your response MUST start directly with the structured format below. NO preambles like "Based on my analysis..." or "Here's what I found..." - start IMMEDIATELY with "TESTING FRAMEWORKS:".
+
 TESTING FRAMEWORKS: [framework 1, framework 2, ...]
 TEST COMMANDS: [how to run tests]
 TEST ORGANIZATION: [how tests are structured and organized]
@@ -294,7 +297,8 @@ Examine:
 - Middleware/interceptor patterns
 - Shared utilities and common code
 
-Respond with:
+CRITICAL: Your response MUST start directly with the structured format below. NO preambles like "Based on my analysis..." or "Here's what I found..." - start IMMEDIATELY with "ARCHITECTURE PATTERN:".
+
 ARCHITECTURE PATTERN: [primary architectural pattern]
 DIRECTORY STRUCTURE: [key organizational principles]
 DESIGN PATTERNS: [notable design patterns in use]
@@ -324,7 +328,8 @@ Look for:
 - Database migration files
 - Package.json deploy scripts
 
-Respond with:
+CRITICAL: Your response MUST start directly with the structured format below. NO preambles like "Based on my analysis..." or "Here's what I found..." - start IMMEDIATELY with "DEPLOYMENT STRATEGY:".
+
 DEPLOYMENT STRATEGY: [primary deployment approach]
 CONTAINERIZATION: [Docker/container usage]
 CI/CD: [continuous integration/deployment setup]
@@ -554,15 +559,16 @@ See [@.agents/${section.detailFile}](.agents/${section.detailFile}) for detailed
 function getFirstSentence(content: string): string {
   if (!content) return 'Information not available.'
 
-  // Skip common unhelpful agent preambles
+  // Skip common unhelpful agent preambles - comprehensive list of patterns
   const skipPatterns = [
-    /^Based on my analysis.*?here's.*?:\s*/i,
-    /^Based on my architectural analysis.*?:\s*/i,
-    /^Based on my exploration.*?:\s*/i,
-    /^Here's.*?analysis.*?:\s*/i,
-    /^I'll analyze.*?:\s*/i,
-    /^Looking at.*?here's.*?:\s*/i,
-    /^After analyzing.*?:\s*/i,
+    /^Based on (?:my |the )?(?:comprehensive |detailed |thorough )?(?:analysis|exploration|examination|review|investigation).*?[:,]\s*/gi,
+    /^(?:Here's|Here is).*?(?:analysis|overview|summary|breakdown).*?[:,]\s*/gi,
+    /^I(?:'ve|'ll| have| will).*?(?:analyze|explore|examine|review).*?[:,]\s*/gi,
+    /^(?:Looking|Examining|Reviewing|Analyzing) (?:at )?(?:the |this )?(?:project|codebase|code).*?[:,]\s*/gi,
+    /^After (?:analyzing|examining|reviewing|exploring).*?[:,]\s*/gi,
+    /^Let me (?:analyze|explore|examine|review).*?[:,]\s*/gi,
+    /^Upon (?:analysis|examination|review|exploration).*?[:,]\s*/gi,
+    /^(?:The |This )?(?:analysis|exploration|examination) (?:shows|reveals|indicates).*?[:,]\s*/gi,
   ]
 
   let cleanContent = content.trim()
@@ -575,30 +581,60 @@ function getFirstSentence(content: string): string {
   // Look for structured information markers (uppercase patterns)
   const lines = cleanContent.split('\n').filter(line => line.trim())
 
-  // Try to find lines with structured info like "**FRAMEWORK**: value" or "LANGUAGES: value"
+  // Try to find lines with structured info like "**KEY**: value" or "KEY: value"
   for (const line of lines) {
     const trimmed = line.trim()
-    if (trimmed.match(/^\*\*[A-Z][A-Z\s]+\*\*:|^[A-Z][A-Z\s]+:/)) {
-      if (trimmed.length <= 120) {
+    // Match **UPPERCASE**: value or UPPERCASE: value patterns
+    if (trimmed.match(/^\*\*[A-Z][A-Z\s_-]+\*\*\s*:|^[A-Z][A-Z\s_-]+:/)) {
+      if (trimmed.length <= 150) {
         return trimmed
+      }
+      // If too long, extract just the key and first part of value
+      const colonIndex = trimmed.indexOf(':')
+      if (colonIndex > 0) {
+        const key = trimmed.substring(0, colonIndex + 1)
+        const value = trimmed.substring(colonIndex + 1).trim()
+        const shortValue = value.split(/[,;]/)[0]?.trim() || value.substring(0, 80)
+        return `${key} ${shortValue}`
       }
     }
   }
 
-  // Try to get the first meaningful sentence or line
+  // Try to get the first meaningful line that isn't a preamble
+  for (const line of lines) {
+    const trimmed = line.trim()
+    // Skip lines that look like preambles
+    if (
+      trimmed.toLowerCase().startsWith('based on') ||
+      trimmed.toLowerCase().startsWith("here's") ||
+      trimmed.toLowerCase().startsWith('here is') ||
+      trimmed.toLowerCase().startsWith('i ') ||
+      trimmed.toLowerCase().startsWith("i'") ||
+      trimmed.toLowerCase().startsWith('the analysis') ||
+      trimmed.toLowerCase().startsWith('looking at') ||
+      trimmed.toLowerCase().startsWith('after ')
+    ) {
+      continue
+    }
+    if (trimmed.length > 0 && trimmed.length <= 150) {
+      return trimmed
+    }
+  }
+
+  // If first line is acceptable, use it
   const firstLine = lines[0]?.trim() ?? ''
-  if (firstLine.length > 0 && firstLine.length <= 120) {
+  if (firstLine.length > 0 && firstLine.length <= 150) {
     return firstLine
   }
 
   // If first line is too long, try to get first sentence
   const sentences = cleanContent.split(/[.!?]+/)
-  if (sentences.length > 0 && sentences[0]?.trim().length && sentences[0].trim().length <= 120) {
+  if (sentences.length > 0 && sentences[0]?.trim().length && sentences[0].trim().length <= 150) {
     return sentences[0].trim() + '.'
   }
 
   // Fallback: truncate to reasonable length
-  return cleanContent.substring(0, 120).trim() + '...'
+  return cleanContent.substring(0, 150).trim() + '...'
 }
 
 /**

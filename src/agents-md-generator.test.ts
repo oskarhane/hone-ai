@@ -325,7 +325,7 @@ describe('agents-md-generator', () => {
 
   test('should generate AGENTS.md without unhelpful agent preambles', async () => {
     // Test that generated AGENTS.md files don't contain "Based on my..." text
-    // This validates the fix for task-011 where agent preambles were cluttering the output
+    // This validates the fix for task-011/012 where agent preambles were cluttering the output
 
     // Create minimal test project
     await fs.writeFile('package.json', JSON.stringify({ name: 'test-project' }), 'utf-8')
@@ -337,10 +337,20 @@ describe('agents-md-generator', () => {
       const content = await fs.readFile(result.mainFilePath, 'utf-8')
 
       // Verify that unhelpful agent preambles are NOT in the AGENTS.md summary
+      // Comprehensive check for all common preamble patterns
       expect(content).not.toMatch(/Based on my analysis.*?here's.*?/i)
       expect(content).not.toMatch(/Based on my architectural analysis.*?/i)
       expect(content).not.toMatch(/Based on my exploration.*?/i)
+      expect(content).not.toMatch(/Based on my comprehensive analysis.*?/i)
+      expect(content).not.toMatch(/Based on the.*?analysis.*?/i)
       expect(content).not.toMatch(/Here's.*?analysis.*?:/i)
+      expect(content).not.toMatch(/Here's what I found.*?:/i)
+      expect(content).not.toMatch(/I've analyzed.*?:/i)
+      expect(content).not.toMatch(/I'll analyze.*?:/i)
+      expect(content).not.toMatch(/Looking at the project.*?:/i)
+      expect(content).not.toMatch(/After analyzing.*?:/i)
+      expect(content).not.toMatch(/Upon examination.*?:/i)
+      expect(content).not.toMatch(/Let me analyze.*?:/i)
 
       // The content should have meaningful section headers
       expect(content).toMatch(/## Project Overview/)
