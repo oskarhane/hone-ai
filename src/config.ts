@@ -21,8 +21,10 @@ export interface HoneConfig {
   lintCommand?: string
 }
 
+export const DEFAULT_AGENT: AgentType = 'claude'
+
 const DEFAULT_CONFIG: HoneConfig = {
-  defaultAgent: 'claude',
+  defaultAgent: DEFAULT_AGENT,
   models: {
     opencode: 'claude-sonnet-4-20250514',
     claude: 'claude-sonnet-4-20250514',
@@ -97,6 +99,56 @@ export async function resolveAgent(flagAgent?: string): Promise<AgentType> {
 
   const config = await loadConfig()
   return config.defaultAgent
+}
+
+export async function resolveAgentWithoutConfigCreation(flagAgent?: string): Promise<AgentType> {
+  // Priority: flag > config (if exists) > default
+  if (flagAgent) {
+    if (!isValidAgent(flagAgent)) {
+      exitWithError(
+        'Error: Invalid agent',
+        `Agent "${flagAgent}" is not valid. Must be "opencode" or "claude".`
+      )
+    }
+    return flagAgent
+  }
+
+  const configPath = getConfigPath()
+  if (existsSync(configPath)) {
+    try {
+      const content = await readFile(configPath, 'utf-8')
+      const config = yaml.load(content) as Partial<HoneConfig>
+      return config.defaultAgent || DEFAULT_AGENT
+    } catch (error) {
+      console.error('Error reading config, using default agent:', error)
+      return DEFAULT_AGENT
+    }
+  }
+
+  return DEFAULT_AGENT
+}
+
+export async function loadConfigWithoutCreation(): Promise<HoneConfig> {
+  const configPath = getConfigPath()
+
+  if (!existsSync(configPath)) {
+    // Return default config without creating the file
+    return DEFAULT_CONFIG
+  }
+
+  try {
+    const content = await readFile(configPath, 'utf-8')
+    const config = yaml.load(content) as Partial<HoneConfig>
+    // Deep merge models to preserve defaults
+    return {
+      ...DEFAULT_CONFIG,
+      ...config,
+      models: { ...DEFAULT_CONFIG.models, ...config.models },
+    }
+  } catch (error) {
+    console.error('Error reading config, using defaults:', error)
+    return DEFAULT_CONFIG
+  }
 }
 
 export interface InitResult {

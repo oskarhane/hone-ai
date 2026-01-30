@@ -358,4 +358,26 @@ Key Decisions:
 - All 174 tests pass with the timeout changes
 - No further changes required during finalize phase
 
+Next Task: task-016
+
+================================================================================
+TASK-016: don't create config file when running agents-md
+Date: 2026-01-30T22:59:00.000Z
+================================================================================
+
+Summary:
+Prevented agents-md command from creating config files by implementing non-config-creating variants of agent and config resolution functions. Centralized default agent as 'claude' in DEFAULT_AGENT constant.
+
+Files Changed:
+- src/config.ts (added resolveAgentWithoutConfigCreation and loadConfigWithoutCreation functions, added DEFAULT_AGENT constant)
+- src/index.ts (updated agents-md command to use non-config-creating functions and skip auto-init)
+
+Key Decisions:
+- Created resolveAgentWithoutConfigCreation() that uses loadConfigWithoutCreation() to avoid creating config files
+- Added loadConfigWithoutCreation() that reads existing config or returns null without file creation
+- Centralized default agent as DEFAULT_AGENT = 'claude' constant for reusability
+- Updated CLI to skip auto-init logic for agents-md command (lines 22-28)
+- agents-md now falls back to DEFAULT_AGENT when no config exists without creating files
+- Proper error handling with console.error and graceful fallback to default agent
+
 Next Task: All tasks complete

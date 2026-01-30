@@ -256,3 +256,15 @@ tasks:
     acceptance_criteria:
       - "increase timeout to 300 seconds"
     completed_at: 2026-01-30T22:45:00.000Z
+
+  - id: task-016
+    title: "don't create config file when running agents-md"
+    description: |
+      it seems like a config file is created when running agents-md. We should not create it via this command.
+      if there's no config file, we can rely on the --agent flag to specify the agent to use, and default to claude (the whole system should default to claude)
+    status: completed
+    dependencies:
+    acceptance_criteria:
+      - "no .plans/ dir or .plans/hone.config.yml file is created when running agents-md command"
+      - "default to claude agent when no config file is present, but centralize this default in a central variable/constant and use it in other places as well"
+    completed_at: 2026-01-30T22:59:00.000Z

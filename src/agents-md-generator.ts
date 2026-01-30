@@ -3,7 +3,13 @@
  * Core module for generating project documentation for AI agents
  */
 
-import { loadConfig, resolveModelForPhase, type HoneConfig, type AgentType } from './config'
+import {
+  loadConfig,
+  loadConfigWithoutCreation,
+  resolveModelForPhase,
+  type HoneConfig,
+  type AgentType,
+} from './config'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
@@ -729,7 +735,7 @@ export async function generateAgentsMd(
     process.stdout.write('✓\n')
 
     process.stdout.write('Loading configuration... ')
-    const config = await loadConfig()
+    const config = await loadConfigWithoutCreation()
     process.stdout.write('✓\n')
 
     logVerbose(

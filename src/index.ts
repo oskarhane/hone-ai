@@ -1,6 +1,12 @@
 #!/usr/bin/env bun
 import { Command } from 'commander'
-import { loadConfig, ensurePlansDir, resolveAgent, initProject } from './config'
+import {
+  loadConfig,
+  ensurePlansDir,
+  resolveAgent,
+  resolveAgentWithoutConfigCreation,
+  initProject,
+} from './config'
 import type { AgentType } from './config'
 import { listPrds } from './prds'
 import { listIncompleteTaskFiles } from './status'
@@ -11,11 +17,12 @@ import packageJson from '../package.json'
 
 const program = new Command()
 
-// Get command name to avoid auto-init on 'init' command
+// Get command name to avoid auto-init on 'init' and 'agents-md' commands
 const isInitCommand = process.argv[2] === 'init'
+const isAgentsMdCommand = process.argv[2] === 'agents-md'
 
-// Auto-initialize for all commands except 'init'
-if (!isInitCommand) {
+// Auto-initialize for all commands except 'init' and 'agents-md'
+if (!isInitCommand && !isAgentsMdCommand) {
   ensurePlansDir()
   loadConfig().catch(console.error)
 }
@@ -212,7 +219,7 @@ program
   .action(async (options: { overwrite?: boolean }) => {
     try {
       setVerbose(program.opts().verbose || false)
-      const agent = await resolveAgent(program.opts().agent)
+      const agent = await resolveAgentWithoutConfigCreation(program.opts().agent)
       const { generateAgentsMd } = await import('./agents-md-generator')
       const result = await generateAgentsMd({ overwrite: options.overwrite, agent })
 
