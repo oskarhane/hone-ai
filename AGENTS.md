@@ -231,6 +231,16 @@ Learnings and patterns for future agents working on hone.
 - Trusted publisher configuration URL: https://www.npmjs.com/package/{package-name}/access
 - Provenance is automatic with trusted publishing - no need for `--provenance` flag
 
+## Output Formatting & User Experience
+
+- Always use `log()` and `logError()` from logger.ts for user-facing output - never mix with `console.log()`
+- Structure long operations into clear phases with descriptive headers
+- Use `process.stdout.write()` for progress indicators with checkmarks (✓/✗) for immediate visual feedback
+- Provide helpful next steps guidance at completion (e.g., review files, check directories, commit changes)
+- Phase pattern: "Phase N: Description" followed by separator line (`-`.repeat(80))
+- End operations with clear success/failure messages showing what was accomplished
+- Use consistent symbols: ✓ for success, ✗ for failure, • for information bullets
+
 ## AGENTS.md Generation
 
 - When overwriting existing AGENTS.md files, preserve existing gotchas/learnings using extractPreservableContent()

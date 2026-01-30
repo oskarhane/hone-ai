@@ -198,10 +198,12 @@ async function analyzeProject(projectPath: string): Promise<ProjectAnalysis> {
       analysis.architecture.push('GitHub Actions CI/CD')
     }
 
-    logVerbose(`Project analysis complete: ${JSON.stringify(analysis, null, 2)}`)
+    logVerbose(`[AgentsMd] Project analysis complete: ${JSON.stringify(analysis, null, 2)}`)
     return analysis
   } catch (error) {
-    logError(`Error analyzing project: ${error instanceof Error ? error.message : error}`)
+    logVerboseError(
+      `[AgentsMd] Error analyzing project: ${error instanceof Error ? error.message : error}`
+    )
     return analysis // Return partial analysis on error
   }
 }
@@ -345,7 +347,7 @@ async function executeDiscoveryPrompt(
     workingDir: projectPath,
   })
 
-  logVerbose(`[AgentClient] Executing ${promptKey} discovery prompt`)
+  logVerbose(`[AgentsMd] Executing ${promptKey} discovery prompt`)
 
   try {
     const response = await client.messages.create({
@@ -362,11 +364,11 @@ async function executeDiscoveryPrompt(
     const content = response.content[0]
     const result = content && content.type === 'text' ? content.text.trim() : ''
 
-    logVerbose(`[AgentClient] Completed ${promptKey} discovery: ${result.substring(0, 100)}...`)
+    logVerbose(`[AgentsMd] Completed ${promptKey} discovery: ${result.substring(0, 100)}...`)
     return result
   } catch (error) {
     logVerboseError(
-      `[AgentClient] Failed ${promptKey} discovery: ${error instanceof Error ? error.message : error}`
+      `[AgentsMd] Failed ${promptKey} discovery: ${error instanceof Error ? error.message : error}`
     )
     return `Error analyzing ${promptKey}: ${error instanceof Error ? error.message : error}`
   }
@@ -381,7 +383,7 @@ async function executeParallelScanning(
 ): Promise<Record<keyof typeof DISCOVERY_PROMPTS, string>> {
   const promptKeys = Object.keys(DISCOVERY_PROMPTS) as (keyof typeof DISCOVERY_PROMPTS)[]
 
-  logVerbose(`[AgentClient] Starting parallel scanning with ${promptKeys.length} discovery prompts`)
+  logVerbose(`[AgentsMd] Starting parallel scanning with ${promptKeys.length} discovery prompts`)
 
   // Execute all discovery prompts in parallel to stay within 90-second limit
   const results = await Promise.all(
@@ -397,7 +399,7 @@ async function executeParallelScanning(
     string
   >
 
-  logVerbose(`[AgentClient] Parallel scanning completed successfully`)
+  logVerbose(`[AgentsMd] Parallel scanning completed with results for: ${promptKeys.join(', ')}`)
   return scanResults
 }
 
@@ -575,39 +577,59 @@ async function generateContent(
   analysis: ProjectAnalysis,
   config: HoneConfig
 ): Promise<{ mainContent: string; detailSections?: TemplateSection[]; useAgentsDir: boolean }> {
-  log('Executing agent-based project discovery...')
+  log('\nPhase 2: Agent Discovery')
+  log('-'.repeat(80))
 
-  // Execute parallel agent scanning for comprehensive project analysis
-  const scanResults = await executeParallelScanning(projectPath, config)
+  process.stdout.write('Executing agent-based project discovery... ')
 
-  // Create adaptive template sections based on discovered tech stack
-  const sections = createTemplateSections(scanResults, analysis)
+  try {
+    // Execute parallel agent scanning for comprehensive project analysis
+    const scanResults = await executeParallelScanning(projectPath, config)
+    process.stdout.write('✓\n')
 
-  // Generate initial content to check line count
-  const fullContent = generateCompactContent(sections, false)
-  const lineCount = countLines(fullContent)
+    logVerbose(
+      `[AgentsMd] Discovery completed with ${Object.keys(scanResults).length} analysis areas`
+    )
 
-  logVerbose(`Generated content has ${lineCount} lines (limit: 100)`)
+    log('\nPhase 3: Content Generation')
+    log('-'.repeat(80))
 
-  // Decide whether to use .agents/ subdirectory based on content length and complexity
-  const useAgentsDir = lineCount > 100 || sections.length > 5
+    // Create adaptive template sections based on discovered tech stack
+    const sections = createTemplateSections(scanResults, analysis)
 
-  if (useAgentsDir) {
-    if (lineCount > 100) {
-      log(
-        'Content exceeds 100-line limit. Creating .agents/ subdirectory for detailed information.'
-      )
-    } else {
-      log('Project has complex structure. Creating .agents/ subdirectory for better organization.')
+    // Generate initial content to check line count
+    const fullContent = generateCompactContent(sections, false)
+    const lineCount = countLines(fullContent)
+
+    logVerbose(`[AgentsMd] Generated content has ${lineCount} lines (limit: 100)`)
+
+    // Decide whether to use .agents/ subdirectory based on content length and complexity
+    const useAgentsDir = lineCount > 100 || sections.length > 5
+
+    if (useAgentsDir) {
+      if (lineCount > 100) {
+        log(
+          'Content exceeds 100-line limit. Creating .agents/ subdirectory for detailed information.'
+        )
+      } else {
+        log(
+          'Project has complex structure. Creating .agents/ subdirectory for better organization.'
+        )
+      }
     }
-  }
 
-  const mainContent = generateCompactContent(sections, useAgentsDir)
+    logVerbose(`[AgentsMd] Using .agents/ directory: ${useAgentsDir}`)
 
-  return {
-    mainContent,
-    detailSections: useAgentsDir ? sections : undefined,
-    useAgentsDir,
+    const mainContent = generateCompactContent(sections, useAgentsDir)
+
+    return {
+      mainContent,
+      detailSections: useAgentsDir ? sections : undefined,
+      useAgentsDir,
+    }
+  } catch (error) {
+    process.stdout.write('✗\n')
+    throw error
   }
 }
 
@@ -620,11 +642,20 @@ export async function generateAgentsMd(
   const projectPath = options.projectPath || process.cwd()
 
   try {
-    log('Analyzing project structure...')
-    const analysis = await analyzeProject(projectPath)
+    log('Phase 1: Project Analysis')
+    log('-'.repeat(80))
 
-    log('Loading configuration...')
+    process.stdout.write('Analyzing project structure... ')
+    const analysis = await analyzeProject(projectPath)
+    process.stdout.write('✓\n')
+
+    process.stdout.write('Loading configuration... ')
     const config = await loadConfig()
+    process.stdout.write('✓\n')
+
+    logVerbose(
+      `[AgentsMd] Found ${analysis.languages.length} languages, ${analysis.buildSystems.length} build systems, ${analysis.testingFrameworks.length} testing frameworks`
+    )
 
     // Check if AGENTS.md already exists and handle accordingly
     const agentsPath = join(projectPath, 'AGENTS.md')
@@ -632,14 +663,14 @@ export async function generateAgentsMd(
 
     if (existsSync(agentsPath)) {
       if (!options.overwrite) {
-        log('AGENTS.md already exists. Use --overwrite to replace it.')
+        log('\n• AGENTS.md already exists. Use --overwrite to replace it.')
         return {
           success: false,
           filesCreated: [],
           error: new Error('AGENTS.md already exists'),
         }
       } else {
-        log('AGENTS.md exists. Overwriting with new content.')
+        log('• AGENTS.md exists. Overwriting with new content.')
       }
     }
 
@@ -647,21 +678,23 @@ export async function generateAgentsMd(
     if (existsSync(existingAgentsDirPath)) {
       if (!options.overwrite) {
         logVerbose(
-          '.agents/ directory already exists. Detail files will be skipped unless --overwrite is used.'
+          '[AgentsMd] .agents/ directory already exists. Detail files will be skipped unless --overwrite is used.'
         )
       } else {
-        logVerbose('.agents/ directory exists. Detail files will be overwritten.')
+        logVerbose('[AgentsMd] .agents/ directory exists. Detail files will be overwritten.')
       }
     }
 
-    log('Generating AGENTS.md content...')
     const { mainContent, detailSections, useAgentsDir } = await generateContent(
       projectPath,
       analysis,
       config
     )
 
-    log('Writing AGENTS.md file...')
+    log('\nPhase 4: File Generation')
+    log('-'.repeat(80))
+
+    process.stdout.write('Writing AGENTS.md file... ')
 
     // Preserve existing gotchas/learnings if overwriting
     let finalContent = mainContent
@@ -671,18 +704,22 @@ export async function generateAgentsMd(
         const preservedContent = extractPreservableContent(existingContent)
         if (preservedContent) {
           finalContent = `${mainContent}\n\n<!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->\n${preservedContent}`
-          logVerbose('Preserved existing gotchas/learnings from previous AGENTS.md')
+          logVerbose('[AgentsMd] Preserved existing gotchas/learnings from previous AGENTS.md')
         }
       } catch (error) {
-        logVerboseError(`Could not preserve existing content: ${error}`)
+        logVerboseError(`[AgentsMd] Could not preserve existing content: ${error}`)
       }
     }
 
     await writeFile(agentsPath, finalContent, 'utf-8')
+    process.stdout.write('✓\n')
+
     const filesCreated = [agentsPath]
 
     // Create .agents/ directory and detail files if needed
     let agentsDirPath: string | undefined
+    let detailFilesCreated = 0
+
     if (useAgentsDir && detailSections) {
       agentsDirPath = join(projectPath, '.agents')
 
@@ -690,15 +727,17 @@ export async function generateAgentsMd(
       if (existsSync(agentsDirPath)) {
         if (!options.overwrite) {
           log(
-            '.agents/ directory already exists. Use --overwrite to replace existing detail files.'
+            '• .agents/ directory already exists. Use --overwrite to replace existing detail files.'
           )
         } else {
-          log('.agents/ directory exists. Overwriting existing detail files.')
+          log('• .agents/ directory exists. Overwriting existing detail files.')
         }
       } else {
         await mkdir(agentsDirPath, { recursive: true })
-        log('Created .agents/ directory for detailed information')
+        logVerbose('[AgentsMd] Created .agents/ directory for detailed information')
       }
+
+      process.stdout.write(`Creating ${detailSections.length} detail files... `)
 
       // Write detail files
       for (const section of detailSections) {
@@ -707,7 +746,7 @@ export async function generateAgentsMd(
 
           // Check if detail file already exists
           if (existsSync(detailPath) && !options.overwrite) {
-            logVerbose(`Skipping existing detail file: ${section.detailFile}`)
+            logVerbose(`[AgentsMd] Skipping existing detail file: ${section.detailFile}`)
             continue
           }
 
@@ -722,20 +761,42 @@ ${section.content}
 `
             await writeFile(detailPath, detailContent, 'utf-8')
             filesCreated.push(detailPath)
+            detailFilesCreated++
             logVerbose(
-              `${existsSync(detailPath) && options.overwrite ? 'Updated' : 'Created'} detail file: ${section.detailFile}`
+              `[AgentsMd] ${existsSync(detailPath) && options.overwrite ? 'Updated' : 'Created'} detail file: ${section.detailFile}`
             )
           } catch (fileError) {
-            logVerbose(
-              `Failed to write detail file ${section.detailFile}: ${fileError instanceof Error ? fileError.message : fileError}`
+            logVerboseError(
+              `[AgentsMd] Failed to write detail file ${section.detailFile}: ${fileError instanceof Error ? fileError.message : fileError}`
             )
             // Continue with other files rather than failing completely
           }
         }
       }
+
+      process.stdout.write('✓\n')
     }
 
-    log('✓ AGENTS.md generated successfully')
+    // Success message with details
+    log('')
+    if (useAgentsDir && detailSections) {
+      log(`✓ Generated AGENTS.md with ${detailSections.length} sections`)
+      log(`✓ Created ${detailFilesCreated} detail files in .agents/`)
+    } else {
+      log(
+        `✓ Generated AGENTS.md with ${analysis.languages.length + analysis.buildSystems.length + analysis.testingFrameworks.length} detected components`
+      )
+    }
+
+    // Next steps guidance
+    log('')
+    log('Next steps:')
+    log('  1. Review the generated AGENTS.md for accuracy')
+    if (useAgentsDir) {
+      log('  2. Check detailed information in the .agents/ directory')
+    }
+    log('  3. Edit and customize the documentation as needed')
+    log('  4. Commit the changes to your repository')
 
     return {
       success: true,
@@ -745,7 +806,8 @@ ${section.content}
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    logError(`Failed to generate AGENTS.md: ${err.message}`)
+    logError('\n✗ Failed to generate AGENTS.md')
+    logError(`Error: ${err.message}`)
 
     return {
       success: false,

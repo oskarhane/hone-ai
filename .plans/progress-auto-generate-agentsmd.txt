@@ -203,3 +203,26 @@ Key Decisions:
 - Code properly formatted with no style violations
 
 Next Task: task-007
+
+================================================================================
+TASK-007: Add output formatting and feedback system
+Date: 2026-01-30T20:15:00.000Z
+================================================================================
+
+Summary:
+Implemented success/error feedback system using existing logger patterns. Added verbose output control and clear progress indication during agent scanning operations. Applied feedback to fix mixed console.log/log() usage for consistency.
+
+Files Changed:
+- src/agents-md-generator.ts (replaced console.log with log() calls, improved phase output formatting)
+
+Key Decisions:
+- Implemented 4-phase structured output: Project Analysis → Agent Discovery → Content Generation → File Generation
+- Added progress indication using process.stdout.write() with checkmarks (✓/✗) for visual feedback
+- Integrated verbose logging using logVerbose() and logVerboseError() with [AgentsMd] prefix
+- Used existing log() function consistently instead of console.log() for user-facing output
+- Added success/error feedback for each operation with clear messaging about files created
+- Provided helpful next steps guidance: review file, check .agents/ directory, edit, commit
+- Applied feedback to fix logging inconsistency: replaced 7 console.log calls with log() for uniformity
+- All tests pass (173/173) after applying feedback changes
+
+Next Task: task-008
