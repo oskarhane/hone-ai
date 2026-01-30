@@ -17,15 +17,7 @@ import packageJson from '../package.json'
 
 const program = new Command()
 
-// Get command name to avoid auto-init on 'init' and 'agents-md' commands
-const isInitCommand = process.argv[2] === 'init'
-const isAgentsMdCommand = process.argv[2] === 'agents-md'
-
-// Auto-initialize for all commands except 'init' and 'agents-md'
-if (!isInitCommand && !isAgentsMdCommand) {
-  ensurePlansDir()
-  loadConfig().catch(console.error)
-}
+// No automatic config creation - only create config during init command
 
 program
   .name('hone')

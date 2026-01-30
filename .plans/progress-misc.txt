@@ -373,4 +373,24 @@ Key Decisions:
 - All 174 tests pass after changes
 - Users now configure feedback instructions via AGENTS.md instead of config
 
+Next Task: task-017
+
+================================================================================
+TASK-017: only create config file on init command
+Date: 2026-01-30T14:30:00Z
+================================================================================
+
+Summary:
+Fixed config file auto-creation issue by removing the auto-init code block from index.ts.
+The `hone -v` command no longer creates config files, while `init` command still works properly.
+
+Files Changed:
+- src/index.ts (removed auto-init code block lines 19-26 that called ensurePlansDir() and loadConfig() for all commands except init and agents-md)
+
+Key Decisions:
+- Removed auto-init logic that was running for every command except init and agents-md
+- Commands that need config (run, prd, prd-to-tasks) still create config on-demand via loadConfig() - this is expected behavior
+- Informational commands (--version, --help) no longer trigger config creation
+- All 174 tests pass after changes
+
 Next Task: All tasks complete

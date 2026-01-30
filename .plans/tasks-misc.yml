@@ -261,3 +261,14 @@ tasks:
       - "init command doesn't create feedback section in the config file"
       - "don't use feedback section in config file, if it exists"
     completed_at: 2026-01-30T23:45:00Z
+
+  - id: task-017
+    title: "only create config file on init command"
+    description: |
+      we had an issue with the agent-md command, so we need to make sure that the config file is only created on the init command. This is fixed.
+      Now Now I ran hone -v and the config file was created. It should not. Only create the config file on the init command.
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "only hone init command creates config file"
+    completed_at: 2026-01-30T14:30:00Z
