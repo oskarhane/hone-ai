@@ -3,7 +3,7 @@
  * Core module for generating project documentation for AI agents
  */
 
-import { loadConfig, resolveModelForPhase, type HoneConfig } from './config'
+import { loadConfig, resolveModelForPhase, type HoneConfig, type AgentType } from './config'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
@@ -13,6 +13,7 @@ import { log, logError, logVerbose, logVerboseError } from './logger'
 export interface AgentsMdGeneratorOptions {
   projectPath?: string
   overwrite?: boolean
+  agent?: AgentType
 }
 
 export interface ProjectAnalysis {
@@ -343,11 +344,13 @@ ENVIRONMENT MANAGEMENT: [how environments are configured]`,
 async function executeDiscoveryPrompt(
   projectPath: string,
   promptKey: keyof typeof DISCOVERY_PROMPTS,
-  config: HoneConfig
+  config: HoneConfig,
+  agent?: AgentType
 ): Promise<string> {
-  const model = resolveModelForPhase(config, 'implement') // Use implement phase model
+  const resolvedAgent = agent || config.defaultAgent
+  const model = resolveModelForPhase(config, 'agentsMd', resolvedAgent) // Use agentsMd phase model with resolved agent
   const client = new AgentClient({
-    agent: config.defaultAgent,
+    agent: resolvedAgent,
     model,
     workingDir: projectPath,
   })
@@ -384,7 +387,8 @@ async function executeDiscoveryPrompt(
  */
 async function executeParallelScanning(
   projectPath: string,
-  config: HoneConfig
+  config: HoneConfig,
+  agent?: AgentType
 ): Promise<Record<keyof typeof DISCOVERY_PROMPTS, string>> {
   const promptKeys = Object.keys(DISCOVERY_PROMPTS) as (keyof typeof DISCOVERY_PROMPTS)[]
 
@@ -394,7 +398,7 @@ async function executeParallelScanning(
   const results = await Promise.all(
     promptKeys.map(async key => ({
       key,
-      result: await executeDiscoveryPrompt(projectPath, key, config),
+      result: await executeDiscoveryPrompt(projectPath, key, config, agent),
     }))
   )
 
@@ -643,7 +647,8 @@ function getFirstSentence(content: string): string {
 async function generateContent(
   projectPath: string,
   analysis: ProjectAnalysis,
-  config: HoneConfig
+  config: HoneConfig,
+  agent?: AgentType
 ): Promise<{ mainContent: string; detailSections?: TemplateSection[]; useAgentsDir: boolean }> {
   log('\nPhase 2: Agent Discovery')
   log('-'.repeat(80))
@@ -652,7 +657,7 @@ async function generateContent(
 
   try {
     // Execute parallel agent scanning for comprehensive project analysis
-    const scanResults = await executeParallelScanning(projectPath, config)
+    const scanResults = await executeParallelScanning(projectPath, config, agent)
     process.stdout.write('✓\n')
 
     logVerbose(
@@ -756,7 +761,8 @@ export async function generateAgentsMd(
     const { mainContent, detailSections, useAgentsDir } = await generateContent(
       projectPath,
       analysis,
-      config
+      config,
+      options.agent
     )
 
     log('\nPhase 4: File Generation')

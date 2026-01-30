@@ -292,3 +292,26 @@ Key Decisions:
 - Reverted unrelated config file changes that caused test failures
 
 Next Task: All tasks complete
+
+================================================================================
+TASK-013: Verify that agents-md command uses agent in config file, if it exists
+Date: 2026-01-30T21:15:00.000Z
+================================================================================
+
+Summary:
+Fixed agents-md command to use agent from config file via resolveAgent() and added agentsMd model phase support. Applied review feedback to fix config validation consistency.
+
+Files Changed:
+- src/index.ts (modified to use resolveAgent() for agents-md command at line 215)
+- src/types.ts (added 'agentsMd' to ModelPhase union type)
+- src/config.ts (added agentsMd model phase support in HoneConfig interface, help text, and validation phases array)
+
+Key Decisions:
+- Added resolveAgent() call in index.ts:215 to use configured agent instead of hardcoded 'claude'
+- Extended ModelPhase type to include 'agentsMd' for consistency with other phases
+- Added agentsMd model configuration to HoneConfig interface with optional typing
+- Updated help text to document agentsMd model phase option
+- Applied review feedback: fixed validateConfig to include 'agentsMd' in phases validation array
+- All 174 tests pass after changes
+
+Next Task: All tasks complete

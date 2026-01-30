@@ -210,9 +210,9 @@ tasks:
       We need to ensure that the command is using the agent in the config file, if the files exists.
       If the config file doesn't exist, we should use the default agent.
       We also should add a model configuration to the command in the config file, like we have for the other steps/commands like prd, review etc.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "agents-md command uses agent in config file"
       - "model configuration added to agents-md command in config file"
-    completed_at: null
+    completed_at: 2026-01-30T21:15:00.000Z

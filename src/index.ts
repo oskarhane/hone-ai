@@ -40,6 +40,7 @@ Model Configuration:
     implement: claude-opus-4-20250514     # Override for implementation (optional)
     review: claude-sonnet-4-20250514      # Override for review (optional)
     finalize: claude-sonnet-4-20250514    # Override for finalization (optional)
+    agentsMd: claude-sonnet-4-20250514    # Override for AGENTS.md generation (optional)
   
   Phase-specific models are optional and override agent-specific models.
   Check available models: opencode --help or claude --help
@@ -211,8 +212,9 @@ program
   .action(async (options: { overwrite?: boolean }) => {
     try {
       setVerbose(program.opts().verbose || false)
+      const agent = await resolveAgent(program.opts().agent)
       const { generateAgentsMd } = await import('./agents-md-generator')
-      const result = await generateAgentsMd({ overwrite: options.overwrite })
+      const result = await generateAgentsMd({ overwrite: options.overwrite, agent })
 
       if (!result.success) {
         if (result.error?.message.includes('already exists')) {
