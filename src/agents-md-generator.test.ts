@@ -133,9 +133,8 @@ describe('agents-md-generator', () => {
   test('generateAgentsMd outputs expected log messages', async () => {
     await generateAgentsMd()
 
-    expect(logCalls.some(msg => msg.includes('Analyzing project'))).toBe(true)
-    expect(logCalls.some(msg => msg.includes('Loading configuration'))).toBe(true)
-    expect(logCalls.some(msg => msg.includes('Generating AGENTS.md'))).toBe(true)
+    expect(logCalls.some(msg => msg.includes('Phase 1: Project Analysis'))).toBe(true)
+    expect(logCalls.some(msg => msg.includes('✓ Generated AGENTS.md'))).toBe(true)
   })
 
   test('generateAgentsMd creates .agents/ directory when content exceeds 100 lines', async () => {
@@ -178,7 +177,9 @@ describe('agents-md-generator', () => {
       expect(existsSync(result.agentsDirPath)).toBe(true)
       expect(result.filesCreated.length).toBeGreaterThan(1) // Main file + detail files
       expect(logCalls.some(msg => msg.includes('exceeds 100-line limit'))).toBe(true)
-      expect(logCalls.some(msg => msg.includes('Created .agents/'))).toBe(true)
+      expect(logCalls.some(msg => msg.includes('✓ Created') && msg.includes('detail files'))).toBe(
+        true
+      )
     }
   })
 

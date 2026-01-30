@@ -126,7 +126,7 @@ tasks:
     title: "Wire command implementation to CLI"
     description: |
       Connect the agents-md generator module to the CLI command. Implement proper async handling, error catching, and integration with existing command patterns from index.ts.
-    status: pending
+    status: completed
     dependencies:
       - task-007
     acceptance_criteria:
@@ -135,7 +135,7 @@ tasks:
       - "Error catching and user-friendly error messages"
       - "Integration with global CLI options (verbose, etc.)"
       - "Command executes successfully from any directory"
-    completed_at: null
+    completed_at: 2026-01-30T20:45:00.000Z
 
   - id: task-009
     title: "Add comprehensive test coverage"

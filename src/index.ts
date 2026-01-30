@@ -216,17 +216,18 @@ program
 
       if (!result.success) {
         if (result.error?.message.includes('already exists')) {
-          console.error('\n✗ AGENTS.md already exists. Use --overwrite to replace it.')
+          console.error('\n✗ AGENTS.md already exists')
+          console.error('\nUse --overwrite to replace the existing file.')
+          console.error('Or review the current AGENTS.md before regenerating.')
         } else {
-          console.error('\n✗ Error generating AGENTS.md:', result.error?.message || 'Unknown error')
+          console.error('\n✗ Failed to generate AGENTS.md')
+          console.error(`\nError: ${result.error?.message || 'Unknown error'}`)
         }
         process.exit(1)
       }
     } catch (error) {
-      console.error(
-        '\n✗ Error generating AGENTS.md:',
-        error instanceof Error ? error.message : error
-      )
+      console.error('\n✗ Failed to generate AGENTS.md')
+      console.error(`\nError: ${error instanceof Error ? error.message : error}`)
       process.exit(1)
     }
   })

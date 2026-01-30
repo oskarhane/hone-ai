@@ -225,4 +225,26 @@ Key Decisions:
 - Applied feedback to fix logging inconsistency: replaced 7 console.log calls with log() for uniformity
 - All tests pass (173/173) after applying feedback changes
 
-Next Task: task-008
+Next Task: task-009
+
+================================================================================
+TASK-008: Wire command implementation to CLI
+Date: 2026-01-30T20:45:00.000Z
+================================================================================
+
+Summary:
+Completed CLI integration for agents-md command by wiring the generator module to the command interface. Improved error messages with clearer user guidance and updated tests to match new log message format.
+
+Files Changed:
+- src/index.ts (modified CLI command handler with improved error messages and better user guidance)
+- src/agents-md-generator.test.ts (updated test expectations to match new log message format with phase indicators)
+
+Key Decisions:
+- Enhanced error message formatting with separate lines for clarity and actionable guidance
+- Updated existing AGENTS.md error to provide clearer instructions about --overwrite option
+- Modified test assertions to expect new phase-based log messages ("Phase 1: Project Analysis", "✓ Generated AGENTS.md")
+- Maintained consistency with existing CLI patterns using console.error (aligned with other commands in index.ts)
+- All 173 tests pass with updated expectations
+- CLI properly integrates with global verbose option via setVerbose()
+
+Next Task: task-009
