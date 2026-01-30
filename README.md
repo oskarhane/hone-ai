@@ -22,14 +22,28 @@ Transform feature ideas into working code through autonomous development with hu
    hone init
    ```
 
-4. **Create a feature**
-   ```bash
-   hone prd "Add user login with email and password"
-   hone prd-to-tasks .plans/prd-user-login.md
-   hone run .plans/tasks-user-login.yml -i 3
-   ```
+That's it! You're ready to use hone.
 
-That's it! hone will implement the feature, run tests, and commit changes automatically.
+## Common Workflow
+
+```bash
+# 1. Generate project documentation (if no AGENTS.md exists)
+hone agents-md
+
+# 2. Create a PRD from your feature description
+hone prd "Add user login with email and password"
+
+# 3. Manually review the generated PRD
+#    Edit .plans/prd-user-login.md as needed
+
+# 4. Generate tasks from the PRD
+hone prd-to-tasks .plans/prd-user-login.md
+
+# 5. Implement the feature
+hone run .plans/tasks-user-login.yml -i 10
+```
+
+hone will implement the feature, run tests, and commit changes automatically.
 
 ## Prerequisites
 
@@ -77,14 +91,16 @@ cp hone-macos /usr/local/bin/hone  # macOS
 cp hone-linux /usr/local/bin/hone  # Linux
 ```
 
-## Common Commands
+## Commands
 
 ### Create and implement a feature
 
 ```bash
+hone agents-md                              # Generate AGENTS.md (first time only)
 hone prd "Feature description"              # Generate requirements
+# Review .plans/prd-<feature>.md manually
 hone prd-to-tasks .plans/prd-feature.md     # Generate tasks
-hone run .plans/tasks-feature.yml -i 5      # Implement tasks
+hone run .plans/tasks-feature.yml -i 10     # Implement tasks
 ```
 
 ### Reference files and URLs in PRDs
@@ -148,11 +164,13 @@ Each `hone run` executes multiple iterations of this cycle automatically.
 When creating PRDs, you can reference files and URLs directly in your feature description:
 
 **Local files:**
+
 - `./docs/api-spec.md` - Read project documentation
 - `src/components/Button.tsx` - Analyze existing components
 - `./database/schema.sql` - Review database structure
 
 **URLs:**
+
 - `https://docs.stripe.com/api` - External API documentation
 - `https://www.figma.com/design/123/App` - Design specifications
 - `http://localhost:3000/dashboard` - Reference existing pages

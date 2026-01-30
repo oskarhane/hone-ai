@@ -36,6 +36,13 @@ program
   .addHelpText(
     'after',
     `
+Common Workflow:
+  hone agents-md                            # Generate AGENTS.md (if none exists)
+  hone prd "your feature description"       # Create a PRD
+  # Manually review .plans/prd-<feature>.md
+  hone prd-to-tasks .plans/prd-<feature>.md # Generate tasks from PRD
+  hone run .plans/tasks-<feature>.yml -i 10 # Implement the feature
+
 Model Configuration:
   Configure models in .plans/hone.config.yml:
   
