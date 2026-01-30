@@ -182,3 +182,23 @@ tasks:
       - "AGENTS.md output improved to be concise and informative"
       - "Based on my ... are gone from AGENTS.md"
     completed_at: 2026-01-30T20:15:30.000Z
+
+  - id: task-012
+    title: "improve output written to AGENTS.md, even more"
+    description: |
+      The AGENTS.ms file now has a bunch of:
+        Based on my exploration of the project structure here's...
+        Based on my architectural analysis, here's the comprehensive overview...
+        Based on my comprehensive analysis of the hone-ai project, here's the architectural assessment...
+
+        these are not helpful for future agents.
+        Provide a very concise (1-2 sentences) and informative summary of each section before inserting the link to the file that har more info.
+
+        In task-011, we tried to make some improvements to the AGENTS.md file, but the above unhelpful statements are still there.
+        They should be replaced with a short summary of each section before inserting the link to the file that has more info.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "AGENTS.md output improved to be concise and informative"
+      - "When linking to files, provide a very concise (1-2 sentences) and informative summary of each section before inserting the link to the file that has more info."
+    completed_at: null
