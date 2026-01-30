@@ -216,3 +216,17 @@ tasks:
       - "agents-md command uses agent in config file"
       - "model configuration added to agents-md command in config file"
     completed_at: 2026-01-30T21:15:00.000Z
+
+  - id: task-014
+    title: "rename .agents/ folder to .agents-docs/"
+    description: |
+      .agents/ is not ideal. We should rename it to .agents-docs/ to better reflect its purpose.
+      No need to be backwards compatible or handle migrations etc. Just rename it.
+      But do it in a way to it could be easy make it configurable in the future (via the config file) if needed.
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "agents-md command should place the agents sub docs on .agents-docs/ rather than .agents/"
+      - "README.md and all references in other files and comments are updated"
+      - "a central variable/constant defines this to make it easy to change in the future, or potentially configurable via the config file"
+    completed_at: null
