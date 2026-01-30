@@ -213,7 +213,7 @@ function getFinalizeInstructions(
 
 Finalize the task by applying review feedback and updating all tracking files.
 
-IMPORTANT: This is the ONLY phase where git commits are allowed. If you already committed in 
+IMPORTANT: This is the ONLY phase where git commits are allowed. If you already committed in
 the implement phase, you did it wrong - but continue with finalization anyway.
 
 # REVIEW FEEDBACK
@@ -247,23 +247,23 @@ ${reviewFeedback || 'No review feedback provided (review was skipped or approved
      TASK-XXX: <task-title>
      Date: <ISO-8601-datetime>
      ================================================================================
-     
+
      Summary:
      <concise summary of what was done>
-     
+
      Files Changed:
      - file1.ts (created/modified/deleted with brief description)
      - file2.ts (...)
-     
+
      Key Decisions:
      - Decision 1
      - Decision 2
-     
+
      Next Task: <next-task-id> or "All tasks complete"
      \`\`\`
 
 5. **Update AGENTS.md** (if learnings exist)
-   - Add useful learnings and patterns under appropriate heading
+   - Add useful learnings and gotchas under appropriate heading
    - Be terse - only add truly useful info that future agents need
    - Don't duplicate existing info
 
