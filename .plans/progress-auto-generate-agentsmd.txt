@@ -108,3 +108,24 @@ Key Decisions:
 - All 168 tests pass and AGENTS.md file is preserved after test runs
 
 Next Task: task-004
+
+================================================================================
+TASK-004: Implement agent-based project scanning
+Date: 2026-01-30T18:45:30.000Z
+================================================================================
+
+Summary:
+Implemented parallel agent-based project scanning using executeParallelScanning() that executes 5 discovery prompts concurrently. Updated generateContent() to use agent discovery results with static analysis fallback.
+
+Files Changed:
+- src/agents-md-generator.ts (added executeParallelScanning function, updated generateContent to use agent results with fallback to static analysis)
+
+Key Decisions:
+- Implemented parallel execution using Promise.all() for 5 discovery prompts to stay within 90-second limit
+- Added proper error handling - individual prompt failures return error messages instead of failing entirely
+- Used Object.fromEntries() instead of type assertion for better type safety
+- Integrated static analysis as fallback when agent calls fail or return errors
+- Added getContentWithFallback helper to intelligently choose between agent results and static analysis
+- Proper logging using logVerbose() for debug output following existing patterns
+
+Next Task: task-005

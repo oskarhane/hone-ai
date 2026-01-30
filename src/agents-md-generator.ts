@@ -318,15 +318,60 @@ async function executeDiscoveryPrompt(
 }
 
 /**
- * Generate AGENTS.md content based on project analysis
+ * Execute parallel agent-based project scanning
+ */
+async function executeParallelScanning(
+  projectPath: string,
+  config: HoneConfig
+): Promise<Record<keyof typeof DISCOVERY_PROMPTS, string>> {
+  const promptKeys = Object.keys(DISCOVERY_PROMPTS) as (keyof typeof DISCOVERY_PROMPTS)[]
+
+  logVerbose(`[AgentClient] Starting parallel scanning with ${promptKeys.length} discovery prompts`)
+
+  // Execute all discovery prompts in parallel to stay within 90-second limit
+  const results = await Promise.all(
+    promptKeys.map(async key => ({
+      key,
+      result: await executeDiscoveryPrompt(projectPath, key, config),
+    }))
+  )
+
+  // Convert results array to object
+  const scanResults = Object.fromEntries(results.map(({ key, result }) => [key, result])) as Record<
+    keyof typeof DISCOVERY_PROMPTS,
+    string
+  >
+
+  logVerbose(`[AgentClient] Parallel scanning completed successfully`)
+  return scanResults
+}
+
+/**
+ * Generate AGENTS.md content based on agent-based discovery
  */
 async function generateContent(
   projectPath: string,
   analysis: ProjectAnalysis,
   config: HoneConfig
 ): Promise<string> {
-  // This is a placeholder for the actual content generation logic
-  // Will be implemented in future tasks using agent-based discovery
+  log('Executing agent-based project discovery...')
+
+  // Execute parallel agent scanning for comprehensive project analysis
+  const scanResults = await executeParallelScanning(projectPath, config)
+
+  // Build content using agent discovery results with static analysis fallback
+  const getContentWithFallback = (agentResult: string, fallbackData: string[]) => {
+    if (
+      agentResult &&
+      !agentResult.includes('failed to analyze') &&
+      !agentResult.includes('Error:')
+    ) {
+      return agentResult
+    }
+    return fallbackData.length > 0
+      ? `Static analysis detected: ${fallbackData.join(', ')}`
+      : 'Not available.'
+  }
 
   const content = `# AGENTS.md
 
@@ -334,28 +379,27 @@ Learnings and patterns for future agents working on this project.
 
 ## Project Overview
 
-This project uses the following technologies:
-- Languages: ${analysis.languages.join(', ') || 'Not detected'}
-- Build Systems: ${analysis.buildSystems.join(', ') || 'Not detected'}
-- Testing Frameworks: ${analysis.testingFrameworks.join(', ') || 'Not detected'}
-- Dependencies: ${analysis.dependencies.join(', ') || 'Not detected'}
-- Architecture Patterns: ${analysis.architecture.join(', ') || 'Not detected'}
+${getContentWithFallback(scanResults.languages || '', analysis.languages)}
 
 ## Build System
 
-[To be populated by agent-based discovery]
+${getContentWithFallback(scanResults.buildSystems || '', analysis.buildSystems)}
 
 ## Testing Framework
 
-[To be populated by agent-based discovery]
+${getContentWithFallback(scanResults.testing || '', analysis.testingFrameworks)}
+
+## Architecture
+
+${getContentWithFallback(scanResults.architecture || '', analysis.architecture)}
 
 ## Deployment
 
-[To be populated by agent-based discovery]
+${scanResults.deployment || 'Deployment information not available.'}
 
-## Architecture Notes
+---
 
-[To be populated by agent-based discovery]
+*This AGENTS.md was generated using agent-based project discovery.*
 `
 
   return content

@@ -230,3 +230,11 @@ Learnings and patterns for future agents working on hone.
 - "Access token expired or revoked" with successful provenance signing = npm version too old
 - Trusted publisher configuration URL: https://www.npmjs.com/package/{package-name}/access
 - Provenance is automatic with trusted publishing - no need for `--provenance` flag
+
+## Agent-Based Code Generation
+
+- Parallel agent execution with Promise.all() essential for staying within time limits (90-second target)
+- Use Object.fromEntries() instead of type assertions for better type safety when converting arrays to objects
+- Integrate static analysis as fallback when agent calls fail - provides graceful degradation
+- Helper functions like getContentWithFallback() enable intelligent choice between agent and static results
+- Agent error detection: check for "failed to analyze" and "Error:" strings in responses
