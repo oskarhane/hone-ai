@@ -77,14 +77,14 @@ tasks:
   - id: task-005
     title: "Build AGENTS.md template system"
     description: |
-      Create adaptive template system that generates AGENTS.md format based on discovered tech stack. Include logic for 100-line limit enforcement and .agents/ subdirectory creation for detailed information.
+      Create adaptive template system that generates AGENTS.md format based on discovered tech stack. Include logic for 100-line limit enforcement and .agents-docs/ subdirectory creation for detailed information.
     status: completed
     dependencies:
       - task-004
     acceptance_criteria:
       - "Template system adapts based on discovered tech stack"
       - "100-line limit enforcement implemented"
-      - "Logic for creating .agents/ subdirectory with topic files"
+      - "Logic for creating .agents-docs/ subdirectory with topic files"
       - "Relative path references from main AGENTS.md to subfiles"
       - "Template covers build, test, deploy, and architecture sections"
     completed_at: 2026-01-30T19:32:15.000Z
@@ -93,7 +93,7 @@ tasks:
     title: "Implement existing file handling logic"
     description: |
       Add logic to detect existing AGENTS.md files and handle overwrite behavior.
-      Implement decision logic for when to create .agents/ subdirectory files versus keeping everything in main file.
+      Implement decision logic for when to create .agents-docs/ subdirectory files versus keeping everything in main file.
       Keep any gotchas that already exist in the AGENTS.md
     status: completed
     dependencies:
@@ -101,8 +101,8 @@ tasks:
     acceptance_criteria:
       - "Detection of existing AGENTS.md files implemented"
       - "Overwrite behavior configured as per requirements"
-      - "Decision logic for .agents/ subdirectory creation"
-      - "Handling of existing .agents/ directory and files"
+      - "Decision logic for .agents-docs/ subdirectory creation"
+      - "Handling of existing .agents-docs/ directory and files"
       - "Proper file system operations with error handling"
       - "Keep any gotchas that already exist in the AGENTS.md"
     completed_at: 2026-01-30T11:30:00.000Z
@@ -163,7 +163,7 @@ tasks:
       - "Execution time validated under 90 seconds for typical projects"
       - "All language detection requirements verified"
       - "Build system and testing framework discovery validated"
-      - "100-line limit and .agents/ subdirectory logic confirmed"
+      - "100-line limit and .agents-docs/ subdirectory logic confirmed"
       - "Cross-platform compatibility verified"
     completed_at: null
 
@@ -223,10 +223,10 @@ tasks:
       .agents/ is not ideal. We should rename it to .agents-docs/ to better reflect its purpose.
       No need to be backwards compatible or handle migrations etc. Just rename it.
       But do it in a way to it could be easy make it configurable in the future (via the config file) if needed.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "agents-md command should place the agents sub docs on .agents-docs/ rather than .agents/"
       - "README.md and all references in other files and comments are updated"
       - "a central variable/constant defines this to make it easy to change in the future, or potentially configurable via the config file"
-    completed_at: null
+    completed_at: 2026-01-30T22:30:15.000Z

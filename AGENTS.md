@@ -6,36 +6,36 @@ Learnings and patterns for future agents working on this project.
 
 PRIMARY LANGUAGES: TypeScript, YAML, Markdown
 
-See [@.agents/languages.md](.agents/languages.md) for detailed information.
+See [@.agents-docs/languages.md](.agents-docs/languages.md) for detailed information.
 
 ## Build System
 
 **BUILD SYSTEMS:** Bun (primary package manager, bundler, compiler, test runner)
 
-See [@.agents/build.md](.agents/build.md) for detailed information.
+See [@.agents-docs/build.md](.agents-docs/build.md) for detailed information.
 
 ## Testing Framework
 
 **TESTING FRAMEWORKS:** Bun Test (native)
 
-See [@.agents/testing.md](.agents/testing.md) for detailed information.
+See [@.agents-docs/testing.md](.agents-docs/testing.md) for detailed information.
 
 ## Architecture
 
 **ARCHITECTURE PATTERN**: Multi-Phase Orchestration with Agent Abstraction
 
-See [@.agents/architecture.md](.agents/architecture.md) for detailed information.
+See [@.agents-docs/architecture.md](.agents-docs/architecture.md) for detailed information.
 
 ## Deployment
 
 **DEPLOYMENT STRATEGY**: Multi-platform binary distribution with automated release pipeline
 
-See [@.agents/deployment.md](.agents/deployment.md) for detailed information.
+See [@.agents-docs/deployment.md](.agents-docs/deployment.md) for detailed information.
 
 ---
 
 _This AGENTS.md was generated using agent-based project discovery._
-_Detailed information is available in the .agents/ directory._
+_Detailed information is available in the .agents-docs/ directory._
 
 <!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->
 

@@ -314,4 +314,28 @@ Key Decisions:
 - Applied review feedback: fixed validateConfig to include 'agentsMd' in phases validation array
 - All 174 tests pass after changes
 
+Next Task: task-014
+
+================================================================================
+TASK-014: rename .agents/ folder to .agents-docs/
+Date: 2026-01-30T22:30:15.000Z
+================================================================================
+
+Summary:
+Renamed .agents/ folder to .agents-docs/ throughout codebase and added central constant for future configuration. All references updated in code, tests, documentation, and task files.
+
+Files Changed:
+- src/agents-md-generator.ts (added AGENTS_DOCS_DIR constant, updated all .agents/ references to use constant)
+- src/agents-md-generator.test.ts (updated test descriptions and paths to use constant)
+- AGENTS.md (updated references from .agents/ to .agents-docs/)
+- .plans/tasks-auto-generate-agentsmd.yml (updated task-014 status and references)
+- prd-auto-generate-agentsmd.md (updated references to .agents-docs/)
+
+Key Decisions:
+- Added central constant AGENTS_DOCS_DIR = '.agents-docs' for easy future configuration
+- Updated all string literals from '.agents/' to template strings using the constant
+- Maintained backward compatibility by keeping existing .agents-docs/ directory structure
+- Updated all documentation and task references consistently
+- All 174 tests pass with new directory naming
+
 Next Task: All tasks complete

@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach, mock } from 'bun:test'
-import { generateAgentsMd } from './agents-md-generator'
+import { generateAgentsMd, AGENTS_DOCS_DIR } from './agents-md-generator'
 import type { AgentsMdGeneratorOptions, GenerationResult } from './agents-md-generator'
 import { existsSync, mkdirSync, rmSync } from 'fs'
 import { join } from 'path'
@@ -137,7 +137,7 @@ describe('agents-md-generator', () => {
     expect(logCalls.some(msg => msg.includes('✓ Generated AGENTS.md'))).toBe(true)
   })
 
-  test('generateAgentsMd creates .agents/ directory when content exceeds 100 lines', async () => {
+  test(`generateAgentsMd creates ${AGENTS_DOCS_DIR}/ directory when content exceeds 100 lines`, async () => {
     // Mock a response that will generate a very long output
     const longMockResponse = {
       content: [
@@ -149,7 +149,7 @@ describe('agents-md-generator', () => {
             ) +
             'This is a very detailed analysis that will definitely exceed the 100-line limit when combined with other sections. ' +
             'It includes extensive information about the project structure, dependencies, build systems, testing frameworks, and deployment strategies. ' +
-            'The content is intentionally verbose to trigger the .agents/ subdirectory creation logic.',
+            `The content is intentionally verbose to trigger the ${AGENTS_DOCS_DIR}/ subdirectory creation logic.`,
         },
       ],
     }
@@ -172,7 +172,7 @@ describe('agents-md-generator', () => {
 
     expect(result.success).toBe(true)
 
-    // Check if .agents/ directory was created
+    // Check if ${AGENTS_DOCS_DIR}/ directory was created
     if (result.agentsDirPath) {
       expect(existsSync(result.agentsDirPath)).toBe(true)
       expect(result.filesCreated.length).toBeGreaterThan(1) // Main file + detail files
@@ -183,7 +183,7 @@ describe('agents-md-generator', () => {
     }
   })
 
-  test('generateAgentsMd creates compact content with references when using .agents/ directory', async () => {
+  test(`generateAgentsMd creates compact content with references when using ${AGENTS_DOCS_DIR}/ directory`, async () => {
     // Create a package.json with many dependencies to ensure we have content
     await fs.writeFile(
       'package.json',
@@ -210,9 +210,9 @@ describe('agents-md-generator', () => {
       expect(content).toContain('## Project Overview')
       expect(content).toContain('## Build System')
 
-      // If .agents/ directory was used, should contain references
+      // If ${AGENTS_DOCS_DIR}/ directory was used, should contain references
       if (result.agentsDirPath && existsSync(result.agentsDirPath)) {
-        expect(content).toContain('.agents/')
+        expect(content).toContain(AGENTS_DOCS_DIR)
         expect(content).toContain('for detailed information')
 
         // Check that detail files were created
@@ -265,9 +265,9 @@ describe('agents-md-generator', () => {
     }
   })
 
-  test('generateAgentsMd handles existing .agents/ directory properly', async () => {
-    // Create existing .agents/ directory with a file
-    const agentsDir = join(process.cwd(), '.agents')
+  test(`generateAgentsMd handles existing ${AGENTS_DOCS_DIR}/ directory properly`, async () => {
+    // Create existing ${AGENTS_DOCS_DIR}/ directory with a file
+    const agentsDir = join(process.cwd(), AGENTS_DOCS_DIR)
     if (!existsSync(agentsDir)) {
       mkdirSync(agentsDir, { recursive: true })
     }
@@ -285,8 +285,8 @@ describe('agents-md-generator', () => {
     expect(existsSync(join(agentsDir, 'existing.md'))).toBe(true)
   })
 
-  test('generateAgentsMd creates .agents/ directory for complex projects', async () => {
-    // Create a project with many sections to trigger .agents/ creation
+  test(`generateAgentsMd creates ${AGENTS_DOCS_DIR}/ directory for complex projects`, async () => {
+    // Create a project with many sections to trigger ${AGENTS_DOCS_DIR}/ creation
     await fs.writeFile(
       'package.json',
       JSON.stringify({
@@ -316,7 +316,7 @@ describe('agents-md-generator', () => {
     const result = await generateAgentsMd()
     expect(result.success).toBe(true)
 
-    // Should trigger .agents/ directory creation due to complexity
+    // Should trigger ${AGENTS_DOCS_DIR}/ directory creation due to complexity
     if (result.agentsDirPath) {
       expect(existsSync(result.agentsDirPath)).toBe(true)
       expect(result.filesCreated.length).toBeGreaterThan(1)

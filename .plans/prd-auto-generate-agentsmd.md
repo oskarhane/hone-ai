@@ -34,7 +34,7 @@ A CLI command `hone agents-md` that automatically generates comprehensive AGENTS
 - **REQ-F-007**: Analyze project structure and architectural decisions
 - **REQ-F-008**: Generate adaptive AGENTS.md format based on discovered tech stack
 - **REQ-F-009**: Limit AGENTS.md to 100 lines maximum
-- **REQ-F-010**: Create .agents/ subdirectory with topic-specific files for detailed info
+- **REQ-F-010**: Create .agents-docs/ subdirectory with topic-specific files for detailed info
 - **REQ-F-011**: Support both static analysis and dynamic command discovery
 - **REQ-F-012**: Handle existing AGENTS.md files (update vs replace decision)
 
@@ -61,8 +61,8 @@ A CLI command `hone agents-md` that automatically generates comprehensive AGENTS
 
 - [ ] `hone agents-md` command available without prior initialization
 - [ ] Generated AGENTS.md stays within 100-line limit
-- [ ] Creates .agents/ directory with topic-specific files when needed
-- [ ] References .agents/ files from main AGENTS.md with relative paths
+- [ ] Creates .agents-docs/ directory with topic-specific files when needed
+- [ ] References .agents-docs/ files from main AGENTS.md with relative paths
 - [ ] Handles existing AGENTS.md files appropriately
 - [ ] Provides clear success/error feedback
 - [ ] Discovers available test commands dynamically
@@ -85,7 +85,7 @@ A CLI command `hone agents-md` that automatically generates comprehensive AGENTS
 
 - Should command overwrite existing AGENTS.md without prompting? - Yes
 - How handle mixed-language projects (e.g., Java backend + React frontend)? - Create sub pages for each
-- Should .agents/ files be overwritten or merged with existing content? - Overwritten
+- Should .agents-docs/ files be overwritten or merged with existing content? - Overwritten
 - What priority order for language detection in polyglot repos? - The agent willd decide
 - Should command respect .gitignore patterns during scanning? - The agent will decide
 - How handle monorepos with multiple project roots? - Keep a single AGENTS.md in root-root

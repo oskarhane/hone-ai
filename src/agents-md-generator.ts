@@ -10,6 +10,12 @@ import { existsSync } from 'fs'
 import { AgentClient } from './agent-client'
 import { log, logError, logVerbose, logVerboseError } from './logger'
 
+/**
+ * Central constant for the agents documentation directory name
+ * This can be made configurable via config file in the future if needed
+ */
+export const AGENTS_DOCS_DIR = '.agents-docs'
+
 export interface AgentsMdGeneratorOptions {
   projectPath?: string
   overwrite?: boolean
@@ -531,14 +537,14 @@ ${section.content}
     )
   }
 
-  // Compact version with references to .agents/ files
+  // Compact version with references to ${AGENTS_DOCS_DIR}/ files
   const compactSections = sections
     .map(
       section => `## ${section.title}
 
 ${getFirstSentence(section.content)}
 
-See [@.agents/${section.detailFile}](.agents/${section.detailFile}) for detailed information.
+See [@${AGENTS_DOCS_DIR}/${section.detailFile}](${AGENTS_DOCS_DIR}/${section.detailFile}) for detailed information.
 `
     )
     .join('\n')
@@ -551,7 +557,7 @@ See [@.agents/${section.detailFile}](.agents/${section.detailFile}) for detailed
 ---
 
 *This AGENTS.md was generated using agent-based project discovery.*
-*Detailed information is available in the .agents/ directory.*
+*Detailed information is available in the ${AGENTS_DOCS_DIR}/ directory.*
 `
   )
 }
@@ -676,22 +682,22 @@ async function generateContent(
 
     logVerbose(`[AgentsMd] Generated content has ${lineCount} lines (limit: 100)`)
 
-    // Decide whether to use .agents/ subdirectory based on content length and complexity
+    // Decide whether to use ${AGENTS_DOCS_DIR}/ subdirectory based on content length and complexity
     const useAgentsDir = lineCount > 100 || sections.length > 5
 
     if (useAgentsDir) {
       if (lineCount > 100) {
         log(
-          'Content exceeds 100-line limit. Creating .agents/ subdirectory for detailed information.'
+          `Content exceeds 100-line limit. Creating ${AGENTS_DOCS_DIR}/ subdirectory for detailed information.`
         )
       } else {
         log(
-          'Project has complex structure. Creating .agents/ subdirectory for better organization.'
+          `Project has complex structure. Creating ${AGENTS_DOCS_DIR}/ subdirectory for better organization.`
         )
       }
     }
 
-    logVerbose(`[AgentsMd] Using .agents/ directory: ${useAgentsDir}`)
+    logVerbose(`[AgentsMd] Using ${AGENTS_DOCS_DIR}/ directory: ${useAgentsDir}`)
 
     const mainContent = generateCompactContent(sections, useAgentsDir)
 
@@ -732,7 +738,7 @@ export async function generateAgentsMd(
 
     // Check if AGENTS.md already exists and handle accordingly
     const agentsPath = join(projectPath, 'AGENTS.md')
-    const existingAgentsDirPath = join(projectPath, '.agents')
+    const existingAgentsDirPath = join(projectPath, AGENTS_DOCS_DIR)
 
     if (existsSync(agentsPath)) {
       if (!options.overwrite) {
@@ -747,14 +753,16 @@ export async function generateAgentsMd(
       }
     }
 
-    // Also check for existing .agents/ directory and inform user
+    // Also check for existing ${AGENTS_DOCS_DIR}/ directory and inform user
     if (existsSync(existingAgentsDirPath)) {
       if (!options.overwrite) {
         logVerbose(
-          '[AgentsMd] .agents/ directory already exists. Detail files will be skipped unless --overwrite is used.'
+          `[AgentsMd] ${AGENTS_DOCS_DIR}/ directory already exists. Detail files will be skipped unless --overwrite is used.`
         )
       } else {
-        logVerbose('[AgentsMd] .agents/ directory exists. Detail files will be overwritten.')
+        logVerbose(
+          `[AgentsMd] ${AGENTS_DOCS_DIR}/ directory exists. Detail files will be overwritten.`
+        )
       }
     }
 
@@ -790,25 +798,25 @@ export async function generateAgentsMd(
 
     const filesCreated = [agentsPath]
 
-    // Create .agents/ directory and detail files if needed
+    // Create ${AGENTS_DOCS_DIR}/ directory and detail files if needed
     let agentsDirPath: string | undefined
     let detailFilesCreated = 0
 
     if (useAgentsDir && detailSections) {
-      agentsDirPath = join(projectPath, '.agents')
+      agentsDirPath = join(projectPath, AGENTS_DOCS_DIR)
 
-      // Handle existing .agents/ directory
+      // Handle existing ${AGENTS_DOCS_DIR}/ directory
       if (existsSync(agentsDirPath)) {
         if (!options.overwrite) {
           log(
-            '• .agents/ directory already exists. Use --overwrite to replace existing detail files.'
+            `• ${AGENTS_DOCS_DIR}/ directory already exists. Use --overwrite to replace existing detail files.`
           )
         } else {
-          log('• .agents/ directory exists. Overwriting existing detail files.')
+          log(`• ${AGENTS_DOCS_DIR}/ directory exists. Overwriting existing detail files.`)
         }
       } else {
         await mkdir(agentsDirPath, { recursive: true })
-        logVerbose('[AgentsMd] Created .agents/ directory for detailed information')
+        logVerbose(`[AgentsMd] Created ${AGENTS_DOCS_DIR}/ directory for detailed information`)
       }
 
       process.stdout.write(`Creating ${detailSections.length} detail files... `)
@@ -855,7 +863,7 @@ ${section.content}
     log('')
     if (useAgentsDir && detailSections) {
       log(`✓ Generated AGENTS.md with ${detailSections.length} sections`)
-      log(`✓ Created ${detailFilesCreated} detail files in .agents/`)
+      log(`✓ Created ${detailFilesCreated} detail files in ${AGENTS_DOCS_DIR}/`)
     } else {
       log(
         `✓ Generated AGENTS.md with ${analysis.languages.length + analysis.buildSystems.length + analysis.testingFrameworks.length} detected components`
@@ -867,7 +875,7 @@ ${section.content}
     log('Next steps:')
     log('  1. Review the generated AGENTS.md for accuracy')
     if (useAgentsDir) {
-      log('  2. Check detailed information in the .agents/ directory')
+      log(`  2. Check detailed information in the ${AGENTS_DOCS_DIR}/ directory`)
     }
     log('  3. Edit and customize the documentation as needed')
     log('  4. Commit the changes to your repository')
