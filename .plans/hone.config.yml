@@ -1,5 +1,5 @@
-defaultAgent: opencode
+defaultAgent: claude
 models:
   opencode: claude-sonnet-4-20250514
-claude: claude-sonnet-4-20250514
-feedbackInstructions: "test: bun test"
+  claude: claude-sonnet-4-20250514
+feedbackInstructions: "test: bun test, format: bun run format"
