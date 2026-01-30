@@ -204,6 +204,23 @@ program
     }
   })
 
+program
+  .command('agents-md')
+  .description('Generate AGENTS.md documentation for the current project')
+  .action(async () => {
+    try {
+      setVerbose(program.opts().verbose || false)
+      const { generateAgentsMd } = await import('./agents-md-generator')
+      await generateAgentsMd()
+    } catch (error) {
+      console.error(
+        '\n✗ Error generating AGENTS.md:',
+        error instanceof Error ? error.message : error
+      )
+      process.exit(1)
+    }
+  })
+
 // Handle unknown commands and options by showing help
 program.configureOutput({
   outputError: (str, write) => {

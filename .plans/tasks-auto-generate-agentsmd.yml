@@ -8,7 +8,7 @@ tasks:
     title: "Add agents-md command to CLI"
     description: |
       Extend Commander.js CLI with new `hone agents-md` command that works without requiring `hone init`. Configure command structure and basic option parsing following existing patterns in index.ts.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "Command `hone agents-md` available from CLI"
@@ -16,7 +16,7 @@ tasks:
       - "Follows existing CLI patterns in codebase"
       - "Basic help text displays correctly"
       - "Command structure ready for implementation"
-    completed_at: null
+    completed_at: 2026-01-30T10:46:32.000Z
 
   - id: task-002
     title: "Create agents-md generator core module"
