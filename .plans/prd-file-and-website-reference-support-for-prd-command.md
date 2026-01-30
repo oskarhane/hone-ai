@@ -15,14 +15,14 @@ Enhance the `hone prd <text>` command to support referencing local files and web
 - Authentication for protected websites or files
 - Complex file format parsing beyond plain text
 - Caching of fetched content across multiple PRD generations
-- Don't be clever and try to parse the message to extract this. The agents can hansle it.
+- Don't be clever and try to parse the message to extract this. The agents can handle it.
+- DO NOT manually check for file references or URLs in the text. The agents will handle it automatically.
 
 ## Requirements
 
 ### Functional Requirements
 - REQ-F-001: Instruct the AI agent to follow and read urls and read local files if referenced
 - REQ-F-003: Include fetched content in the context sent to the AI agent
-- REQ-F-004: Skip invalid references with warning, continue PRD generation
 
 ### Non-Functional Requirements
 - REQ-NF-003: Error handling must not interrupt PRD generation flow
@@ -51,12 +51,7 @@ Enhance the `hone prd <text>` command to support referencing local files and web
 ## Acceptance Criteria
 - [ ] PRD command accepts file paths in description text
 - [ ] PRD command accepts HTTP/HTTPS URLs in description text
-- [ ] Local files are read and content included in PRD generation
-- [ ] Website content is fetched and included in PRD generation
-- [ ] Generated PRD quality improves when using referenced content
-- [ ] Existing PRD command functionality remains unchanged
 - [ ] Error messages follow existing formatting patterns
-- [ ] Debug logging shows content fetching operations in verbose mode
 
 ## Out of Scope
 - Authentication for private repositories or protected websites

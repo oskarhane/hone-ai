@@ -1,92 +1,89 @@
 feature: file-and-website-reference-support-for-prd-command
 prd: ./prd-file-and-website-reference-support-for-prd-command.md
-created_at: 2026-01-30T07:32:33.504Z
-updated_at: 2026-01-30T07:32:33.504Z
+created_at: 2026-01-30T07:41:52.833Z
+updated_at: 2026-01-30T07:41:52.833Z
 
 tasks:
   - id: task-001
-    title: "Analyze current PRD command implementation"
+    title: "Enhance PRD system prompt for file/URL handling"
     description: |
-      Study existing PRD command structure, prompt construction, and agent integration. Understand current flow from CLI input to agent execution to identify integration points for file/URL references.
+      Update the system prompt in prd-generator.ts to instruct the AI agent to automatically detect, read, and incorporate content from file paths and URLs referenced in the PRD description. The agent should handle this transparently without requiring explicit parsing in CLI code.
     status: pending
     dependencies: []
     acceptance_criteria:
-      - "PRD command entry point identified in codebase"
-      - "Current prompt construction logic documented"
-      - "Agent integration patterns understood"
-      - "Error handling patterns identified"
+      - "System prompt explicitly instructs agent to read local files if referenced"
+      - "System prompt explicitly instructs agent to fetch content from URLs if referenced"
+      - "Instructions integrated into existing PRD generation workflow"
+      - "Backward compatibility maintained for descriptions without references"
     completed_at: null
 
   - id: task-002
-    title: "Update PRD agent instructions for file/URL handling"
+    title: "Update PRD generation context preparation"
     description: |
-      Modify the PRD agent's system prompt or instructions to automatically detect and read local files and fetch URLs mentioned in the user's input. Leverage existing agent capabilities rather than pre-processing.
+      Modify the generatePRDContent function to pass the raw user description directly to the agent without preprocessing, allowing the agent to handle file and URL detection naturally. Ensure the codebase analysis and Q&A context are still properly included.
     status: pending
     dependencies:
       - task-001
     acceptance_criteria:
-      - "Agent instructions include file reading capability"
-      - "Agent instructions include URL fetching capability"
-      - "Instructions maintain existing PRD generation quality"
-      - "Backward compatibility with non-reference PRDs maintained"
+      - "Raw description text passed unmodified to agent"
+      - "Existing codebase analysis context preserved"
+      - "Q&A history context preserved"
+      - "AGENTS.md context integration maintained"
     completed_at: null
 
   - id: task-003
-    title: "Implement error handling for invalid references"
+    title: "Enhance clarifying questions phase for references"
     description: |
-      Add graceful error handling for cases where files don't exist, URLs are unreachable, or content cannot be fetched. Follow existing error patterns from src/errors.ts and ensure PRD generation continues.
+      Update the clarifying questions system prompt to instruct the agent to ask about referenced files or URLs if they cannot be accessed or if clarification is needed about their relevance to the PRD scope.
     status: pending
     dependencies:
-      - task-002
+      - task-001
     acceptance_criteria:
-      - "Invalid file paths logged as warnings"
-      - "Unreachable URLs handled gracefully"
-      - "PRD generation continues despite reference failures"
-      - "Error messages follow existing formatting patterns"
-      - "Debug logging shows reference resolution attempts"
+      - "Agent can ask clarifying questions about inaccessible references"
+      - "Questions follow existing 5-round limit pattern"
+      - "Graceful handling of reference access issues"
+      - "Integration with existing Q&A workflow"
     completed_at: null
 
   - id: task-004
-    title: "Add debug logging for reference operations"
+    title: "Implement graceful error handling for reference failures"
     description: |
-      Integrate logging using src/logger.ts to show when files are being read and URLs are being fetched during PRD generation. This helps with debugging and provides visibility into the reference resolution process.
+      Ensure that failures to read files or fetch URLs do not interrupt the PRD generation flow. The agent should continue PRD generation with available context and note any inaccessible references in the output.
     status: pending
     dependencies:
+      - task-002
       - task-003
     acceptance_criteria:
-      - "Debug logs show file read operations"
-      - "Debug logs show URL fetch operations"
-      - "Verbose mode displays reference resolution details"
-      - "Logging follows existing patterns from src/logger.ts"
-      - "Performance metrics included in debug output"
+      - "PRD generation continues when references fail to load"
+      - "Agent notes inaccessible references in PRD output"
+      - "Follows existing error handling patterns from errors.ts"
+      - "Network timeouts handled gracefully"
     completed_at: null
 
   - id: task-005
-    title: "Test with various file and URL references"
+    title: "Add verbose logging for reference processing"
     description: |
-      Create comprehensive test cases covering local files, HTTP/HTTPS URLs, invalid references, and mixed scenarios. Verify PRD generation quality and error handling work as expected.
-    status: pending
+      Integrate reference processing logging with the existing verbose logging system in logger.ts. When --verbose flag is used, show which files and URLs the agent is processing.
+    status: cancelled
     dependencies:
-      - task-004
+      - task-002
     acceptance_criteria:
-      - "Local file references work correctly"
-      - "HTTP/HTTPS URL references work correctly"
-      - "Invalid references handled gracefully"
-      - "Mixed valid/invalid references tested"
-      - "PRD quality improved with referenced content"
+      - "Uses existing setVerbose/logVerbose pattern"
+      - "Shows reference processing in verbose mode only"
+      - "Integrates with existing AgentClient verbose logging"
+      - "No impact on normal operation without --verbose flag"
     completed_at: null
 
   - id: task-006
     title: "Update documentation and examples"
     description: |
-      Add examples of file and URL reference usage to help documentation. Include common patterns and troubleshooting information for reference-enhanced PRD generation.
+      Update relevant documentation to show users how to reference local files and URLs in their PRD descriptions. Include examples of proper syntax and expected behavior.
     status: pending
     dependencies:
-      - task-005
+      - task-004
     acceptance_criteria:
-      - "Usage examples added to documentation"
-      - "File reference syntax documented"
-      - "URL reference syntax documented"
-      - "Troubleshooting guide for common issues"
-      - "Performance considerations documented"
+      - "README.md updated with file reference examples"
+      - "AGENTS.md updated if development patterns changed"
+      - "Help text includes reference to new capabilities"
+      - "Example PRD descriptions include file/URL references"
     completed_at: null
