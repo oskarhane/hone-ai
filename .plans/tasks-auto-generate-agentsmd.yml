@@ -1,0 +1,154 @@
+feature: auto-generate-agentsmd
+prd: ./prd-auto-generate-agentsmd.md
+created_at: 2026-01-30T08:20:56.167Z
+updated_at: 2026-01-30T08:20:56.167Z
+
+tasks:
+  - id: task-001
+    title: "Add agents-md command to CLI"
+    description: |
+      Extend Commander.js CLI with new `hone agents-md` command that works without requiring `hone init`. Configure command structure and basic option parsing following existing patterns in index.ts.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "Command `hone agents-md` available from CLI"
+      - "Command works without prior initialization"
+      - "Follows existing CLI patterns in codebase"
+      - "Basic help text displays correctly"
+      - "Command structure ready for implementation"
+    completed_at: null
+
+  - id: task-002
+    title: "Create agents-md generator core module"
+    description: |
+      Create new TypeScript module for AGENTS.md generation logic. Set up main function that accepts project path and returns generated content, following existing module patterns from prd-generator.ts.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Core generator module created with proper TypeScript types"
+      - "Main generation function accepts project path parameter"
+      - "Module follows existing codebase patterns"
+      - "Proper error handling structure in place"
+      - "Export structure ready for CLI integration"
+    completed_at: null
+
+  - id: task-003
+    title: "Design agent prompts for project discovery"
+    description: |
+      Create comprehensive prompts that instruct agents to analyze codebases for tech stack, dependencies, build systems, testing frameworks, and architectural patterns. Use existing agent patterns from prd-generator.ts for consistency.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "Language detection prompts created for major languages"
+      - "Build system discovery prompts for Maven, Gradle, npm, etc."
+      - "Testing framework detection prompts created"
+      - "Architecture analysis prompts designed"
+      - "Prompts follow existing agent communication patterns"
+    completed_at: null
+
+  - id: task-004
+    title: "Implement agent-based project scanning"
+    description: |
+      Build scanning system that uses existing AgentClient to execute discovery prompts against codebase. Implement parallel scanning for different aspects (languages, build systems, tests) to stay within 90-second execution time limit.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "Agent client integration for project scanning implemented"
+      - "Parallel scanning system for different discovery areas"
+      - "Execution completes within 90-second limit for typical projects"
+      - "Proper error handling for agent communication failures"
+      - "Results aggregation from multiple agent calls"
+    completed_at: null
+
+  - id: task-005
+    title: "Build AGENTS.md template system"
+    description: |
+      Create adaptive template system that generates AGENTS.md format based on discovered tech stack. Include logic for 100-line limit enforcement and .agents/ subdirectory creation for detailed information.
+    status: pending
+    dependencies:
+      - task-004
+    acceptance_criteria:
+      - "Template system adapts based on discovered tech stack"
+      - "100-line limit enforcement implemented"
+      - "Logic for creating .agents/ subdirectory with topic files"
+      - "Relative path references from main AGENTS.md to subfiles"
+      - "Template covers build, test, deploy, and architecture sections"
+    completed_at: null
+
+  - id: task-006
+    title: "Implement existing file handling logic"
+    description: |
+      Add logic to detect existing AGENTS.md files and handle overwrite behavior. Implement decision logic for when to create .agents/ subdirectory files versus keeping everything in main file.
+    status: pending
+    dependencies:
+      - task-005
+    acceptance_criteria:
+      - "Detection of existing AGENTS.md files implemented"
+      - "Overwrite behavior configured as per requirements"
+      - "Decision logic for .agents/ subdirectory creation"
+      - "Handling of existing .agents/ directory and files"
+      - "Proper file system operations with error handling"
+    completed_at: null
+
+  - id: task-007
+    title: "Add output formatting and feedback system"
+    description: |
+      Implement success/error feedback system using existing logger patterns. Add verbose output control and clear progress indication during agent scanning operations.
+    status: pending
+    dependencies:
+      - task-006
+    acceptance_criteria:
+      - "Success/error feedback implemented using existing logger"
+      - "Verbose output control integrated with global --verbose flag"
+      - "Progress indication during scanning operations"
+      - "Clear messaging about file creation and updates"
+      - "Consistent output formatting with existing commands"
+    completed_at: null
+
+  - id: task-008
+    title: "Wire command implementation to CLI"
+    description: |
+      Connect the agents-md generator module to the CLI command. Implement proper async handling, error catching, and integration with existing command patterns from index.ts.
+    status: pending
+    dependencies:
+      - task-007
+    acceptance_criteria:
+      - "CLI command properly invokes generator module"
+      - "Async handling matches existing command patterns"
+      - "Error catching and user-friendly error messages"
+      - "Integration with global CLI options (verbose, etc.)"
+      - "Command executes successfully from any directory"
+    completed_at: null
+
+  - id: task-009
+    title: "Add comprehensive test coverage"
+    description: |
+      Create unit and integration tests for agents-md functionality. Test agent prompt execution, template generation, file handling, and CLI integration following existing test patterns in codebase.
+    status: pending
+    dependencies:
+      - task-008
+    acceptance_criteria:
+      - "Unit tests for core generator module functions"
+      - "Integration tests for agent communication"
+      - "Tests for template system and file operations"
+      - "CLI integration tests following existing patterns"
+      - "Error scenario testing for robustness"
+    completed_at: null
+
+  - id: task-010
+    title: "Optimize performance and validate requirements"
+    description: |
+      Performance testing to ensure 90-second execution limit compliance. Validate all functional requirements are met including language support, build system detection, and output formatting standards.
+    status: cancelled
+    dependencies:
+      - task-009
+    acceptance_criteria:
+      - "Execution time validated under 90 seconds for typical projects"
+      - "All language detection requirements verified"
+      - "Build system and testing framework discovery validated"
+      - "100-line limit and .agents/ subdirectory logic confirmed"
+      - "Cross-platform compatibility verified"
+    completed_at: null
