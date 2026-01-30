@@ -1,0 +1,92 @@
+feature: file-and-website-reference-support-for-prd-command
+prd: ./prd-file-and-website-reference-support-for-prd-command.md
+created_at: 2026-01-30T07:32:33.504Z
+updated_at: 2026-01-30T07:32:33.504Z
+
+tasks:
+  - id: task-001
+    title: "Analyze current PRD command implementation"
+    description: |
+      Study existing PRD command structure, prompt construction, and agent integration. Understand current flow from CLI input to agent execution to identify integration points for file/URL references.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "PRD command entry point identified in codebase"
+      - "Current prompt construction logic documented"
+      - "Agent integration patterns understood"
+      - "Error handling patterns identified"
+    completed_at: null
+
+  - id: task-002
+    title: "Update PRD agent instructions for file/URL handling"
+    description: |
+      Modify the PRD agent's system prompt or instructions to automatically detect and read local files and fetch URLs mentioned in the user's input. Leverage existing agent capabilities rather than pre-processing.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Agent instructions include file reading capability"
+      - "Agent instructions include URL fetching capability"
+      - "Instructions maintain existing PRD generation quality"
+      - "Backward compatibility with non-reference PRDs maintained"
+    completed_at: null
+
+  - id: task-003
+    title: "Implement error handling for invalid references"
+    description: |
+      Add graceful error handling for cases where files don't exist, URLs are unreachable, or content cannot be fetched. Follow existing error patterns from src/errors.ts and ensure PRD generation continues.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "Invalid file paths logged as warnings"
+      - "Unreachable URLs handled gracefully"
+      - "PRD generation continues despite reference failures"
+      - "Error messages follow existing formatting patterns"
+      - "Debug logging shows reference resolution attempts"
+    completed_at: null
+
+  - id: task-004
+    title: "Add debug logging for reference operations"
+    description: |
+      Integrate logging using src/logger.ts to show when files are being read and URLs are being fetched during PRD generation. This helps with debugging and provides visibility into the reference resolution process.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "Debug logs show file read operations"
+      - "Debug logs show URL fetch operations"
+      - "Verbose mode displays reference resolution details"
+      - "Logging follows existing patterns from src/logger.ts"
+      - "Performance metrics included in debug output"
+    completed_at: null
+
+  - id: task-005
+    title: "Test with various file and URL references"
+    description: |
+      Create comprehensive test cases covering local files, HTTP/HTTPS URLs, invalid references, and mixed scenarios. Verify PRD generation quality and error handling work as expected.
+    status: pending
+    dependencies:
+      - task-004
+    acceptance_criteria:
+      - "Local file references work correctly"
+      - "HTTP/HTTPS URL references work correctly"
+      - "Invalid references handled gracefully"
+      - "Mixed valid/invalid references tested"
+      - "PRD quality improved with referenced content"
+    completed_at: null
+
+  - id: task-006
+    title: "Update documentation and examples"
+    description: |
+      Add examples of file and URL reference usage to help documentation. Include common patterns and troubleshooting information for reference-enhanced PRD generation.
+    status: pending
+    dependencies:
+      - task-005
+    acceptance_criteria:
+      - "Usage examples added to documentation"
+      - "File reference syntax documented"
+      - "URL reference syntax documented"
+      - "Troubleshooting guide for common issues"
+      - "Performance considerations documented"
+    completed_at: null
