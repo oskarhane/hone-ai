@@ -158,7 +158,7 @@ program
 
 program
   .command('prd <description>')
-  .description('Generate PRD interactively from feature description')
+  .description('Generate PRD interactively from feature description (supports file paths and URLs)')
   .action(async (description: string) => {
     try {
       setVerbose(program.opts().verbose || false)

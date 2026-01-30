@@ -1,0 +1,124 @@
+================================================================================
+TASK-001: Enhance PRD system prompt for file/URL handling
+Date: 2026-01-30T10:17:32.000Z
+================================================================================
+
+Summary:
+Enhanced PRD system prompts to automatically detect and process file paths and URLs referenced in feature descriptions. Added instructions for both clarifying questions and PRD generation phases to use Read and WebFetch tools transparently.
+
+Files Changed:
+- src/prd-generator.ts (modified: added FILE AND URL PROCESSING sections to both system prompts)
+- src/prd-generator.test.ts (modified: added test to verify system prompts contain file/URL processing instructions)
+
+Key Decisions:
+- Delegated file/URL processing to AI agent rather than adding complex parsing in CLI code
+- Maintained backward compatibility by only activating when references are detected
+- Integrated instructions into both clarifying questions and PRD generation phases
+- Added graceful error handling instructions to continue PRD generation if references fail
+
+Next Task: task-002
+
+================================================================================
+TASK-002: Update PRD generation context preparation
+Date: 2026-01-30T11:02:15.000Z
+================================================================================
+
+Summary:
+Task requirements already met by task-001 implementation. Raw user description passed unmodified to agent while preserving all existing context (codebase analysis, Q&A history, AGENTS.md). No additional code changes required.
+
+Files Changed:
+- .plans/tasks-file-and-website-reference-support-for-prd-command.yml (modified: updated task-002 status to completed)
+
+Key Decisions:
+- Confirmed task-001 implementation already satisfied task-002 requirements
+- Raw featureDescription parameter passed directly to system prompts without preprocessing
+- All existing context preservation maintained through task-001 changes
+
+Next Task: task-003
+
+================================================================================
+TASK-003: Enhance clarifying questions phase for references
+Date: 2026-01-30T11:20:45.000Z
+================================================================================
+
+Summary:
+Enhanced clarifying questions system prompt to handle reference access failures gracefully. Added dedicated REFERENCE ACCESS FAILURES section with instructions for continuing Q&A flow when file reads or URL fetches fail, asking clarifying questions about inaccessible references, and prioritizing reference-related questions early in the process.
+
+Files Changed:
+- src/prd-generator.ts (modified: added REFERENCE ACCESS FAILURES section to clarifying questions system prompt)
+- src/prd-generator.test.ts (modified: added test to verify reference failure handling instructions in clarifying questions prompt)
+
+Key Decisions:
+- Added specific guidance for handling reference access failures without interrupting Q&A flow
+- Included example question formats for agents to follow when references are inaccessible
+- Maintained integration with existing 5-round Q&A limit pattern
+- Ensured backward compatibility by only activating when references are present
+
+Next Task: task-004
+
+================================================================================
+TASK-004: Implement graceful error handling for reference failures
+Date: 2026-01-30T11:35:00.000Z
+================================================================================
+
+Summary:
+Enhanced PRD generation to gracefully handle file/URL reference failures and network timeouts. The process now continues with available context and generates fallback PRDs when agent processing fails, ensuring users always receive usable output.
+
+Files Changed:
+- src/prd-generator.ts (modified: enhanced error handling in generatePRD function and generatePRDContent function)
+
+Key Decisions:
+- Modified generatePRD function to catch agent processing errors and generate fallback PRD with basic structure
+- Updated generatePRDContent to re-throw errors for caller handling instead of immediately exiting
+- Fallback PRD includes available context (codebase analysis, Q&A history) and notes processing limitations in Open Questions
+- Maintained existing AgentClient error handling patterns to avoid breaking other system components
+- Applied same graceful error pattern used in clarifying questions phase to final PRD generation
+
+Implementation Details:
+- generatePRD function now catches all errors from generatePRDContent and creates fallback PRD
+- Fallback PRD follows same structure as system prompt template (Overview, Goals, Requirements, etc.)
+- Network timeouts and other agent failures no longer crash the process
+- Users receive clear messaging about fallback mode and suggestions to retry when connectivity restored
+- Preserved all existing context (codebase analysis, Q&A session) in fallback output
+
+Next Task: task-006
+
+================================================================================
+TASK-004 FINALIZED: Implement graceful error handling for reference failures
+Date: 2026-01-30T12:15:30.000Z
+================================================================================
+
+Summary:
+Task-004 finalized after thorough review. Implementation fully meets acceptance criteria with no issues found. PRD generation now gracefully handles file/URL reference failures, continues with available context, and generates fallback PRDs when agent processing fails.
+
+Files Changed:
+- .plans/tasks-file-and-website-reference-support-for-prd-command.yml (modified: updated task-004 completion timestamp)
+
+Key Decisions:
+- Review confirmed all acceptance criteria satisfied: graceful error handling, fallback PRD generation, proper error messaging
+- No code changes needed - existing implementation from task-004 development phase is complete and correct
+- Task marked as completed with proper timestamp for tracking
+
+Next Task: task-006
+
+================================================================================
+TASK-006: Update documentation and examples
+Date: 2026-01-30T12:30:15.000Z
+================================================================================
+
+Summary:
+Updated documentation to show users how to reference local files and URLs in PRD descriptions. Added comprehensive examples and updated CLI help text to mention new file/URL support capabilities.
+
+Files Changed:
+- README.md (modified: added "Reference files and URLs in PRDs" section with examples)
+- src/index.ts (modified: updated CLI description to mention file/URL support)
+- src/prd-generator.test.ts (modified: added tests for file/URL processing instructions)
+- .plans/tasks-file-and-website-reference-support-for-prd-command.yml (modified: marked task-006 as completed)
+
+Key Decisions:
+- Added comprehensive examples showing both local file paths and URL references
+- Updated CLI help text to make new capabilities discoverable to users
+- Provided clear guidance on syntax and expected behavior
+- Maintained backward compatibility by presenting feature as additive enhancement
+
+Next Task: All tasks complete

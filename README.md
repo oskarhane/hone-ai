@@ -87,6 +87,20 @@ hone prd-to-tasks .plans/prd-feature.md     # Generate tasks
 hone run .plans/tasks-feature.yml -i 5      # Implement tasks
 ```
 
+### Reference files and URLs in PRDs
+
+```bash
+# Reference local files in your PRD description
+hone prd "Implement user authentication based on ./docs/auth-spec.md"
+hone prd "Add dashboard following the component in ./src/components/Dashboard.tsx"
+
+# Reference URLs for external specifications
+hone prd "Create payment integration using https://stripe.com/docs/api"
+hone prd "Build social login with https://developers.google.com/identity/protocols/oauth2"
+```
+
+hone automatically reads referenced files and fetches URL content to inform PRD generation.
+
 ### Check progress
 
 ```bash
@@ -128,6 +142,22 @@ hone breaks feature development into 3 phases:
 3. **Finalize** — AI applies feedback, updates docs, and commits changes
 
 Each `hone run` executes multiple iterations of this cycle automatically.
+
+### File and URL References in PRDs
+
+When creating PRDs, you can reference files and URLs directly in your feature description:
+
+**Local files:**
+- `./docs/api-spec.md` - Read project documentation
+- `src/components/Button.tsx` - Analyze existing components
+- `./database/schema.sql` - Review database structure
+
+**URLs:**
+- `https://docs.stripe.com/api` - External API documentation
+- `https://www.figma.com/design/123/App` - Design specifications
+- `http://localhost:3000/dashboard` - Reference existing pages
+
+The AI agent automatically reads files and fetches web content to generate more accurate PRDs.
 
 ## File Structure
 

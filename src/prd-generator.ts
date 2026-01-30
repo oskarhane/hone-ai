@@ -187,6 +187,17 @@ IMPORTANT: Before asking questions, carefully analyze the provided codebase cont
 Many common questions about testing frameworks, build systems, dependencies, project structure, and technical
 patterns can be answered from the codebase analysis. Only ask questions that cannot be determined from the code.
 
+FILE AND URL PROCESSING:
+- If the feature description contains file paths (e.g., "./file.txt", "/path/to/file", "src/component.js"), automatically read and incorporate their content using the Read tool
+- If the feature description contains URLs (e.g., "https://example.com", "http://site.com/page"), automatically fetch and incorporate their content using the WebFetch tool
+- Process these references transparently - no need to ask the user about them unless you cannot access them
+- REFERENCE ACCESS FAILURES: When file reads or URL fetches fail:
+  * Continue with question generation using available context
+  * Ask clarifying questions about the inaccessible reference's intended purpose or relevance
+  * Examples: "I couldn't access [file/URL]. What was its relevance to this feature?" or "Since [reference] is inaccessible, could you clarify what information it contained that's relevant to the requirements?"
+  * Prioritize these clarification questions early in the Q&A session when references are critical to understanding scope
+- Use the content from files and URLs to better inform your clarifying questions when accessible
+
 Rules:
 - Ask ONE specific, focused question at a time
 - Questions should help clarify requirements, scope, UX, technical approach, or edge cases
@@ -270,6 +281,13 @@ async function generatePRDContent(
 
   const systemPrompt = `You are a technical product manager writing a Product Requirements Document (PRD).
 
+FILE AND URL PROCESSING:
+- If the feature description contains file paths (e.g., "./file.txt", "/path/to/file", "src/component.js"), automatically read and incorporate their content using the Read tool
+- If the feature description contains URLs (e.g., "https://example.com", "http://site.com/page"), automatically fetch and incorporate their content using the WebFetch tool
+- Process these references transparently to enrich the PRD content with actual file contents and web page information
+- If references fail to load, note them in the "Open Questions" section and continue PRD generation
+- Use the content from files and URLs to inform technical decisions, requirements, and acceptance criteria
+
 Generate a comprehensive PRD with the following structure:
 
 # PRD: <Feature Name>
@@ -343,9 +361,10 @@ documentation to inform technical decisions and ensure the PRD aligns with the e
   } catch (error) {
     // Clear progress indicator with error
     process.stdout.write('✗\n')
-    const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error)
-    exitWithError(message, details)
-    throw error // Never reached but satisfies TypeScript
+
+    // Re-throw the error to be handled by the caller
+    // This allows the generatePRD function to implement fallback behavior
+    throw error
   }
 }
 
@@ -411,8 +430,61 @@ export async function generatePRD(featureDescription: string): Promise<string> {
 
     return filename
   } catch (error) {
-    const { message, details } = ErrorMessages.NETWORK_ERROR_FINAL(error)
-    exitWithError(message, details)
-    throw error // Never reached but satisfies TypeScript
+    console.error(
+      `\nError generating PRD: ${error instanceof Error ? error.message : String(error)}`
+    )
+    console.log('Generating fallback PRD with available information...\n')
+
+    // Generate a fallback PRD with basic structure and available context
+    const fallbackFeatureName = featureDescription.split('\n')[0] || 'New Feature'
+    const slug = slugify(fallbackFeatureName)
+    const filename = `prd-${slug}.md`
+    const filepath = join(process.cwd(), '.plans', filename)
+
+    const qaHistory = qa.map(q => `Q: ${q.question}\nA: ${q.answer}`).join('\n\n')
+
+    const fallbackContent = `# PRD: ${fallbackFeatureName}
+
+## Overview
+${featureDescription}
+
+## Goals
+To be determined based on further analysis.
+
+## Non-Goals
+To be determined based on further analysis.
+
+## Requirements
+
+### Functional Requirements
+- REQ-F-001: To be defined based on detailed analysis
+
+### Non-Functional Requirements
+- REQ-NF-001: To be defined based on detailed analysis
+
+## Technical Considerations
+Based on codebase analysis: ${codebaseAnalysis}
+
+## Acceptance Criteria
+- [ ] Requirements to be defined after successful agent processing
+
+## Out of Scope
+To be determined.
+
+## Open Questions
+- This PRD was generated in fallback mode due to agent processing issues
+- Full requirements analysis could not be completed
+- Consider regenerating this PRD when system connectivity is restored
+${qaHistory ? `\n\nPrevious Q&A Session:\n${qaHistory}` : ''}`
+
+    await writeFile(filepath, fallbackContent, 'utf-8')
+
+    console.log(`✓ Generated fallback PRD: .plans/${filename}`)
+    console.log('Note: This PRD contains basic structure. Consider regenerating when system is available.\n')
+    console.log(
+      `Review and edit the PRD and then execute "hone prd-to-tasks .plans/${filename}"\n`
+    )
+
+    return filename
   }
 }
