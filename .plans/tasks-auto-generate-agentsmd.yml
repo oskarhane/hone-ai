@@ -22,7 +22,7 @@ tasks:
     title: "Create agents-md generator core module"
     description: |
       Create new TypeScript module for AGENTS.md generation logic. Set up main function that accepts project path and returns generated content, following existing module patterns from prd-generator.ts.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -31,7 +31,7 @@ tasks:
       - "Module follows existing codebase patterns"
       - "Proper error handling structure in place"
       - "Export structure ready for CLI integration"
-    completed_at: null
+    completed_at: 2026-01-30T16:22:15.000Z
 
   - id: task-003
     title: "Design agent prompts for project discovery"

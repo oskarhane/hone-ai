@@ -1,7 +1,12 @@
-import { describe, expect, test, beforeEach, mock } from 'bun:test'
+import { describe, expect, test, beforeEach, afterEach, mock } from 'bun:test'
 import { generateAgentsMd } from './agents-md-generator'
+import type { AgentsMdGeneratorOptions, GenerationResult } from './agents-md-generator'
+import { existsSync } from 'fs'
+import { unlink } from 'fs/promises'
+import { join } from 'path'
+import * as fs from 'fs/promises'
 
-// Mock console functions
+// Mock console and logger functions
 const originalLog = console.log
 const originalError = console.error
 let logCalls: string[] = []
@@ -22,31 +27,83 @@ beforeEach(() => {
   })
 })
 
-// Restore console functions after all tests
-process.on('exit', () => {
+afterEach(async () => {
+  // Clean up any test files
+  const testAgentsPath = join(process.cwd(), 'AGENTS.md')
+  if (existsSync(testAgentsPath)) {
+    try {
+      await unlink(testAgentsPath)
+    } catch {
+      // Ignore cleanup errors
+    }
+  }
+
+  // Restore console functions
   console.log = originalLog
   console.error = originalError
 })
 
 describe('agents-md-generator', () => {
-  test('generateAgentsMd executes without errors', async () => {
-    await expect(generateAgentsMd()).resolves.toBeUndefined()
+  test('generateAgentsMd returns proper result structure', async () => {
+    const result: GenerationResult = await generateAgentsMd()
+
+    expect(result).toHaveProperty('success')
+    expect(result).toHaveProperty('filesCreated')
+    expect(typeof result.success).toBe('boolean')
+    expect(Array.isArray(result.filesCreated)).toBe(true)
   })
 
-  test('generateAgentsMd outputs expected development messages', async () => {
-    await generateAgentsMd()
+  test('generateAgentsMd generates content with basic project analysis', async () => {
+    const result: GenerationResult = await generateAgentsMd()
 
-    expect(logCalls).toContain('Generating AGENTS.md documentation...')
-    expect(logCalls).toContain('AGENTS.md generation functionality is under development')
-    expect(logCalls).toContain('This command structure is ready for full implementation')
+    if (result.success && result.mainFilePath) {
+      expect(existsSync(result.mainFilePath)).toBe(true)
+      const content = await fs.readFile(result.mainFilePath, 'utf-8')
+      expect(content).toContain('# AGENTS.md')
+      expect(content).toContain('## Project Overview')
+      expect(content).toContain('## Build System')
+    }
+  })
+
+  test('generateAgentsMd accepts custom project path', async () => {
+    const options: AgentsMdGeneratorOptions = {
+      projectPath: process.cwd(),
+    }
+
+    const result = await generateAgentsMd(options)
+    expect(typeof result.success).toBe('boolean')
+  })
+
+  test('generateAgentsMd respects overwrite option when file exists', async () => {
+    // First generation should succeed
+    const firstResult = await generateAgentsMd()
+    expect(firstResult.success).toBe(true)
+
+    // Second generation without overwrite should fail
+    const secondResult = await generateAgentsMd()
+    expect(secondResult.success).toBe(false)
+    expect(secondResult.error?.message).toContain('already exists')
+
+    // Third generation with overwrite should succeed
+    const thirdResult = await generateAgentsMd({ overwrite: true })
+    expect(thirdResult.success).toBe(true)
   })
 
   test('generateAgentsMd handles errors gracefully', async () => {
-    // Mock console.log to throw an error
-    console.log = mock(() => {
-      throw new Error('Test error')
-    })
+    // Test with invalid project path
+    const result = await generateAgentsMd({ projectPath: '/nonexistent/path' })
 
-    await expect(generateAgentsMd()).rejects.toThrow('Test error')
+    // Should handle errors gracefully and return error result
+    if (!result.success) {
+      expect(result.error).toBeInstanceOf(Error)
+    }
+  })
+
+  test('generateAgentsMd outputs expected log messages', async () => {
+    await generateAgentsMd()
+
+    expect(logCalls.some(msg => msg.includes('Analyzing project'))).toBe(true)
+    expect(logCalls.some(msg => msg.includes('Loading configuration'))).toBe(true)
+    expect(logCalls.some(msg => msg.includes('Generating AGENTS.md'))).toBe(true)
   })
 })
