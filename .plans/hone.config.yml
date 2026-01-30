@@ -2,4 +2,5 @@ defaultAgent: claude
 models:
   opencode: claude-sonnet-4-20250514
   claude: claude-sonnet-4-20250514
+  review: claude-opus-4-5-20251101
 feedbackInstructions: "test: bun test, format: bun run format"
