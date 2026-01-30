@@ -76,7 +76,7 @@ export class AgentClient {
               workingDir: this.config.workingDir || process.cwd(),
               model,
               silent: true,
-              timeout: 120000, // 2 minute timeout for PRD questions
+              timeout: 300000, // 5 minute timeout for PRD questions
             })
 
             // Only retry network errors, throw immediately for other failures
@@ -107,7 +107,7 @@ export class AgentClient {
                 )
                 exitWithError(message, details)
               } else if (errorInfo.type === 'timeout') {
-                const timeoutMs = 120000 // Default timeout
+                const timeoutMs = 300000 // Default timeout
                 const { message, details } = ErrorMessages.AGENT_TIMEOUT(
                   this.config.agent,
                   timeoutMs

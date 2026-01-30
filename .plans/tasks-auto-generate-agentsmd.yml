@@ -230,3 +230,29 @@ tasks:
       - "README.md and all references in other files and comments are updated"
       - "a central variable/constant defines this to make it easy to change in the future, or potentially configurable via the config file"
     completed_at: 2026-01-30T22:30:15.000Z
+
+  - id: task-015
+    title: "timeout might be too tight"
+    description: |
+      the timeout might be too tight. We should increase it to give the agents more time to complete their tasks.
+      I get this error from time to time.
+      ---
+      ✗ Error: opencode agent timed out
+
+      The opencode agent did not respond within 120 seconds.
+
+      This may indicate:
+        • Network connectivity issues
+        • Agent server overload
+        • Very large or complex request
+
+      Try:
+        • Simplifying your request
+        • Checking your internet connection
+        • Retrying in a few minutes
+      ---
+    status: completed
+    dependencies:
+    acceptance_criteria:
+      - "increase timeout to 300 seconds"
+    completed_at: 2026-01-30T22:45:00.000Z
