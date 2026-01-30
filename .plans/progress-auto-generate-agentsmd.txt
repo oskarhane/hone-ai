@@ -40,4 +40,51 @@ Key Decisions:
 - Added extensive error handling with detailed user feedback via logger
 - Created thorough test coverage including edge cases and error scenarios
 
-Next Task: task-003
+Next Task: task-004
+
+================================================================================
+TASK-003: Design agent prompts for project discovery
+Date: 2026-01-30T16:50:00.000Z
+================================================================================
+
+Summary:
+Implemented comprehensive discovery prompts that instruct agents to analyze codebases for tech stack, dependencies, build systems, testing frameworks, and architectural patterns. Added agent execution infrastructure following existing patterns from prd-generator.ts.
+
+Files Changed:
+- src/agents-md-generator.ts (added DISCOVERY_PROMPTS object and executeDiscoveryPrompt function)
+
+Key Decisions:
+- Created 5 specialized discovery prompts: languages, buildSystems, testing, architecture, deployment
+- Each prompt provides detailed detection rules and expected response format
+- Language detection covers JavaScript/TypeScript, Python, Java, Go, Rust, PHP, Ruby
+- Build system analysis includes npm/yarn/pnpm, Maven, Gradle, Webpack, Vite, Docker, Make
+- Testing framework detection spans Jest, Vitest, pytest, JUnit, Go testing, Rust testing
+- Architecture analysis examines directory structure, design patterns, API patterns, database integration
+- Deployment analysis covers containerization, CI/CD, cloud platforms, infrastructure patterns
+- Added executeDiscoveryPrompt function using AgentClient following existing patterns
+- Used resolveModelForPhase with 'implement' phase model for consistency
+- Added proper verbose logging following existing agent service patterns
+- Error handling returns descriptive error messages rather than failing completely
+
+Next Task: task-004
+
+================================================================================
+TASK-003: Design agent prompts for project discovery (FINALIZED)
+Date: 2026-01-30T17:15:26.000Z
+================================================================================
+
+Summary:
+Applied review feedback to clean up implementation. Removed unused imports, fixed typing issues, and increased max_tokens for better agent responses. All tests pass and code is properly formatted.
+
+Files Changed:
+- src/agents-md-generator.ts (removed unused imports, fixed config typing, increased max_tokens from 1000 to 2000)
+- .plans/tasks-auto-generate-agentsmd.yml (updated task-003 completion timestamp)
+- .plans/progress-auto-generate-agentsmd.txt (added finalization entry)
+
+Key Decisions:
+- Removed unused imports: readdir, AgentType, exitWithError for cleaner code
+- Fixed config parameter typing from `any` to proper `HoneConfig` type
+- Increased max_tokens from 1000 to 2000 for more detailed agent responses
+- All review feedback addressed successfully
+
+Next Task: task-004

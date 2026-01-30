@@ -3,14 +3,12 @@
  * Core module for generating project documentation for AI agents
  */
 
-import { loadConfig, resolveModelForPhase } from './config'
-import type { AgentType } from './config'
-import { readFile, writeFile, readdir } from 'fs/promises'
+import { loadConfig, resolveModelForPhase, type HoneConfig } from './config'
+import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
-import { exitWithError } from './errors'
 import { AgentClient } from './agent-client'
-import { log, logError, logVerbose } from './logger'
+import { log, logError, logVerbose, logVerboseError } from './logger'
 
 export interface AgentsMdGeneratorOptions {
   projectPath?: string
@@ -154,12 +152,178 @@ async function analyzeProject(projectPath: string): Promise<ProjectAnalysis> {
 }
 
 /**
+ * Discovery prompts for analyzing different aspects of the project
+ */
+const DISCOVERY_PROMPTS = {
+  languages: `Analyze this project's codebase to identify the primary programming languages used and their purposes.
+
+IMPORTANT LANGUAGE DETECTION RULES:
+- Look for source code files (.js, .ts, .py, .java, .go, .rs, .php, .rb, etc.)
+- Check package.json, requirements.txt, go.mod, Cargo.toml, pom.xml, build.gradle for dependencies
+- Identify language-specific configuration files (tsconfig.json, .eslintrc, setup.py, etc.)
+- For TypeScript projects, note if it's primarily TypeScript or mixed JS/TS
+- For frontend projects, distinguish between client-side and server-side languages
+
+Respond with a concise summary in this format:
+PRIMARY LANGUAGES: [language 1, language 2, ...]
+USAGE CONTEXT: [brief explanation of how each language is used in the project]`,
+
+  buildSystems: `Analyze this project to identify build systems, package managers, and compilation/bundling tools.
+
+BUILD SYSTEM DETECTION RULES:
+- npm/yarn/pnpm: Look for package.json, package-lock.json, yarn.lock, pnpm-lock.yaml
+- Maven: Look for pom.xml, maven-wrapper files
+- Gradle: Look for build.gradle, gradlew files
+- Go modules: Look for go.mod, go.sum
+- Cargo: Look for Cargo.toml, Cargo.lock
+- Webpack: Look for webpack.config.js, webpack configurations
+- Vite: Look for vite.config.ts/js
+- Parcel: Look for .parcelrc, parcel configurations
+- Build scripts in package.json (build, bundle, compile commands)
+- Docker: Look for Dockerfile, docker-compose.yml
+- Make: Look for Makefile
+- Custom build scripts in various languages
+
+Respond with:
+BUILD SYSTEMS: [system 1, system 2, ...]
+BUILD COMMANDS: [key build commands developers should know]
+BUNDLING: [bundling tools if applicable]`,
+
+  testing: `Identify testing frameworks, test organization patterns, and testing strategies used in this project.
+
+TESTING FRAMEWORK DETECTION:
+- JavaScript/TypeScript: Jest, Vitest, Mocha, Cypress, Playwright, Testing Library
+- Python: pytest, unittest, nose, tox
+- Java: JUnit, TestNG, Mockito, Spring Test
+- Go: built-in testing, Testify, Ginkgo
+- Rust: built-in testing, proptest, criterion
+- Ruby: RSpec, minitest
+- PHP: PHPUnit, Pest
+
+Look for:
+- Test files (*.test.*, *.spec.*, *_test.*, test_*.py)
+- Test directories (/test, /tests, /__tests__)
+- Configuration files (jest.config.js, vitest.config.ts, pytest.ini)
+- CI/CD test configurations
+- Mock/stub patterns
+- E2E testing setup
+
+Respond with:
+TESTING FRAMEWORKS: [framework 1, framework 2, ...]
+TEST COMMANDS: [how to run tests]
+TEST ORGANIZATION: [how tests are structured and organized]
+E2E TESTING: [end-to-end testing approach if present]`,
+
+  architecture: `Analyze the project's architectural patterns, directory structure, and design decisions.
+
+ARCHITECTURE ANALYSIS AREAS:
+- Directory/folder structure and organization
+- Design patterns (MVC, MVP, MVVM, layered architecture, microservices, etc.)
+- Code organization (modules, packages, namespaces)
+- Database integration patterns
+- API design patterns (REST, GraphQL, RPC)
+- Configuration management
+- Dependency injection patterns
+- Error handling patterns
+- Logging and monitoring
+- Security patterns
+- Performance considerations
+
+Examine:
+- Source code organization in src/, lib/, app/ directories
+- Configuration files and their patterns
+- Database schema or ORM usage
+- API endpoint definitions
+- Middleware/interceptor patterns
+- Shared utilities and common code
+
+Respond with:
+ARCHITECTURE PATTERN: [primary architectural pattern]
+DIRECTORY STRUCTURE: [key organizational principles]
+DESIGN PATTERNS: [notable design patterns in use]
+DATABASE: [data layer architecture if applicable]
+API DESIGN: [API architectural patterns if applicable]`,
+
+  deployment: `Analyze deployment strategies, infrastructure patterns, and operational considerations for this project.
+
+DEPLOYMENT ANALYSIS:
+- Containerization (Docker, Podman)
+- Container orchestration (Kubernetes, Docker Swarm, Docker Compose)
+- Cloud platforms (AWS, GCP, Azure, Vercel, Netlify, Railway)
+- CI/CD pipelines (GitHub Actions, GitLab CI, Jenkins, CircleCI)
+- Infrastructure as Code (Terraform, CloudFormation, Pulumi)
+- Serverless deployment (Lambda, Cloud Functions, Vercel Functions)
+- Static site deployment
+- Database deployment and migrations
+- Environment configuration management
+- Monitoring and logging setup
+
+Look for:
+- Dockerfile, docker-compose.yml
+- .github/workflows/, .gitlab-ci.yml, Jenkinsfile
+- Cloud provider configuration files
+- Deployment scripts
+- Environment variable configurations (.env patterns)
+- Database migration files
+- Package.json deploy scripts
+
+Respond with:
+DEPLOYMENT STRATEGY: [primary deployment approach]
+CONTAINERIZATION: [Docker/container usage]
+CI/CD: [continuous integration/deployment setup]
+HOSTING: [where the application is designed to be hosted]
+ENVIRONMENT MANAGEMENT: [how environments are configured]`,
+}
+
+/**
+ * Execute a discovery prompt against the project using agent
+ */
+async function executeDiscoveryPrompt(
+  projectPath: string,
+  promptKey: keyof typeof DISCOVERY_PROMPTS,
+  config: HoneConfig
+): Promise<string> {
+  const model = resolveModelForPhase(config, 'implement') // Use implement phase model
+  const client = new AgentClient({
+    agent: config.defaultAgent,
+    model,
+    workingDir: projectPath,
+  })
+
+  logVerbose(`[AgentClient] Executing ${promptKey} discovery prompt`)
+
+  try {
+    const response = await client.messages.create({
+      max_tokens: 2000,
+      messages: [
+        {
+          role: 'user',
+          content: 'Analyze the project and provide the requested analysis.',
+        },
+      ],
+      system: DISCOVERY_PROMPTS[promptKey],
+    })
+
+    const content = response.content[0]
+    const result = content && content.type === 'text' ? content.text.trim() : ''
+
+    logVerbose(`[AgentClient] Completed ${promptKey} discovery: ${result.substring(0, 100)}...`)
+    return result
+  } catch (error) {
+    logVerboseError(
+      `[AgentClient] Failed ${promptKey} discovery: ${error instanceof Error ? error.message : error}`
+    )
+    return `Error analyzing ${promptKey}: ${error instanceof Error ? error.message : error}`
+  }
+}
+
+/**
  * Generate AGENTS.md content based on project analysis
  */
 async function generateContent(
   projectPath: string,
   analysis: ProjectAnalysis,
-  config: any
+  config: HoneConfig
 ): Promise<string> {
   // This is a placeholder for the actual content generation logic
   // Will be implemented in future tasks using agent-based discovery

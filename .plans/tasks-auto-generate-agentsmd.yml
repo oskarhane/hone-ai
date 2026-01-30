@@ -37,7 +37,7 @@ tasks:
     title: "Design agent prompts for project discovery"
     description: |
       Create comprehensive prompts that instruct agents to analyze codebases for tech stack, dependencies, build systems, testing frameworks, and architectural patterns. Use existing agent patterns from prd-generator.ts for consistency.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
@@ -46,7 +46,7 @@ tasks:
       - "Testing framework detection prompts created"
       - "Architecture analysis prompts designed"
       - "Prompts follow existing agent communication patterns"
-    completed_at: null
+    completed_at: 2026-01-30T17:15:26.000Z
 
   - id: task-004
     title: "Implement agent-based project scanning"
