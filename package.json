@@ -33,6 +33,7 @@
     "hone": "src/index.ts"
   },
   "scripts": {
+    "test": "bun test",
     "build": "bun run build:linux && bun run build:macos",
     "format": "prettier --write \"**/*.ts\"",
     "build:linux": "bun build --compile --minify --sourcemap --target=bun-linux-x64 ./src/index.ts --outfile hone-linux",
