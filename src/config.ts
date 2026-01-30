@@ -17,7 +17,6 @@ export interface HoneConfig {
     finalize?: string
     agentsMd?: string
   }
-  feedbackInstructions?: string
   lintCommand?: string
 }
 
@@ -29,7 +28,6 @@ const DEFAULT_CONFIG: HoneConfig = {
     opencode: 'claude-sonnet-4-20250514',
     claude: 'claude-sonnet-4-20250514',
   },
-  feedbackInstructions: 'test: bun test',
   lintCommand: undefined,
 }
 

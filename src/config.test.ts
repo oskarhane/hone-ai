@@ -98,7 +98,6 @@ describe('Config Management', () => {
         opencode: 'test-opencode',
         claude: 'test-claude',
       },
-      feedbackInstructions: 'test: npm test, lint: npm run lint',
       lintCommand: 'npm run lint',
     }
 

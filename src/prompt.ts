@@ -85,7 +85,7 @@ function getPhaseInstructions(
   taskId?: string,
   reviewFeedback?: string
 ): string {
-  const feedbackInstructions = config.feedbackInstructions || 'test: bun test'
+  const feedbackInstructions = 'test: bun test'
   const lintCommand = config.lintCommand
 
   switch (phase) {

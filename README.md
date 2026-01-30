@@ -140,7 +140,6 @@ defaultAgent: claude
 models:
   opencode: claude-sonnet-4-20250514
   claude: claude-sonnet-4-20250514
-feedbackInstructions: 'test: bun test, type check: bun run tsc'
 ```
 
 **Advanced model configuration:**
