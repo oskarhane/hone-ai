@@ -129,3 +129,30 @@ Key Decisions:
 - Proper logging using logVerbose() for debug output following existing patterns
 
 Next Task: task-005
+
+================================================================================
+TASK-005: Build AGENTS.md template system
+Date: 2026-01-30T19:32:15.000Z
+================================================================================
+
+Summary:
+Implemented adaptive template system that generates AGENTS.md format based on discovered tech stack. Added 100-line limit enforcement, .agents/ subdirectory creation, and proper template sections. Addressed critical feedback by restoring original AGENTS.md that was overwritten during implementation.
+
+Files Changed:
+- src/agents-md-generator.ts (added createTemplateSections, buildMainTemplate, generateAgentsMd functions with template system)
+- src/agents-md-generator.test.ts (added 9 comprehensive tests for template functionality)
+- src/index.ts (added --overwrite CLI option and integration with generator)
+- AGENTS.md (restored original content after addressing critical feedback)
+
+Key Decisions:
+- Implemented TemplateSection interface for type safety with detailFile, summary, and content properties
+- Created dynamic template section building based on tech stack analysis
+- Added 100-line limit enforcement with automatic .agents/ subdirectory fallback using useAgentsDir flag
+- Built proper relative path references [@.agents/${section.detailFile}](.agents/${section.detailFile})
+- Covered all required sections: PRIMARY, BUILD, TESTING, ARCHITECTURE, DEPLOYMENT
+- Added --overwrite CLI option for existing file handling (minor scope addition)
+- Addressed critical review feedback by restoring original AGENTS.md instead of overwriting with auto-generated content
+- Used countLines() helper to accurately track content length and trigger subdirectory creation
+- Implemented getFirstSentence() for summary generation (noted for potential improvement)
+
+Next Task: task-006

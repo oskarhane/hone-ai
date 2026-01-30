@@ -5,6 +5,29 @@ import { existsSync, mkdirSync, rmSync } from 'fs'
 import { join } from 'path'
 import * as fs from 'fs/promises'
 
+// Mock AgentClient
+import { AgentClient } from './agent-client'
+
+const mockAgentResponse = {
+  content: [
+    {
+      type: 'text' as const,
+      text: 'PRIMARY LANGUAGES: JavaScript, TypeScript\nUSAGE CONTEXT: TypeScript for main application code, JavaScript for configuration files',
+    },
+  ],
+}
+
+const mockAgentClient = {
+  messages: {
+    create: mock(async () => mockAgentResponse),
+  },
+}
+
+// Mock the AgentClient constructor
+mock.module('./agent-client', () => ({
+  AgentClient: mock(() => mockAgentClient),
+}))
+
 // Test workspace setup
 const TEST_WORKSPACE = join(process.cwd(), '.test-agents-md-workspace')
 const originalCwd = process.cwd()
@@ -113,5 +136,131 @@ describe('agents-md-generator', () => {
     expect(logCalls.some(msg => msg.includes('Analyzing project'))).toBe(true)
     expect(logCalls.some(msg => msg.includes('Loading configuration'))).toBe(true)
     expect(logCalls.some(msg => msg.includes('Generating AGENTS.md'))).toBe(true)
+  })
+
+  test('generateAgentsMd creates .agents/ directory when content exceeds 100 lines', async () => {
+    // Mock a response that will generate a very long output
+    const longMockResponse = {
+      content: [
+        {
+          type: 'text' as const,
+          text:
+            'PRIMARY LANGUAGES: JavaScript, TypeScript, Python, Java, Go, Rust, PHP, Ruby, C++, C#, Swift, Kotlin, Scala, Clojure, Elixir, Erlang, Haskell, OCaml, F#, R, MATLAB, Lua, Perl, Shell\n'.repeat(
+              20
+            ) +
+            'This is a very detailed analysis that will definitely exceed the 100-line limit when combined with other sections. ' +
+            'It includes extensive information about the project structure, dependencies, build systems, testing frameworks, and deployment strategies. ' +
+            'The content is intentionally verbose to trigger the .agents/ subdirectory creation logic.',
+        },
+      ],
+    }
+
+    // Mock agent client to return long content
+    const longMockAgentClient = {
+      messages: {
+        create: mock(async () => longMockResponse),
+      },
+    }
+
+    // Replace the mock temporarily
+    const originalMock = mockAgentClient.messages.create
+    mockAgentClient.messages.create = longMockAgentClient.messages.create
+
+    const result = await generateAgentsMd()
+
+    // Restore original mock
+    mockAgentClient.messages.create = originalMock
+
+    expect(result.success).toBe(true)
+
+    // Check if .agents/ directory was created
+    if (result.agentsDirPath) {
+      expect(existsSync(result.agentsDirPath)).toBe(true)
+      expect(result.filesCreated.length).toBeGreaterThan(1) // Main file + detail files
+      expect(logCalls.some(msg => msg.includes('exceeds 100-line limit'))).toBe(true)
+      expect(logCalls.some(msg => msg.includes('Created .agents/'))).toBe(true)
+    }
+  })
+
+  test('generateAgentsMd creates compact content with references when using .agents/ directory', async () => {
+    // Create a package.json with many dependencies to ensure we have content
+    await fs.writeFile(
+      'package.json',
+      JSON.stringify({
+        name: 'test-project',
+        scripts: { build: 'tsc', test: 'jest' },
+        dependencies: {
+          react: '^18.0.0',
+          typescript: '^5.0.0',
+          jest: '^29.0.0',
+          express: '^4.18.0',
+        },
+      }),
+      'utf-8'
+    )
+
+    const result = await generateAgentsMd()
+    expect(result.success).toBe(true)
+
+    if (result.mainFilePath) {
+      const content = await fs.readFile(result.mainFilePath, 'utf-8')
+
+      // Should contain section headers
+      expect(content).toContain('## Project Overview')
+      expect(content).toContain('## Build System')
+
+      // If .agents/ directory was used, should contain references
+      if (result.agentsDirPath && existsSync(result.agentsDirPath)) {
+        expect(content).toContain('.agents/')
+        expect(content).toContain('for detailed information')
+
+        // Check that detail files were created
+        const detailFiles = ['languages.md', 'build.md']
+        for (const file of detailFiles) {
+          const detailPath = join(result.agentsDirPath, file)
+          if (existsSync(detailPath)) {
+            const detailContent = await fs.readFile(detailPath, 'utf-8')
+            expect(detailContent).toContain('# ')
+            expect(detailContent).toContain('part of the AGENTS.md documentation system')
+          }
+        }
+      }
+    }
+  })
+
+  test('generateAgentsMd handles project with TypeScript configuration', async () => {
+    // Create TypeScript project files
+    await fs.writeFile(
+      'tsconfig.json',
+      JSON.stringify({
+        compilerOptions: {
+          target: 'ES2020',
+          module: 'commonjs',
+          strict: true,
+        },
+      }),
+      'utf-8'
+    )
+
+    await fs.writeFile(
+      'package.json',
+      JSON.stringify({
+        name: 'typescript-project',
+        scripts: { build: 'tsc' },
+        devDependencies: {
+          typescript: '^5.0.0',
+        },
+      }),
+      'utf-8'
+    )
+
+    const result = await generateAgentsMd()
+    expect(result.success).toBe(true)
+
+    if (result.mainFilePath) {
+      const content = await fs.readFile(result.mainFilePath, 'utf-8')
+      expect(content).toContain('## Project Overview')
+      expect(content).toContain('## Build System')
+    }
   })
 })

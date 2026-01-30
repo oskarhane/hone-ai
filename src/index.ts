@@ -207,11 +207,21 @@ program
 program
   .command('agents-md')
   .description('Generate AGENTS.md documentation for the current project')
-  .action(async () => {
+  .option('--overwrite', 'Overwrite existing AGENTS.md file if it exists')
+  .action(async (options: { overwrite?: boolean }) => {
     try {
       setVerbose(program.opts().verbose || false)
       const { generateAgentsMd } = await import('./agents-md-generator')
-      await generateAgentsMd()
+      const result = await generateAgentsMd({ overwrite: options.overwrite })
+
+      if (!result.success) {
+        if (result.error?.message.includes('already exists')) {
+          console.error('\n✗ AGENTS.md already exists. Use --overwrite to replace it.')
+        } else {
+          console.error('\n✗ Error generating AGENTS.md:', result.error?.message || 'Unknown error')
+        }
+        process.exit(1)
+      }
     } catch (error) {
       console.error(
         '\n✗ Error generating AGENTS.md:',

@@ -4,7 +4,7 @@
  */
 
 import { loadConfig, resolveModelForPhase, type HoneConfig } from './config'
-import { readFile, writeFile } from 'fs/promises'
+import { readFile, writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { AgentClient } from './agent-client'
@@ -29,6 +29,13 @@ export interface GenerationResult {
   agentsDirPath?: string
   filesCreated: string[]
   error?: Error
+}
+
+interface TemplateSection {
+  title: string
+  content: string
+  priority: number
+  detailFile?: string
 }
 
 /**
@@ -347,20 +354,16 @@ async function executeParallelScanning(
 }
 
 /**
- * Generate AGENTS.md content based on agent-based discovery
+ * Create adaptive template sections based on discovered tech stack
  */
-async function generateContent(
-  projectPath: string,
-  analysis: ProjectAnalysis,
-  config: HoneConfig
-): Promise<string> {
-  log('Executing agent-based project discovery...')
-
-  // Execute parallel agent scanning for comprehensive project analysis
-  const scanResults = await executeParallelScanning(projectPath, config)
+function createTemplateSections(
+  scanResults: Record<keyof typeof DISCOVERY_PROMPTS, string>,
+  analysis: ProjectAnalysis
+): TemplateSection[] {
+  const sections: TemplateSection[] = []
 
   // Build content using agent discovery results with static analysis fallback
-  const getContentWithFallback = (agentResult: string, fallbackData: string[]) => {
+  const getContentWithFallback = (agentResult: string | undefined, fallbackData: string[]) => {
     if (
       agentResult &&
       !agentResult.includes('failed to analyze') &&
@@ -373,36 +376,185 @@ async function generateContent(
       : 'Not available.'
   }
 
-  const content = `# AGENTS.md
+  // High priority sections (always include)
+  sections.push({
+    title: 'Project Overview',
+    content: getContentWithFallback(scanResults.languages || '', analysis.languages),
+    priority: 1,
+    detailFile: 'languages.md',
+  })
+
+  sections.push({
+    title: 'Build System',
+    content: getContentWithFallback(scanResults.buildSystems || '', analysis.buildSystems),
+    priority: 2,
+    detailFile: 'build.md',
+  })
+
+  // Medium priority sections (include if they have significant content)
+  const testingContent = getContentWithFallback(
+    scanResults.testing || '',
+    analysis.testingFrameworks
+  )
+  if (testingContent && !testingContent.includes('Not available')) {
+    sections.push({
+      title: 'Testing Framework',
+      content: testingContent,
+      priority: 3,
+      detailFile: 'testing.md',
+    })
+  }
+
+  const architectureContent = getContentWithFallback(
+    scanResults.architecture || '',
+    analysis.architecture
+  )
+  if (architectureContent && !architectureContent.includes('Not available')) {
+    sections.push({
+      title: 'Architecture',
+      content: architectureContent,
+      priority: 4,
+      detailFile: 'architecture.md',
+    })
+  }
+
+  // Lower priority sections (include if space allows)
+  const deploymentContent = scanResults.deployment || ''
+  if (deploymentContent && !deploymentContent.includes('not available')) {
+    sections.push({
+      title: 'Deployment',
+      content: deploymentContent,
+      priority: 5,
+      detailFile: 'deployment.md',
+    })
+  }
+
+  // Sort by priority
+  return sections.sort((a, b) => a.priority - b.priority)
+}
+
+/**
+ * Count lines in text content
+ */
+function countLines(text: string): number {
+  return text.split('\n').length
+}
+
+/**
+ * Generate compact AGENTS.md content that fits within 100-line limit
+ */
+function generateCompactContent(sections: TemplateSection[], useAgentsDir: boolean): string {
+  const header = `# AGENTS.md
 
 Learnings and patterns for future agents working on this project.
+`
 
-## Project Overview
+  if (!useAgentsDir) {
+    // Full content in main file
+    const fullSections = sections
+      .map(
+        section => `## ${section.title}
 
-${getContentWithFallback(scanResults.languages || '', analysis.languages)}
+${section.content}
+`
+      )
+      .join('\n')
 
-## Build System
-
-${getContentWithFallback(scanResults.buildSystems || '', analysis.buildSystems)}
-
-## Testing Framework
-
-${getContentWithFallback(scanResults.testing || '', analysis.testingFrameworks)}
-
-## Architecture
-
-${getContentWithFallback(scanResults.architecture || '', analysis.architecture)}
-
-## Deployment
-
-${scanResults.deployment || 'Deployment information not available.'}
-
+    return (
+      header +
+      '\n' +
+      fullSections +
+      `
 ---
 
 *This AGENTS.md was generated using agent-based project discovery.*
 `
+    )
+  }
 
-  return content
+  // Compact version with references to .agents/ files
+  const compactSections = sections
+    .map(
+      section => `## ${section.title}
+
+${getFirstSentence(section.content)}
+
+See [@.agents/${section.detailFile}](.agents/${section.detailFile}) for detailed information.
+`
+    )
+    .join('\n')
+
+  return (
+    header +
+    '\n' +
+    compactSections +
+    `
+---
+
+*This AGENTS.md was generated using agent-based project discovery.*
+*Detailed information is available in the .agents/ directory.*
+`
+  )
+}
+
+/**
+ * Extract first sentence or line from content for compact display
+ */
+function getFirstSentence(content: string): string {
+  if (!content) return 'Information not available.'
+
+  // Try to get the first meaningful sentence or line
+  const firstLine = content.split('\n')[0]?.trim() ?? ''
+  if (firstLine.length > 0 && firstLine.length <= 120) {
+    return firstLine
+  }
+
+  // If first line is too long, try to get first sentence
+  const sentences = content.split(/[.!?]+/)
+  if (sentences.length > 0 && sentences[0]?.trim().length && sentences[0].trim().length <= 120) {
+    return sentences[0].trim() + '.'
+  }
+
+  // Fallback: truncate to reasonable length
+  return content.substring(0, 120).trim() + '...'
+}
+
+/**
+ * Generate AGENTS.md content based on agent-based discovery
+ */
+async function generateContent(
+  projectPath: string,
+  analysis: ProjectAnalysis,
+  config: HoneConfig
+): Promise<{ mainContent: string; detailSections?: TemplateSection[]; useAgentsDir: boolean }> {
+  log('Executing agent-based project discovery...')
+
+  // Execute parallel agent scanning for comprehensive project analysis
+  const scanResults = await executeParallelScanning(projectPath, config)
+
+  // Create adaptive template sections based on discovered tech stack
+  const sections = createTemplateSections(scanResults, analysis)
+
+  // Generate initial content to check line count
+  const fullContent = generateCompactContent(sections, false)
+  const lineCount = countLines(fullContent)
+
+  logVerbose(`Generated content has ${lineCount} lines (limit: 100)`)
+
+  // Decide whether to use .agents/ subdirectory
+  const useAgentsDir = lineCount > 100
+
+  if (useAgentsDir) {
+    log('Content exceeds 100-line limit. Creating .agents/ subdirectory for detailed information.')
+  }
+
+  const mainContent = generateCompactContent(sections, useAgentsDir)
+
+  return {
+    mainContent,
+    detailSections: useAgentsDir ? sections : undefined,
+    useAgentsDir,
+  }
 }
 
 /**
@@ -432,17 +584,52 @@ export async function generateAgentsMd(
     }
 
     log('Generating AGENTS.md content...')
-    const content = await generateContent(projectPath, analysis, config)
+    const { mainContent, detailSections, useAgentsDir } = await generateContent(
+      projectPath,
+      analysis,
+      config
+    )
 
     log('Writing AGENTS.md file...')
-    await writeFile(agentsPath, content, 'utf-8')
+    await writeFile(agentsPath, mainContent, 'utf-8')
+    const filesCreated = [agentsPath]
+
+    // Create .agents/ directory and detail files if needed
+    let agentsDirPath: string | undefined
+    if (useAgentsDir && detailSections) {
+      agentsDirPath = join(projectPath, '.agents')
+
+      if (!existsSync(agentsDirPath)) {
+        await mkdir(agentsDirPath, { recursive: true })
+        log('Created .agents/ directory for detailed information')
+      }
+
+      // Write detail files
+      for (const section of detailSections) {
+        if (section.detailFile) {
+          const detailPath = join(agentsDirPath, section.detailFile)
+          const detailContent = `# ${section.title}
+
+${section.content}
+
+---
+
+*This file is part of the AGENTS.md documentation system.*
+`
+          await writeFile(detailPath, detailContent, 'utf-8')
+          filesCreated.push(detailPath)
+          logVerbose(`Created detail file: ${section.detailFile}`)
+        }
+      }
+    }
 
     log('✓ AGENTS.md generated successfully')
 
     return {
       success: true,
       mainFilePath: agentsPath,
-      filesCreated: [agentsPath],
+      agentsDirPath,
+      filesCreated,
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
