@@ -20,6 +20,8 @@ It's a surprisingly powerful process.
    npm install -g hone-ai
    # or
    bun add -g hone-ai
+   # or
+   # download binary or build from source, instructions below
    ```
 
 2. **Install an AI agent** ([OpenCode](https://opencode.ai) or [Claude Code](https://docs.anthropic.com/claude/docs/claude-code))
