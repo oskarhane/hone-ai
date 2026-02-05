@@ -2,6 +2,9 @@ import { readFile, access } from 'fs/promises'
 import yaml from 'js-yaml'
 import { loadConfig, resolveModelForPhase } from './config'
 import { AgentClient } from './agent-client'
+import { join } from 'path'
+import { existsSync } from 'fs'
+import * as readline from 'readline'
 
 // Task File Types
 export interface Task {
@@ -518,6 +521,186 @@ export function taskIdExists(parsedTaskFile: ParsedTaskFile, taskId: string): bo
   return parsedTaskFile.taskIds.includes(taskId)
 }
 
+// Interactive Q&A types and functions
+interface QAResponse {
+  question: string | null
+  shouldContinue: boolean
+}
+
+/**
+ * Ask user a question interactively via command line
+ * @param prompt Question to ask the user
+ * @returns User's response
+ */
+async function askQuestion(prompt: string): Promise<string> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  })
+
+  return new Promise(resolve => {
+    rl.question(prompt, answer => {
+      rl.close()
+      resolve(answer.trim())
+    })
+  })
+}
+
+/**
+ * Generate clarifying question for new requirement using AI
+ * @param requirementDescription Description of the new requirement
+ * @param prdContext Parsed PRD context including existing requirements
+ * @param previousQA Previous Q&A history
+ * @param roundNumber Current question round
+ * @returns QAResponse with question or indication to stop
+ */
+async function generateClarifyingQuestion(
+  requirementDescription: string,
+  prdContext: ParsedPrd,
+  previousQA: Array<{ question: string; answer: string }>,
+  roundNumber: number,
+  config: any,
+  model: string
+): Promise<QAResponse> {
+  const client = new AgentClient({
+    agent: config.defaultAgent,
+    model,
+  })
+
+  // Show progress indicator
+  process.stdout.write(`Generating question ${roundNumber}... `)
+
+  const qaHistory = previousQA.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n')
+
+  // Read AGENTS.md for project context
+  let agentsContent = ''
+  const agentsPath = join(process.cwd(), 'AGENTS.md')
+  if (existsSync(agentsPath)) {
+    try {
+      agentsContent = await readFile(agentsPath, 'utf-8')
+    } catch {
+      // Ignore errors reading AGENTS.md
+    }
+  }
+
+  // Format existing requirements for context
+  const existingRequirements = prdContext.requirements
+    .map(req => `${req.id}: ${req.description}`)
+    .join('\n')
+
+  const systemPrompt = `You are helping extend a Product Requirements Document (PRD) with a new requirement.
+The user has provided a new requirement description, and you need to ask clarifying questions to make it comprehensive and well-integrated with existing requirements.
+
+IMPORTANT: Focus on clarifying the NEW requirement, not rewriting the entire PRD.
+
+Rules:
+- Ask ONE specific, focused question at a time
+- Questions should help clarify the requirement's scope, implementation details, edge cases, or integration points
+- Keep questions concise and actionable
+- Consider how this requirement relates to existing requirements
+- If you have enough information to write a good requirement, respond with "DONE" instead of a question
+- You are on round ${roundNumber} of maximum 5 rounds
+
+PRD Title: ${prdContext.title}
+
+Existing Requirements:
+${existingRequirements}
+
+${
+  agentsContent
+    ? `Project documentation (AGENTS.md):
+${agentsContent}
+
+`
+    : ''
+}New requirement description: ${requirementDescription}
+
+${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`
+
+  try {
+    const response = await client.messages.create({
+      max_tokens: 500,
+      messages: [
+        {
+          role: 'user',
+          content:
+            'What is your next clarifying question about this new requirement, or respond with "DONE" if you have enough information?',
+        },
+      ],
+      system: systemPrompt,
+    })
+
+    const content = response.content[0]
+    const text = content && content.type === 'text' ? content.text.trim() : ''
+
+    // Clear progress indicator
+    process.stdout.write('✓\n')
+
+    if (text.toUpperCase().includes('DONE') || text === '') {
+      return { question: null, shouldContinue: false }
+    }
+
+    return { question: text, shouldContinue: true }
+  } catch (error) {
+    // Clear progress indicator with error
+    process.stdout.write('✗\n')
+    throw error
+  }
+}
+
+/**
+ * Run interactive Q&A session to refine requirement description
+ * @param requirementDescription Initial requirement description
+ * @param prdContext Parsed PRD context
+ * @returns Array of Q&A pairs
+ */
+export async function runRequirementRefinementQA(
+  requirementDescription: string,
+  prdContext: ParsedPrd,
+  config: any,
+  model: string
+): Promise<Array<{ question: string; answer: string }>> {
+  const qa: Array<{ question: string; answer: string }> = []
+  const maxRounds = 5
+
+  console.log('I have a few questions to refine this requirement:\n')
+
+  for (let round = 1; round <= maxRounds; round++) {
+    try {
+      const { question, shouldContinue } = await generateClarifyingQuestion(
+        requirementDescription,
+        prdContext,
+        qa,
+        round,
+        config,
+        model
+      )
+
+      if (!shouldContinue || !question) {
+        break
+      }
+
+      console.log(`${round}. ${question}`)
+      const answer = await askQuestion('> ')
+
+      if (answer.toLowerCase() === 'done') {
+        break
+      }
+
+      qa.push({ question, answer })
+      console.log('')
+    } catch (error) {
+      console.error(
+        `\nError generating clarifying question for round ${round}: ${error instanceof Error ? error.message : String(error)}`
+      )
+      console.log('Continuing with available information...\n')
+      break
+    }
+  }
+
+  return qa
+}
+
 /**
  * Extend an existing PRD file with new requirements
  * @param prdFile Path to the existing PRD file
@@ -546,17 +729,31 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
     throw new Error(`Invalid PRD file structure:\n${parsedPrd.errors.join('\n')}`)
   }
 
-  // TODO: Initialize AgentClient for AI integration in future tasks
-
   console.log(`Extending PRD: ${prdFile}`)
   console.log(`PRD Title: ${parsedPrd.title}`)
   console.log(`Found ${parsedPrd.requirements.length} existing requirements`)
   console.log(`Found ${parsedPrd.sections.size} sections`)
-  console.log(`New requirement: ${requirementDescription}`)
+  console.log(`New requirement: ${requirementDescription}\n`)
 
-  // TODO: Implement the actual extend-prd functionality in subsequent tasks
-  // The AgentClient is now properly configured for the extendPrd phase
+  // Run interactive Q&A refinement session
+  const qa = await runRequirementRefinementQA(requirementDescription, parsedPrd, config, model)
+
+  if (qa.length > 0) {
+    console.log('\nRequirement refinement complete!')
+    console.log('Q&A Summary:')
+    qa.forEach((item, index) => {
+      console.log(`${index + 1}. Q: ${item.question}`)
+      console.log(`   A: ${item.answer}\n`)
+    })
+  } else {
+    console.log('\nNo additional clarification needed.\n')
+  }
+
+  // TODO: Implement file/URL content fetching in task-006
+  // TODO: Implement PRD content appending in task-007
+  // TODO: Implement task generation in task-008
+
   throw new Error(
-    'extend-prd functionality not yet implemented - this will be implemented in subsequent tasks'
+    'extend-prd functionality partially implemented - remaining tasks: content fetching, PRD appending, task generation'
   )
 }

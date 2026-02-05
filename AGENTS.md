@@ -89,3 +89,11 @@ _Detailed information is available in the .agents-docs/ directory._
 - ID extraction patterns: task IDs follow `task-###` format, requirement IDs use `REQ-F-###` or `REQ-NF-###`
 - Sequential ID generation should find highest existing ID and increment by 1 to avoid collisions
 - Pure parsing functions that don't mutate original data structures are preferred
+
+## Interactive Q&A Implementation
+
+- Avoid duplicate config loading - pass config/model as parameters to Q&A functions
+- Don't reference tools in system prompts unless AgentClient actually has tool access
+- Use readline interface for user interaction with graceful interruption handling ("done")
+- Read AGENTS.md for project context to improve AI question generation
+- Progress indicators improve UX during AI processing time

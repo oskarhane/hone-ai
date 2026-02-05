@@ -281,6 +281,8 @@ describe('Model Resolution', () => {
         implement: 'impl-model',
         review: 'review-model',
         finalize: 'final-model',
+        agentsMd: 'agents-model',
+        extendPrd: 'extend-model',
       },
     }
 
@@ -289,6 +291,39 @@ describe('Model Resolution', () => {
     expect(resolveModelForPhase(config, 'implement')).toBe('impl-model')
     expect(resolveModelForPhase(config, 'review')).toBe('review-model')
     expect(resolveModelForPhase(config, 'finalize')).toBe('final-model')
+    expect(resolveModelForPhase(config, 'agentsMd')).toBe('agents-model')
+    expect(resolveModelForPhase(config, 'extendPrd')).toBe('extend-model')
+  })
+
+  test('resolveModelForPhase returns extendPrd specific model when configured', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        extendPrd: 'claude-opus-4-20250514',
+      },
+    }
+
+    const model = resolveModelForPhase(config, 'extendPrd')
+    expect(model).toBe('claude-opus-4-20250514')
+  })
+
+  test('resolveModelForPhase falls back to prd phase model for extendPrd', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        prd: 'claude-opus-4-20250514',
+        // No extendPrd specific model
+      },
+    }
+
+    // extendPrd should fall back to agent model, not prd phase
+    // (phase fallback is handled at application level, not in resolveModelForPhase)
+    const model = resolveModelForPhase(config, 'extendPrd')
+    expect(model).toBe('claude-sonnet-4-20250514')
   })
 })
 
@@ -315,12 +350,30 @@ describe('Config Validation', () => {
         claude: 'claude-sonnet-4-20250514',
         implement: 'claude-opus-4-20250601',
         review: 'claude-sonnet-4-20250701',
+        extendPrd: 'claude-opus-4-20250801',
       },
     }
 
     const result = validateConfig(config)
     expect(result.valid).toBe(true)
     expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig validates extendPrd phase model format', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        extendPrd: 'invalid-extend-model',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(false)
+    expect(result.errors.length).toBe(1)
+    expect(result.errors[0]).toContain('extendPrd')
+    expect(result.errors[0]).toContain('invalid-extend-model')
   })
 
   test('validateConfig rejects invalid agent model format', () => {

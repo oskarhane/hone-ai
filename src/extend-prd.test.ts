@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'bun:test'
-import { parsePrdContent, extractRequirementIds, getNextRequirementId } from './extend-prd.js'
+import {
+  parsePrdContent,
+  extractRequirementIds,
+  getNextRequirementId,
+  runRequirementRefinementQA,
+} from './extend-prd.js'
 
 describe('PRD Parser', () => {
   describe('parsePrdContent', () => {
@@ -162,6 +167,14 @@ Test
 
       expect(nextFuncId).toBe('REQ-F-001')
       expect(nextNonFuncId).toBe('REQ-NF-001')
+    })
+  })
+})
+
+describe('Interactive Q&A System', () => {
+  describe('runRequirementRefinementQA', () => {
+    it('should be exportable function', () => {
+      expect(typeof runRequirementRefinementQA).toBe('function')
     })
   })
 })

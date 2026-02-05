@@ -16,6 +16,7 @@ export interface HoneConfig {
     review?: string
     finalize?: string
     agentsMd?: string
+    extendPrd?: string
   }
   lintCommand?: string
 }
@@ -177,7 +178,14 @@ export async function initProject(): Promise<InitResult> {
   }
 }
 
-export type ModelPhase = 'prd' | 'prdToTasks' | 'implement' | 'review' | 'finalize' | 'agentsMd'
+export type ModelPhase =
+  | 'prd'
+  | 'prdToTasks'
+  | 'implement'
+  | 'review'
+  | 'finalize'
+  | 'agentsMd'
+  | 'extendPrd'
 
 /**
  * Resolve the model to use for a specific phase.
@@ -222,7 +230,15 @@ export function validateConfig(config: HoneConfig): { valid: boolean; errors: st
   }
 
   // Validate phase-specific models if present
-  const phases: ModelPhase[] = ['prd', 'prdToTasks', 'implement', 'review', 'finalize', 'agentsMd']
+  const phases: ModelPhase[] = [
+    'prd',
+    'prdToTasks',
+    'implement',
+    'review',
+    'finalize',
+    'agentsMd',
+    'extendPrd',
+  ]
   for (const phase of phases) {
     const model = config.models[phase]
     if (model && !modelRegex.test(model)) {
