@@ -190,3 +190,24 @@ Key Decisions:
 - All file writes in extend-prd now use atomic operations via atomicWriteFile
 
 Next Task: task-010
+
+================================================================================
+TASK-010: Implement task file metadata updates
+Date: 2026-02-05T18:30:44.497Z
+================================================================================
+
+Summary:
+Implemented task file metadata update functionality to properly update timestamps and preserve metadata structure when new tasks are added. Applied review feedback to remove unused variables.
+
+Files Changed:
+- src/extend-prd.ts (modified - added updateTaskFileMetadata function with proper timestamp handling and metadata preservation)
+- src/extend-prd.test.ts (modified - added comprehensive unit tests for metadata update functionality)
+
+Key Decisions:
+- Applied review feedback: removed unused originalTaskCount and newTaskCount variables from updateTaskFileMetadata function
+- Implemented proper ISO timestamp generation using new Date().toISOString()
+- Preserved all existing metadata fields (feature, prd, created_at) while updating updated_at
+- Task count validation happens in calling function generateIncrementalTasks for proper separation of concerns
+- Used atomic file operations for safe metadata updates as part of task generation flow
+
+Next Task: task-011

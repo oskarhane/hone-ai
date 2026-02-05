@@ -1614,6 +1614,30 @@ Generate tasks only for the NEW requirements listed above.`
 }
 
 /**
+ * Update task file metadata when new tasks are added
+ * @param originalTaskFile Original task file data
+ * @param newTasks Array of new tasks being added
+ * @returns TaskFile with updated metadata
+ */
+export function updateTaskFileMetadata(originalTaskFile: TaskFile, newTasks: Task[]): TaskFile {
+  const now = new Date().toISOString()
+
+  // Preserve all existing fields while updating metadata
+  const updatedTaskFile: TaskFile = {
+    // Preserve original fields in their original order
+    feature: originalTaskFile.feature,
+    ...(originalTaskFile.prd && { prd: originalTaskFile.prd }), // Only include prd if it exists in original
+    created_at: originalTaskFile.created_at, // Preserve original creation time
+    updated_at: now, // Update modification time
+
+    // Merge tasks arrays
+    tasks: [...originalTaskFile.tasks, ...newTasks],
+  }
+
+  return updatedTaskFile
+}
+
+/**
  * Generate incremental tasks for new requirements and update task file
  * @param taskFilePath Path to existing task file
  * @param prdFilePath Path to PRD file (for reference)
@@ -1672,11 +1696,33 @@ async function generateIncrementalTasks(
     console.log(`  ${task.id}: ${task.title}`)
   })
 
-  // Update task file with new tasks
-  const updatedTaskFile = {
-    ...existingTaskFile.taskFile,
-    tasks: [...existingTaskFile.taskFile.tasks, ...newTasks],
-    updated_at: new Date().toISOString(),
+  // Update task file with comprehensive metadata updates
+  const updatedTaskFile = updateTaskFileMetadata(existingTaskFile.taskFile, newTasks)
+
+  // Validate metadata accuracy
+  const originalTaskCount = existingTaskFile.taskFile.tasks.length
+  const newTaskCount = updatedTaskFile.tasks.length
+  const expectedTaskCount = originalTaskCount + newTasks.length
+
+  if (newTaskCount !== expectedTaskCount) {
+    throw new Error(
+      `Task count mismatch: expected ${expectedTaskCount}, got ${newTaskCount}. ` +
+        `Original: ${originalTaskCount}, New: ${newTasks.length}`
+    )
+  }
+
+  // Validate that all original metadata is preserved
+  if (updatedTaskFile.feature !== existingTaskFile.taskFile.feature) {
+    throw new Error('Feature metadata was not preserved during update')
+  }
+
+  if (updatedTaskFile.created_at !== existingTaskFile.taskFile.created_at) {
+    throw new Error('Created timestamp metadata was not preserved during update')
+  }
+
+  // Only validate prd field if it existed in original
+  if (existingTaskFile.taskFile.prd && updatedTaskFile.prd !== existingTaskFile.taskFile.prd) {
+    throw new Error('PRD path metadata was not preserved during update')
   }
 
   // Convert to YAML and write to file atomically
@@ -1684,9 +1730,9 @@ async function generateIncrementalTasks(
   await atomicWriteFile(taskFilePath, yamlContent)
 
   console.log(`✓ Updated task file: ${taskFilePath}`)
-  console.log(
-    `✓ Added ${newTasks.length} new tasks to existing ${existingTaskFile.taskFile.tasks.length} tasks`
-  )
+  console.log(`✓ Added ${newTasks.length} new tasks to existing ${originalTaskCount} tasks`)
+  console.log(`✓ Total tasks: ${newTaskCount}`)
+  console.log(`✓ Metadata updated at: ${updatedTaskFile.updated_at}`)
 }
 
 /**
