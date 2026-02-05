@@ -74,3 +74,9 @@ _Detailed information is available in the .agents-docs/ directory._
 - Import style should be `import { readFile, writeFile } from 'fs/promises'` not `import { promises as fs } from 'fs'`
 - Implement comprehensive input validation with clear error messages before core logic
 - Use placeholder implementations with TODO comments for incremental development
+
+## Testing Patterns
+
+- Test files must import modules with `.js` extension (e.g., `from './extend-prd.js'`) for Bun compatibility
+- Use specific line number assertions carefully - content changes can break tests
+- Remove unused imports/constants when identified in code review to maintain clean codebase
