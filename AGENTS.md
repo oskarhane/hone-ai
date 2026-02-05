@@ -149,3 +149,12 @@ _Detailed information is available in the .agents-docs/ directory._
 - Include troubleshooting sections for common error scenarios and user issues
 - Document phase-specific configuration options with clear examples
 - Add usage examples demonstrating real workflow scenarios rather than abstract syntax
+
+## Logic in hone-ai vs underlying agents
+
+- hone-ai handles high-level orchestration and coordination of agent interactions
+- Underlying agents execute specific tasks and provide atomicity guarantees
+- hone-ai manages retries, error handling, and coordination across agents
+- Underlying agents focus on individual task execution and atomicity
+- Underlying agents can be instructed to fetch data from external sources and to read local files
+- Underlying agents can be instructed to write data to local files and to execute shell commands
