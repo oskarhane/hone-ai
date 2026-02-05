@@ -262,7 +262,7 @@ ${reviewFeedback || 'No review feedback provided (review was skipped or approved
      Next Task: <next-task-id> or "All tasks complete"
      \`\`\`
 
-5. **Update AGENTS.md** (if learnings exist)
+5. **Update AGENTS.md file**
    - Add useful learnings and gotchas under appropriate heading
    - Be terse - only add truly useful info that future agents need
    - Don't duplicate existing info
