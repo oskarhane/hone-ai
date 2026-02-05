@@ -20,7 +20,6 @@ Add a new CLI command `hone extend-prd <prd-file> <requirement-description>` tha
 - Supporting bulk requirement additions in a single command
 
 ## Requirements
-
 ### Functional Requirements
 - REQ-F-001: Accept PRD file path and requirement description as command arguments
 - REQ-F-002: Validate that the specified PRD file exists and follows expected format
@@ -34,6 +33,24 @@ Add a new CLI command `hone extend-prd <prd-file> <requirement-description>` tha
 - REQ-F-010: Support file path and URL references in requirement descriptions with automatic content fetching
 - REQ-F-011: Update task file metadata (updated_at timestamp) when adding new tasks
 
+- REQ-F-012: Print completion message with exact command format to start work after successfully extending the PRD
+- REQ-F-013: Display command in format "hone run .plans/{tasks-filename} -i {new-task-count}" where task-count represents only the newly added tasks
+- REQ-F-014: Calculate and display the count of new tasks added during the extension process
+- REQ-F-015: Include the correct task filename derived from the original PRD filename in the printed command
+- REQ-F-016: Command output format must match the existing prd-to-tasks command pattern for consistency
+- REQ-F-017: New task count calculation must be accurate and reflect only incremental additions
+
+- REQ-F-018: Remove local content fetching functions (fetchUrlContent, fetchFileContent, fetchContentReferences) from extend-prd command implementation
+- REQ-F-019: Delegate all content fetching operations for URLs and file references to the underlying agent via system prompt instructions
+- REQ-F-020: Update extend-prd system prompts to instruct the agent to automatically read file paths and fetch URLs using agent tools
+- REQ-F-021: Modify Q&A generation and requirements generation functions to rely on agent-based content fetching instead of local fetching
+- REQ-F-022: Remove ContentReference, ContentContext interfaces and related content processing logic from extend-prd module
+- REQ-F-023: Update error handling to account for agent-based content fetching failures instead of local network/file errors
+- REQ-F-024: Content fetching delegation must maintain same user experience as current local implementation
+- REQ-F-025: Agent-based content fetching should provide equivalent error reporting for inaccessible files and URLs
+- REQ-F-026: Refactoring must preserve all existing extend-prd functionality while simplifying the codebase
+- REQ-F-027: Implementation should follow the same delegation pattern established in the prd command
+
 ### Non-Functional Requirements
 - REQ-NF-001: Command execution time should not exceed 60 seconds for typical requirements
 - REQ-NF-002: Generated content must maintain consistency with existing PRD tone and structure
@@ -41,7 +58,6 @@ Add a new CLI command `hone extend-prd <prd-file> <requirement-description>` tha
 - REQ-NF-004: File operations must be atomic to prevent corruption on interruption
 - REQ-NF-005: Support the same model configuration system (phase-specific models)
 - REQ-NF-006: Error messages should provide clear guidance for resolution
-
 ## Technical Considerations
 
 ### Architecture Integration
