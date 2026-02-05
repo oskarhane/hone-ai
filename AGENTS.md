@@ -113,3 +113,11 @@ _Detailed information is available in the .agents-docs/ directory._
 - Implement robust parsing that handles variations in AI response format
 - Track in-memory state mutations with clear documentation (e.g. `lineNumber: -1` pattern)
 - Consider extracting parsing logic into separate testable functions for complex AI responses
+
+## Task Generation and ID Management
+
+- Avoid mutating shared state objects during validation loops - use local counters instead
+- Task ID adjustment logic must handle all tasks sequentially, not just first task
+- Sequential ID generation: `task-${String(startId + index).padStart(3, '0')}`
+- Update ID counters only after all validation/processing is complete
+- Remove unused function parameters identified during code review

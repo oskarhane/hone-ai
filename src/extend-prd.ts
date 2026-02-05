@@ -1270,6 +1270,313 @@ async function appendRequirementsToPrd(
 }
 
 /**
+ * Find existing task file that corresponds to PRD file
+ * @param prdFilePath Path to PRD file
+ * @returns Path to task file or null if not found
+ */
+function findExistingTaskFile(prdFilePath: string): string | null {
+  const prdBasename = prdFilePath.split('/').pop() || ''
+  const featureMatch = prdBasename.match(/^prd-(.+)\.md$/)
+
+  if (!featureMatch || !featureMatch[1]) {
+    return null
+  }
+
+  const featureName = featureMatch[1]
+  const taskFilePath = join(process.cwd(), '.plans', `tasks-${featureName}.yml`)
+
+  return existsSync(taskFilePath) ? taskFilePath : null
+}
+
+/**
+ * Generate new requirements from parsed PRD based on recently added requirements
+ * @param parsedPrd ParsedPrd object containing all requirements
+ * @returns Array of new requirements that were just added
+ */
+function getNewRequirements(parsedPrd: ParsedPrd): PrdRequirement[] {
+  // New requirements are those added to parsedPrd during the append process
+  // They have lineNumber: -1 to indicate they haven't been persisted to file yet
+  return parsedPrd.requirements.filter(req => req.lineNumber === -1)
+}
+
+/**
+ * Generate tasks for new requirements using AI
+ * @param newRequirements Array of new requirements to generate tasks for
+ * @param existingTaskFile Parsed existing task file
+ * @param prdContext ParsedPrd for context
+ * @param config Configuration object
+ * @param model Model to use for generation
+ * @returns Array of new Task objects
+ */
+async function generateTasksForNewRequirements(
+  newRequirements: PrdRequirement[],
+  existingTaskFile: ParsedTaskFile,
+  prdContext: ParsedPrd,
+  config: any,
+  model: string
+): Promise<Task[]> {
+  const client = new AgentClient({
+    agent: config.defaultAgent,
+    model,
+  })
+
+  console.log(`Generating tasks for ${newRequirements.length} new requirements...`)
+
+  // Format new requirements for AI
+  const newReqsText = newRequirements.map(req => `${req.id}: ${req.description}`).join('\n')
+
+  // Format existing tasks for context
+  const existingTasksText = existingTaskFile.taskFile.tasks
+    .map(task => `${task.id}: ${task.title}`)
+    .join('\n')
+
+  // Format all requirements for broader context
+  const allRequirementsText = prdContext.requirements
+    .map(req => `${req.id}: ${req.description}`)
+    .join('\n')
+
+  const systemPrompt = `You are generating implementation tasks for NEW requirements that have been added to an existing PRD.
+
+IMPORTANT: You should ONLY generate tasks for the new requirements listed below. DO NOT generate tasks for existing requirements or duplicate existing functionality.
+
+Generate an ordered list of tasks following these guidelines:
+
+1. **Task Structure**: Each task must have:
+   - id: Unique identifier starting from ${getNextTaskId(existingTaskFile)} (task-XXX format)
+   - title: Brief, actionable title (max 80 chars)
+   - description: Detailed description of what needs to be done (2-4 sentences)
+   - status: Always "pending" for new tasks
+   - dependencies: Array of task IDs that must complete first (can reference existing tasks)
+   - acceptance_criteria: Array of specific, testable criteria (3-5 items)
+   - completed_at: Always null for new tasks
+
+2. **Task Dependencies**:
+   - New tasks can depend on existing completed tasks
+   - New tasks can depend on other new tasks
+   - Identify which tasks must complete before others
+   - Use task IDs in dependencies array
+
+3. **Integration with Existing Tasks**:
+   - Consider how new tasks relate to existing completed work
+   - Build upon existing infrastructure where possible
+   - Don't duplicate functionality that already exists
+
+4. **Output Format**: Return ONLY a JSON array of NEW tasks, no other text.
+
+PRD Context:
+- Title: ${prdContext.title}
+- All Requirements:
+${allRequirementsText}
+
+Existing Tasks (for dependency reference):
+${existingTasksText}
+
+NEW Requirements to implement:
+${newReqsText}
+
+Generate tasks only for the NEW requirements listed above.`
+
+  try {
+    const response = await client.messages.create({
+      max_tokens: 8000,
+      messages: [
+        {
+          role: 'user',
+          content: 'Generate tasks for the new requirements following the format specified.',
+        },
+      ],
+      system: systemPrompt,
+    })
+
+    const content = response.content[0]
+    if (!content || content.type !== 'text') {
+      throw new Error('Invalid response from AI')
+    }
+
+    // Extract JSON from response
+    let jsonText = content.text.trim()
+    const jsonMatch = jsonText.match(/```(?:json)?\s*(\[[\s\S]*\])\s*```/)
+    if (jsonMatch && jsonMatch[1]) {
+      jsonText = jsonMatch[1]
+    }
+
+    try {
+      const tasks = JSON.parse(jsonText)
+
+      if (!Array.isArray(tasks)) {
+        throw new Error('Response is not an array')
+      }
+
+      // Validate and adjust task structure
+      for (let i = 0; i < tasks.length; i++) {
+        const task = tasks[i]
+        if (
+          !task.id ||
+          !task.title ||
+          !task.description ||
+          !task.status ||
+          !Array.isArray(task.dependencies) ||
+          !Array.isArray(task.acceptance_criteria)
+        ) {
+          throw new Error(`Invalid task structure: ${JSON.stringify(task)}`)
+        }
+
+        // Ensure task ID is correct - adjust all tasks sequentially
+        const expectedId = `task-${String(existingTaskFile.highestTaskId + 1 + i).padStart(3, '0')}`
+        if (task.id !== expectedId) {
+          console.log(`Adjusting task ID from ${task.id} to ${expectedId}`)
+          task.id = expectedId
+        }
+      }
+
+      // Update the highest task ID counter after all tasks are processed
+      existingTaskFile.highestTaskId += tasks.length
+
+      return tasks
+    } catch (error) {
+      throw new Error(
+        `Failed to parse AI response as JSON: ${error instanceof Error ? error.message : error}`
+      )
+    }
+  } catch (error) {
+    throw new Error(
+      `Failed to generate tasks for new requirements: ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
+}
+
+/**
+ * Generate incremental tasks for new requirements and update task file
+ * @param taskFilePath Path to existing task file
+ * @param prdFilePath Path to PRD file (for reference)
+ * @param parsedPrd ParsedPrd object with new requirements
+ * @param config Configuration object
+ * @param model Model to use for task generation
+ */
+async function generateIncrementalTasks(
+  taskFilePath: string,
+  prdFilePath: string,
+  parsedPrd: ParsedPrd,
+  config: any,
+  model: string
+): Promise<void> {
+  // Parse existing task file
+  const existingTaskFile = await parseTaskFile(taskFilePath)
+
+  if (!existingTaskFile.isValid) {
+    throw new Error(`Invalid task file structure:\n${existingTaskFile.errors.join('\n')}`)
+  }
+
+  // Get the original requirement count (before any new requirements were added)
+  const originalRequirementCount = parsedPrd.requirements.filter(
+    req => req.lineNumber !== -1
+  ).length
+
+  // Get new requirements that were just added
+  const newRequirements = getNewRequirements(parsedPrd)
+
+  if (newRequirements.length === 0) {
+    console.log('No new requirements found. Skipping task generation.')
+    return
+  }
+
+  console.log(`Found ${newRequirements.length} new requirements:`)
+  newRequirements.forEach(req => {
+    console.log(`  ${req.id}: ${req.description}`)
+  })
+
+  // Generate tasks for new requirements
+  const newTasks = await generateTasksForNewRequirements(
+    newRequirements,
+    existingTaskFile,
+    parsedPrd,
+    config,
+    model
+  )
+
+  if (newTasks.length === 0) {
+    console.log('No new tasks generated.')
+    return
+  }
+
+  console.log(`Generated ${newTasks.length} new tasks:`)
+  newTasks.forEach(task => {
+    console.log(`  ${task.id}: ${task.title}`)
+  })
+
+  // Update task file with new tasks
+  const updatedTaskFile = {
+    ...existingTaskFile.taskFile,
+    tasks: [...existingTaskFile.taskFile.tasks, ...newTasks],
+    updated_at: new Date().toISOString(),
+  }
+
+  // Convert to YAML and write to file
+  const yamlContent = formatTaskFileAsYAML(updatedTaskFile)
+  await writeFile(taskFilePath, yamlContent, 'utf-8')
+
+  console.log(`✓ Updated task file: ${taskFilePath}`)
+  console.log(
+    `✓ Added ${newTasks.length} new tasks to existing ${existingTaskFile.taskFile.tasks.length} tasks`
+  )
+}
+
+/**
+ * Format task file as YAML string (similar to task-generator.ts formatAsYAML)
+ * @param taskFile TaskFile object to format
+ * @returns YAML string
+ */
+function formatTaskFileAsYAML(taskFile: TaskFile): string {
+  const lines: string[] = []
+
+  lines.push(`feature: ${taskFile.feature}`)
+  if (taskFile.prd) {
+    lines.push(`prd: ${taskFile.prd}`)
+  }
+  lines.push(`created_at: ${taskFile.created_at}`)
+  lines.push(`updated_at: ${taskFile.updated_at}`)
+  lines.push('')
+  lines.push('tasks:')
+
+  for (const task of taskFile.tasks) {
+    lines.push(`  - id: ${task.id}`)
+    lines.push(`    title: "${task.title}"`)
+
+    // Multi-line description with proper YAML indentation
+    lines.push(`    description: |`)
+    const descLines = task.description.split('\n')
+    for (const line of descLines) {
+      lines.push(`      ${line}`)
+    }
+
+    lines.push(`    status: ${task.status}`)
+
+    // Dependencies
+    if (!task.dependencies || task.dependencies.length === 0) {
+      lines.push(`    dependencies: []`)
+    } else {
+      lines.push(`    dependencies:`)
+      for (const dep of task.dependencies) {
+        lines.push(`      - ${dep}`)
+      }
+    }
+
+    // Acceptance criteria
+    lines.push(`    acceptance_criteria:`)
+    if (task.acceptance_criteria && task.acceptance_criteria.length > 0) {
+      for (const criterion of task.acceptance_criteria) {
+        lines.push(`      - "${criterion}"`)
+      }
+    }
+
+    lines.push(`    completed_at: ${task.completed_at || 'null'}`)
+    lines.push('')
+  }
+
+  return lines.join('\n')
+}
+
+/**
  * Extend an existing PRD file with new requirements
  * @param prdFile Path to the existing PRD file
  * @param requirementDescription Description of the new requirement to add
@@ -1330,7 +1637,7 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
   // ✓ Implement PRD content appending in task-007
 
   // Generate and append new requirements to PRD
-  const updatedPrdContent = await appendRequirementsToPrd(
+  await appendRequirementsToPrd(
     prdFile,
     parsedPrd,
     requirementDescription,
@@ -1343,9 +1650,14 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
   console.log('PRD content updated successfully!')
   console.log(`Updated PRD written to: ${prdFile}`)
 
-  // TODO: Implement task generation in task-008
+  // Generate tasks for new requirements if task file exists
+  const taskFilePath = findExistingTaskFile(prdFile)
+  if (taskFilePath) {
+    console.log(`Found existing task file: ${taskFilePath}`)
+    await generateIncrementalTasks(taskFilePath, prdFile, parsedPrd, config, model)
+  } else {
+    console.log('No existing task file found. Skipping task generation.')
+  }
 
-  throw new Error(
-    'extend-prd functionality partially implemented - remaining tasks: task generation'
-  )
+  console.log('\nExtend-PRD operation completed successfully!')
 }

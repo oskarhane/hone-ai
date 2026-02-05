@@ -146,3 +146,26 @@ Key Decisions:
 - formatRequirement function ensures consistent requirement formatting across functional/non-functional types
 
 Next Task: task-008
+
+================================================================================
+TASK-008: Implement incremental task generation
+Date: 2026-02-05T12:15:00.000Z
+================================================================================
+
+Summary:
+Implemented incremental task generation system that creates tasks only for newly added requirements while analyzing dependencies with existing tasks. Applied review feedback to fix task ID logic and parameter usage.
+
+Files Changed:
+- src/extend-prd.ts (modified - added generateIncrementalTasks, generateTasksForNewRequirements, findExistingTaskFile, getNewRequirements, formatTaskFileAsYAML functions with AI integration and YAML formatting)
+
+Key Decisions:
+- Applied review feedback: removed unused originalRequirementCount parameter from getNewRequirements
+- Fixed task ID adjustment logic to handle all tasks sequentially instead of just the first task
+- Avoided mutation of existingTaskFile.highestTaskId during validation loop by updating after all tasks processed
+- Removed unused updatedPrdContent variable assignment
+- Only generates tasks for requirements with lineNumber: -1 (newly added)
+- AI analyzes dependencies between new and existing tasks for proper task ordering
+- Task format preserved using existing YAML structure and formatTaskFileAsYAML function
+- Integration with existing task file structure via ParsedTaskFile interface
+
+Next Task: task-009
