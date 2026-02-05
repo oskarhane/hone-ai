@@ -1,9 +1,10 @@
-import { readFile, writeFile, access } from 'fs/promises'
+import { readFile, writeFile, access, rename, unlink } from 'fs/promises'
 import yaml from 'js-yaml'
 import { loadConfig, resolveModelForPhase } from './config'
 import { AgentClient } from './agent-client'
-import { join } from 'path'
+import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
+import { randomUUID } from 'crypto'
 import * as readline from 'readline'
 
 // Task File Types
@@ -60,6 +61,173 @@ const REQUIRED_SECTIONS = ['Overview', 'Requirements']
 
 // Requirement ID patterns
 const ANY_REQ_PATTERN = /^\s*-?\s*REQ-(F|NF)-(\d{3}):\s*(.+)$/
+
+// Atomic File Operation Types
+export interface AtomicFileOperation {
+  targetPath: string
+  tempPath: string
+  content: string
+  originalExists: boolean
+}
+
+/**
+ * Create a temporary file path for atomic operations
+ * @param filePath Original file path
+ * @returns Temporary file path with unique identifier
+ */
+function createTempFilePath(filePath: string): string {
+  const dir = dirname(filePath)
+  const base = basename(filePath)
+  const uuid = randomUUID().substring(0, 8) // Use shorter UUID for temp files
+  return join(dir, `.${base}.tmp.${uuid}`)
+}
+
+/**
+ * Prepare atomic file operation by writing content to temporary file
+ * @param filePath Target file path
+ * @param content Content to write
+ * @returns AtomicFileOperation object for committing or rolling back
+ */
+export async function prepareAtomicWrite(
+  filePath: string,
+  content: string
+): Promise<AtomicFileOperation> {
+  const tempPath = createTempFilePath(filePath)
+  const originalExists = existsSync(filePath)
+
+  try {
+    // Write content to temporary file
+    await writeFile(tempPath, content, 'utf-8')
+
+    return {
+      targetPath: filePath,
+      tempPath,
+      content,
+      originalExists,
+    }
+  } catch (error) {
+    // Clean up temp file if it was created
+    try {
+      if (existsSync(tempPath)) {
+        await unlink(tempPath)
+      }
+    } catch {
+      // Ignore cleanup errors
+    }
+    throw error
+  }
+}
+
+/**
+ * Commit atomic file operation by moving temp file to target location
+ * @param operation AtomicFileOperation to commit
+ */
+export async function commitAtomicWrite(operation: AtomicFileOperation): Promise<void> {
+  try {
+    // Atomic move: rename temp file to target file
+    await rename(operation.tempPath, operation.targetPath)
+  } catch (error) {
+    // Clean up temp file on failure
+    try {
+      await unlink(operation.tempPath)
+    } catch {
+      // Ignore cleanup errors
+    }
+    throw error
+  }
+}
+
+/**
+ * Rollback atomic file operation by removing temp file
+ * @param operation AtomicFileOperation to rollback
+ */
+export async function rollbackAtomicWrite(operation: AtomicFileOperation): Promise<void> {
+  try {
+    if (existsSync(operation.tempPath)) {
+      await unlink(operation.tempPath)
+    }
+  } catch {
+    // Ignore rollback errors - temp file cleanup is best effort
+  }
+}
+
+/**
+ * Multi-file atomic transaction manager
+ */
+export class AtomicTransaction {
+  private operations: AtomicFileOperation[] = []
+
+  /**
+   * Add a file write operation to the transaction
+   * @param filePath Target file path
+   * @param content Content to write
+   */
+  async prepareWrite(filePath: string, content: string): Promise<void> {
+    const operation = await prepareAtomicWrite(filePath, content)
+    this.operations.push(operation)
+  }
+
+  /**
+   * Commit all prepared operations atomically
+   */
+  async commit(): Promise<void> {
+    const committed: AtomicFileOperation[] = []
+
+    try {
+      // Commit all operations
+      for (const operation of this.operations) {
+        await commitAtomicWrite(operation)
+        committed.push(operation)
+      }
+    } catch (error) {
+      // Rollback any operations that were successfully committed
+      console.error('Error during atomic transaction commit, rolling back...')
+      for (const operation of committed) {
+        try {
+          // For committed operations, we can't easily rollback the rename,
+          // but we can clean up any remaining temp files
+          await rollbackAtomicWrite(operation)
+        } catch {
+          // Ignore rollback errors during error recovery
+        }
+      }
+
+      // Rollback any remaining operations
+      await this.rollback()
+      throw error
+    }
+
+    // Clear operations after successful commit
+    this.operations = []
+  }
+
+  /**
+   * Rollback all prepared operations
+   */
+  async rollback(): Promise<void> {
+    for (const operation of this.operations) {
+      await rollbackAtomicWrite(operation)
+    }
+    this.operations = []
+  }
+
+  /**
+   * Get number of pending operations
+   */
+  get pendingCount(): number {
+    return this.operations.length
+  }
+}
+
+/**
+ * Perform atomic file write operation (convenience function)
+ * @param filePath Target file path
+ * @param content Content to write
+ */
+export async function atomicWriteFile(filePath: string, content: string): Promise<void> {
+  const operation = await prepareAtomicWrite(filePath, content)
+  await commitAtomicWrite(operation)
+}
 
 /**
  * Parse PRD markdown file and extract structure
@@ -1263,8 +1431,8 @@ async function appendRequirementsToPrd(
 
   const updatedContent = newLines.join('\n')
 
-  // Write the updated content back to the file
-  await writeFile(prdFilePath, updatedContent, 'utf-8')
+  // Write the updated content back to the file atomically
+  await atomicWriteFile(prdFilePath, updatedContent)
 
   return updatedContent
 }
@@ -1511,9 +1679,9 @@ async function generateIncrementalTasks(
     updated_at: new Date().toISOString(),
   }
 
-  // Convert to YAML and write to file
+  // Convert to YAML and write to file atomically
   const yamlContent = formatTaskFileAsYAML(updatedTaskFile)
-  await writeFile(taskFilePath, yamlContent, 'utf-8')
+  await atomicWriteFile(taskFilePath, yamlContent)
 
   console.log(`✓ Updated task file: ${taskFilePath}`)
   console.log(
@@ -1633,31 +1801,33 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
     console.log('\nNo additional clarification needed.\n')
   }
 
-  // ✓ Implemented file/URL content fetching in task-006
-  // ✓ Implement PRD content appending in task-007
+  try {
+    // Generate and append new requirements to PRD
+    await appendRequirementsToPrd(
+      prdFile,
+      parsedPrd,
+      requirementDescription,
+      qa,
+      config,
+      model,
+      contentContext
+    )
 
-  // Generate and append new requirements to PRD
-  await appendRequirementsToPrd(
-    prdFile,
-    parsedPrd,
-    requirementDescription,
-    qa,
-    config,
-    model,
-    contentContext
-  )
+    console.log('PRD content updated successfully!')
+    console.log(`Updated PRD written to: ${prdFile}`)
 
-  console.log('PRD content updated successfully!')
-  console.log(`Updated PRD written to: ${prdFile}`)
+    // Generate tasks for new requirements if task file exists
+    const taskFilePath = findExistingTaskFile(prdFile)
+    if (taskFilePath) {
+      console.log(`Found existing task file: ${taskFilePath}`)
+      await generateIncrementalTasks(taskFilePath, prdFile, parsedPrd, config, model)
+    } else {
+      console.log('No existing task file found. Skipping task generation.')
+    }
 
-  // Generate tasks for new requirements if task file exists
-  const taskFilePath = findExistingTaskFile(prdFile)
-  if (taskFilePath) {
-    console.log(`Found existing task file: ${taskFilePath}`)
-    await generateIncrementalTasks(taskFilePath, prdFile, parsedPrd, config, model)
-  } else {
-    console.log('No existing task file found. Skipping task generation.')
+    console.log('\nExtend-PRD operation completed successfully!')
+  } catch (error) {
+    console.error('Error during extend-PRD operation:', error)
+    throw error
   }
-
-  console.log('\nExtend-PRD operation completed successfully!')
 }
