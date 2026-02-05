@@ -270,7 +270,7 @@ tasks:
     description: |
       Create the system to generate and display the completion message with the exact command format. The message should include the derived task filename and accurate new task count, formatted as 'hone run .plans/{tasks-filename} -i {new-task-count}' to guide users on next steps.
 
-    status: pending
+    status: completed
     dependencies:
       - task-014
       - task-015
@@ -281,7 +281,7 @@ tasks:
       - "Command format exactly matches specified pattern requirements"
       - "Message appears after successful PRD extension completion"
       - "Output integrates smoothly with existing command flow"
-    completed_at: null
+    completed_at: 2026-02-06T04:30:00.000Z
 
   - id: task-018
     title: "Remove local content fetching functions from extend-prd module"

@@ -22,6 +22,7 @@ import {
   parseTaskFile,
   extractTaskIds,
   taskIdExists,
+  derivePrdToTaskFilename,
   extendPRD,
 } from './extend-prd.js'
 
@@ -97,6 +98,56 @@ Test overview.
         description: 'First non-functional requirement',
         type: 'non-functional',
         lineNumber: 13,
+      })
+    })
+  })
+
+  describe('PRD to Task Filename Derivation', () => {
+    describe('derivePrdToTaskFilename', () => {
+      it('should derive task filename from PRD filename correctly', () => {
+        expect(derivePrdToTaskFilename('prd-user-auth.md')).toBe('tasks-user-auth.yml')
+        expect(derivePrdToTaskFilename('prd-extend-prd-command.md')).toBe(
+          'tasks-extend-prd-command.yml'
+        )
+        expect(derivePrdToTaskFilename('/path/to/prd-feature-name.md')).toBe(
+          'tasks-feature-name.yml'
+        )
+        expect(derivePrdToTaskFilename('./prd-simple.md')).toBe('tasks-simple.yml')
+      })
+
+      it('should handle complex feature names with hyphens and numbers', () => {
+        expect(derivePrdToTaskFilename('prd-user-auth-v2.md')).toBe('tasks-user-auth-v2.yml')
+        expect(derivePrdToTaskFilename('prd-api-integration-oauth2.md')).toBe(
+          'tasks-api-integration-oauth2.yml'
+        )
+        expect(derivePrdToTaskFilename('prd-feature-123-test.md')).toBe(
+          'tasks-feature-123-test.yml'
+        )
+      })
+
+      it('should throw error for invalid PRD filename format', () => {
+        expect(() => derivePrdToTaskFilename('invalid-file.md')).toThrow(
+          'Invalid PRD filename format'
+        )
+        expect(() => derivePrdToTaskFilename('prd-feature.txt')).toThrow(
+          'Invalid PRD filename format'
+        )
+        expect(() => derivePrdToTaskFilename('feature.md')).toThrow('Invalid PRD filename format')
+        expect(() => derivePrdToTaskFilename('prd-.md')).toThrow('Invalid PRD filename format')
+      })
+
+      it('should throw error for missing or invalid input', () => {
+        expect(() => derivePrdToTaskFilename('')).toThrow('PRD file path is required')
+        expect(() => derivePrdToTaskFilename(null as any)).toThrow('PRD file path is required')
+        expect(() => derivePrdToTaskFilename(undefined as any)).toThrow('PRD file path is required')
+        expect(() => derivePrdToTaskFilename(123 as any)).toThrow('PRD file path is required')
+      })
+
+      it('should handle edge cases in filename', () => {
+        expect(derivePrdToTaskFilename('prd-a.md')).toBe('tasks-a.yml')
+        expect(derivePrdToTaskFilename('prd-feature-with-many-hyphens-and-words.md')).toBe(
+          'tasks-feature-with-many-hyphens-and-words.yml'
+        )
       })
     })
   })
