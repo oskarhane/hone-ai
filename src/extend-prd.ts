@@ -1,4 +1,4 @@
-import { readFile, writeFile, access, rename, unlink } from 'fs/promises'
+import { readFile, writeFile, access, rename, unlink, stat } from 'fs/promises'
 import yaml from 'js-yaml'
 import { loadConfig, resolveModelForPhase } from './config'
 import { AgentClient } from './agent-client'
@@ -6,6 +6,7 @@ import { join, dirname, basename } from 'path'
 import { existsSync } from 'fs'
 import { randomUUID } from 'crypto'
 import * as readline from 'readline'
+import { HoneError, formatError, isNetworkError, retryWithBackoff, ErrorMessages } from './errors'
 
 // Task File Types
 export interface Task {
@@ -92,10 +93,36 @@ export async function prepareAtomicWrite(
   filePath: string,
   content: string
 ): Promise<AtomicFileOperation> {
+  // Input validation
+  if (!filePath || typeof filePath !== 'string') {
+    throw new HoneError('File path is required for atomic write operation')
+  }
+
+  if (typeof content !== 'string') {
+    throw new HoneError('Content must be a string for atomic write operation')
+  }
+
   const tempPath = createTempFilePath(filePath)
   const originalExists = existsSync(filePath)
 
   try {
+    // Ensure target directory exists
+    const targetDir = dirname(filePath)
+    try {
+      await access(targetDir)
+    } catch (error: unknown) {
+      const nodeError = error as any
+      if (nodeError?.code === 'ENOENT') {
+        throw new HoneError(
+          formatError(
+            `Target directory does not exist: ${targetDir}`,
+            'Please create the directory before attempting to write the file'
+          )
+        )
+      }
+      throw error
+    }
+
     // Write content to temporary file
     await writeFile(tempPath, content, 'utf-8')
 
@@ -112,9 +139,45 @@ export async function prepareAtomicWrite(
         await unlink(tempPath)
       }
     } catch {
-      // Ignore cleanup errors
+      // Ignore cleanup errors during error handling
     }
-    throw error
+
+    // Re-throw HoneError as-is
+    if (error instanceof HoneError) {
+      throw error
+    }
+
+    // Handle filesystem errors
+    const nodeError = error as any
+    if (nodeError?.code === 'EACCES') {
+      throw new HoneError(
+        formatError(
+          'Permission denied writing file',
+          `Cannot write to ${filePath}. Please check file and directory permissions.`
+        )
+      )
+    } else if (nodeError?.code === 'ENOSPC') {
+      throw new HoneError(
+        formatError(
+          'Insufficient disk space',
+          'Not enough disk space to write file. Please free up space and try again.'
+        )
+      )
+    } else if (nodeError?.code === 'EROFS') {
+      throw new HoneError(
+        formatError(
+          'Read-only file system',
+          `Cannot write to read-only file system containing ${filePath}`
+        )
+      )
+    }
+
+    throw new HoneError(
+      formatError(
+        'Failed to prepare atomic write operation',
+        `Filesystem error: ${error instanceof Error ? error.message : String(error)}`
+      )
+    )
   }
 }
 
@@ -123,17 +186,64 @@ export async function prepareAtomicWrite(
  * @param operation AtomicFileOperation to commit
  */
 export async function commitAtomicWrite(operation: AtomicFileOperation): Promise<void> {
+  if (!operation || !operation.tempPath || !operation.targetPath) {
+    throw new HoneError('Invalid atomic operation: missing required paths')
+  }
+
+  // Verify temp file still exists
+  if (!existsSync(operation.tempPath)) {
+    throw new HoneError(
+      formatError(
+        'Atomic operation corrupted',
+        `Temporary file missing: ${operation.tempPath}. The atomic write operation cannot be completed.`
+      )
+    )
+  }
+
   try {
     // Atomic move: rename temp file to target file
     await rename(operation.tempPath, operation.targetPath)
   } catch (error) {
     // Clean up temp file on failure
     try {
-      await unlink(operation.tempPath)
+      if (existsSync(operation.tempPath)) {
+        await unlink(operation.tempPath)
+      }
     } catch {
-      // Ignore cleanup errors
+      // Ignore cleanup errors during error handling
     }
-    throw error
+
+    // Handle specific filesystem errors
+    const nodeError = error as any
+    if (nodeError?.code === 'EACCES') {
+      throw new HoneError(
+        formatError(
+          'Permission denied completing atomic write',
+          `Cannot move file to ${operation.targetPath}. Please check file and directory permissions.`
+        )
+      )
+    } else if (nodeError?.code === 'EEXIST') {
+      throw new HoneError(
+        formatError(
+          'Target file locked or in use',
+          `Cannot replace ${operation.targetPath}. The file may be open in another application.`
+        )
+      )
+    } else if (nodeError?.code === 'EXDEV') {
+      throw new HoneError(
+        formatError(
+          'Cross-device atomic move not supported',
+          'Atomic operations across different filesystems are not supported. Please ensure both source and target are on the same filesystem.'
+        )
+      )
+    }
+
+    throw new HoneError(
+      formatError(
+        'Failed to commit atomic write operation',
+        `Filesystem error: ${error instanceof Error ? error.message : String(error)}`
+      )
+    )
   }
 }
 
@@ -475,24 +585,100 @@ export function getNextRequirementId(
  */
 export async function parsePrdFile(prdFile: string): Promise<ParsedPrd> {
   // Validate file path
-  if (!prdFile) {
-    throw new Error('PRD file path is required')
+  if (!prdFile || typeof prdFile !== 'string') {
+    throw new HoneError('PRD file path is required and must be a string')
+  }
+
+  if (prdFile.trim().length === 0) {
+    throw new HoneError('PRD file path cannot be empty')
+  }
+
+  // Validate file extension
+  if (!prdFile.toLowerCase().endsWith('.md')) {
+    throw new HoneError(
+      formatError(
+        `Invalid PRD file format: expected .md file, got: ${prdFile}`,
+        'PRD files must be Markdown files with .md extension'
+      )
+    )
   }
 
   // Check if PRD file exists
   try {
     await access(prdFile)
-  } catch (error) {
-    throw new Error(`PRD file not found: ${prdFile}`)
+  } catch (error: unknown) {
+    const nodeError = error as any
+    if (nodeError?.code === 'ENOENT') {
+      throw new HoneError(
+        formatError(
+          `PRD file not found: ${prdFile}`,
+          'Please check the file path and ensure the file exists'
+        )
+      )
+    } else if (nodeError?.code === 'EACCES') {
+      throw new HoneError(
+        formatError(
+          `Permission denied accessing PRD file: ${prdFile}`,
+          'Please check file permissions and ensure you have read access'
+        )
+      )
+    } else {
+      throw new HoneError(
+        formatError(
+          `Cannot access PRD file: ${prdFile}`,
+          `File system error: ${error instanceof Error ? error.message : String(error)}`
+        )
+      )
+    }
   }
 
   // Read and parse file content
   try {
     const content = await readFile(prdFile, 'utf-8')
-    return parsePrdContent(content)
-  } catch (error) {
-    throw new Error(
-      `Cannot read PRD file: ${prdFile}. ${error instanceof Error ? error.message : String(error)}`
+
+    if (!content || content.trim().length === 0) {
+      throw new HoneError(
+        formatError(`PRD file is empty: ${prdFile}`, 'PRD file must contain content to extend')
+      )
+    }
+
+    const parsedPrd = parsePrdContent(content)
+
+    // Enhanced validation with actionable error messages
+    if (!parsedPrd.isValid) {
+      const errorDetails = parsedPrd.errors.map(err => `  • ${err}`).join('\n')
+      throw new HoneError(
+        formatError(
+          `Invalid PRD file structure: ${prdFile}`,
+          `The following issues were found:\n${errorDetails}\n\nPlease fix these issues and try again.`
+        )
+      )
+    }
+
+    return parsedPrd
+  } catch (error: unknown) {
+    // Re-throw HoneError without modification
+    if (error instanceof HoneError) {
+      throw error
+    }
+
+    // Handle specific file reading errors
+    const nodeError = error as any
+    if (nodeError?.code === 'EISDIR') {
+      throw new HoneError(
+        formatError(
+          `PRD path is a directory, not a file: ${prdFile}`,
+          'Please provide the path to a .md file, not a directory'
+        )
+      )
+    }
+
+    // Generic file reading error
+    throw new HoneError(
+      formatError(
+        `Cannot read PRD file: ${prdFile}`,
+        `Error: ${error instanceof Error ? error.message : String(error)}\n\nPlease ensure the file is accessible and in valid format.`
+      )
     )
   }
 }
@@ -638,24 +824,106 @@ export function parseTaskFileContent(content: string): ParsedTaskFile {
  */
 export async function parseTaskFile(taskFilePath: string): Promise<ParsedTaskFile> {
   // Validate file path
-  if (!taskFilePath) {
-    throw new Error('Task file path is required')
+  if (!taskFilePath || typeof taskFilePath !== 'string') {
+    throw new HoneError('Task file path is required and must be a string')
+  }
+
+  if (taskFilePath.trim().length === 0) {
+    throw new HoneError('Task file path cannot be empty')
+  }
+
+  // Validate file extension
+  if (
+    !taskFilePath.toLowerCase().endsWith('.yml') &&
+    !taskFilePath.toLowerCase().endsWith('.yaml')
+  ) {
+    throw new HoneError(
+      formatError(
+        `Invalid task file format: expected .yml or .yaml file, got: ${taskFilePath}`,
+        'Task files must be YAML files with .yml or .yaml extension'
+      )
+    )
   }
 
   // Check if task file exists
   try {
     await access(taskFilePath)
-  } catch (error) {
-    throw new Error(`Task file not found: ${taskFilePath}`)
+  } catch (error: unknown) {
+    const nodeError = error as any
+    if (nodeError?.code === 'ENOENT') {
+      throw new HoneError(
+        formatError(
+          `Task file not found: ${taskFilePath}`,
+          'Please check the file path and ensure the file exists'
+        )
+      )
+    } else if (nodeError?.code === 'EACCES') {
+      throw new HoneError(
+        formatError(
+          `Permission denied accessing task file: ${taskFilePath}`,
+          'Please check file permissions and ensure you have read access'
+        )
+      )
+    } else {
+      throw new HoneError(
+        formatError(
+          `Cannot access task file: ${taskFilePath}`,
+          `File system error: ${error instanceof Error ? error.message : String(error)}`
+        )
+      )
+    }
   }
 
   // Read and parse file content
   try {
     const content = await readFile(taskFilePath, 'utf-8')
-    return parseTaskFileContent(content)
-  } catch (error) {
-    throw new Error(
-      `Cannot read task file: ${taskFilePath}. ${error instanceof Error ? error.message : String(error)}`
+
+    if (!content || content.trim().length === 0) {
+      throw new HoneError(
+        formatError(
+          `Task file is empty: ${taskFilePath}`,
+          'Task file must contain YAML content to parse'
+        )
+      )
+    }
+
+    const parsedTaskFile = parseTaskFileContent(content)
+
+    // Enhanced validation with actionable error messages
+    if (!parsedTaskFile.isValid) {
+      const errorDetails = parsedTaskFile.errors.map(err => `  • ${err}`).join('\n')
+      throw new HoneError(
+        formatError(
+          `Invalid task file structure: ${taskFilePath}`,
+          `The following YAML validation issues were found:\n${errorDetails}\n\nPlease fix these issues and try again.`
+        )
+      )
+    }
+
+    return parsedTaskFile
+  } catch (error: unknown) {
+    // Re-throw HoneError without modification
+    if (error instanceof HoneError) {
+      throw error
+    }
+
+    // Handle specific file reading errors
+    const nodeError = error as any
+    if (nodeError?.code === 'EISDIR') {
+      throw new HoneError(
+        formatError(
+          `Task path is a directory, not a file: ${taskFilePath}`,
+          'Please provide the path to a .yml/.yaml file, not a directory'
+        )
+      )
+    }
+
+    // Generic file reading error
+    throw new HoneError(
+      formatError(
+        `Cannot read task file: ${taskFilePath}`,
+        `Error: ${error instanceof Error ? error.message : String(error)}\n\nPlease ensure the file is accessible and in valid YAML format.`
+      )
     )
   }
 }
@@ -770,80 +1038,209 @@ export function detectContentReferences(
 }
 
 /**
- * Fetch content from a URL
+ * Fetch content from a URL with comprehensive error handling and retry logic
  * @param url URL to fetch content from
  * @returns Content string or null if failed
  */
 async function fetchUrlContent(
   url: string
 ): Promise<{ content: string | null; error: string | null }> {
+  // Validate URL format
   try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'hone-ai/0.15.0 (Content Fetcher)',
-      },
-    })
-
-    clearTimeout(timeoutId)
-
-    if (!response.ok) {
-      return {
-        content: null,
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      }
+    new URL(url)
+  } catch {
+    return {
+      content: null,
+      error: `Invalid URL format: ${url}`,
     }
+  }
 
-    const content = await response.text()
-    return { content, error: null }
-  } catch (error) {
+  // Use retry logic for network requests
+  return await retryWithBackoff(
+    async () => {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // Increased to 30 seconds
+
+      try {
+        const response = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'hone-ai/0.15.0 (Content Fetcher)',
+            Accept: 'text/html,text/plain,text/markdown,text/*,*/*',
+          },
+        })
+
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          const errorMsg = `HTTP ${response.status}: ${response.statusText}`
+
+          // Provide specific guidance for common HTTP errors
+          if (response.status === 404) {
+            return { content: null, error: `URL not found (404): ${url}` }
+          } else if (response.status === 403) {
+            return { content: null, error: `Access forbidden (403): ${url}` }
+          } else if (response.status >= 500) {
+            // Server errors are retryable
+            throw new Error(errorMsg)
+          } else {
+            return { content: null, error: errorMsg }
+          }
+        }
+
+        // Check content type for warnings
+        const contentType = response.headers.get('content-type') || ''
+        if (
+          !contentType.includes('text') &&
+          !contentType.includes('json') &&
+          !contentType.includes('xml')
+        ) {
+          console.warn(
+            `Warning: Fetching non-text content from ${url} (Content-Type: ${contentType})`
+          )
+        }
+
+        const content = await response.text()
+
+        if (content.length > 1000000) {
+          // 1MB limit
+          console.warn(
+            `Warning: Large content fetched from ${url} (${Math.round(content.length / 1024)}KB)`
+          )
+        }
+
+        return { content, error: null }
+      } catch (error) {
+        clearTimeout(timeoutId)
+
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            return { content: null, error: 'Request timeout (30 seconds)' }
+          }
+          // Re-throw network errors for retry logic
+          throw error
+        }
+        throw new Error('Unknown network error')
+      }
+    },
+    {
+      maxRetries: 3,
+      initialDelay: 1000,
+      shouldRetry: error => {
+        return isNetworkError(error) || (error instanceof Error && error.message.includes('HTTP 5'))
+      },
+    }
+  ).catch(error => {
+    // Final error handling after all retries failed
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
-        return { content: null, error: 'Request timeout (10 seconds)' }
+        return { content: null, error: 'Request timeout after retries' }
+      }
+      if (isNetworkError(error)) {
+        return { content: null, error: `Network error after retries: ${error.message}` }
       }
       return { content: null, error: error.message }
     }
-    return { content: null, error: 'Unknown network error' }
-  }
+    return { content: null, error: 'Unknown network error after retries' }
+  })
 }
 
 /**
- * Fetch content from a local file
+ * Fetch content from a local file with comprehensive error handling
  * @param filePath Path to the file
  * @returns Content string or null if failed
  */
 async function fetchFileContent(
   filePath: string
 ): Promise<{ content: string | null; error: string | null }> {
+  // Validate file path format
+  if (!filePath || typeof filePath !== 'string' || filePath.trim().length === 0) {
+    return { content: null, error: 'Invalid file path' }
+  }
+
   try {
-    // Handle relative paths and home directory
-    let resolvedPath = filePath
-    if (filePath.startsWith('~')) {
-      resolvedPath = filePath.replace(/^~/, process.env.HOME || '')
-    } else if (!filePath.startsWith('/')) {
-      resolvedPath = join(process.cwd(), filePath)
+    // Handle relative paths and home directory expansion
+    let resolvedPath = filePath.trim()
+    if (resolvedPath.startsWith('~')) {
+      if (!process.env.HOME) {
+        return { content: null, error: 'Cannot resolve ~ (HOME environment variable not set)' }
+      }
+      resolvedPath = resolvedPath.replace(/^~/, process.env.HOME)
+    } else if (!resolvedPath.startsWith('/')) {
+      resolvedPath = join(process.cwd(), resolvedPath)
+    }
+
+    // Validate resolved path is not attempting directory traversal attacks
+    const normalizedPath = join(resolvedPath)
+    if (
+      normalizedPath.includes('..') &&
+      !normalizedPath.startsWith(process.cwd()) &&
+      !normalizedPath.startsWith(process.env.HOME || '')
+    ) {
+      return { content: null, error: 'Path traversal not allowed for security reasons' }
     }
 
     // Check file exists and is accessible
     await access(resolvedPath)
 
+    // Get file stats for additional validation
+    const stats = await stat(resolvedPath)
+
+    // Check if it's a directory
+    if (stats.isDirectory()) {
+      return { content: null, error: 'Path points to a directory, not a file' }
+    }
+
+    // Check file size (limit to 10MB for safety)
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (stats.size > maxSize) {
+      return {
+        content: null,
+        error: `File too large (${Math.round(stats.size / (1024 * 1024))}MB). Maximum allowed: 10MB`,
+      }
+    }
+
+    // Warn about large files
+    if (stats.size > 1024 * 1024) {
+      // 1MB
+      console.warn(`Warning: Reading large file ${filePath} (${Math.round(stats.size / 1024)}KB)`)
+    }
+
     const content = await readFile(resolvedPath, 'utf-8')
+
+    if (content.length === 0) {
+      return { content: null, error: 'File is empty' }
+    }
+
     return { content, error: null }
   } catch (error) {
     if (error instanceof Error) {
       const nodeError = error as any
-      if (nodeError.code === 'ENOENT') {
-        return { content: null, error: 'File not found' }
+
+      // Provide specific error messages for common filesystem errors
+      switch (nodeError.code) {
+        case 'ENOENT':
+          return { content: null, error: `File not found: ${filePath}` }
+        case 'EACCES':
+          return { content: null, error: `Permission denied: ${filePath}` }
+        case 'EISDIR':
+          return { content: null, error: `Path is a directory, not a file: ${filePath}` }
+        case 'ENOTDIR':
+          return { content: null, error: `Invalid path (parent is not a directory): ${filePath}` }
+        case 'EMFILE':
+        case 'ENFILE':
+          return { content: null, error: 'Too many open files (system limit reached)' }
+        case 'ENOSPC':
+          return { content: null, error: 'No space left on device' }
+        case 'EROFS':
+          return { content: null, error: 'Read-only file system' }
+        case 'ELOOP':
+          return { content: null, error: 'Too many symbolic links' }
+        default:
+          return { content: null, error: `File system error (${nodeError.code}): ${error.message}` }
       }
-      if (nodeError.code === 'EACCES') {
-        return { content: null, error: 'Permission denied' }
-      }
-      return { content: null, error: error.message }
     }
-    return { content: null, error: 'Unknown file access error' }
+    return { content: null, error: `Unknown file access error: ${String(error)}` }
   }
 }
 
@@ -909,16 +1306,54 @@ export async function fetchContentReferences(
  * @returns User's response
  */
 async function askQuestion(prompt: string): Promise<string> {
+  if (!prompt || typeof prompt !== 'string') {
+    throw new HoneError('Prompt is required for interactive question')
+  }
+
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   })
 
-  return new Promise(resolve => {
-    rl.question(prompt, answer => {
+  return new Promise((resolve, reject) => {
+    // Set up timeout to prevent hanging
+    const timeout = setTimeout(() => {
       rl.close()
-      resolve(answer.trim())
-    })
+      reject(
+        new HoneError(
+          formatError(
+            'Interactive question timed out',
+            'No user input received within 5 minutes. Please try again.'
+          )
+        )
+      )
+    }, 300000) // 5 minutes
+
+    try {
+      rl.question(prompt, answer => {
+        clearTimeout(timeout)
+        rl.close()
+        resolve(answer.trim())
+      })
+
+      // Handle Ctrl+C gracefully
+      rl.on('SIGINT', () => {
+        clearTimeout(timeout)
+        rl.close()
+        reject(new HoneError('User interrupted input (Ctrl+C)'))
+      })
+    } catch (error) {
+      clearTimeout(timeout)
+      rl.close()
+      reject(
+        new HoneError(
+          formatError(
+            'Error during user interaction',
+            `Failed to read user input: ${error instanceof Error ? error.message : String(error)}`
+          )
+        )
+      )
+    }
   })
 }
 
@@ -1018,20 +1453,48 @@ ${contentSection}
 ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`
 
   try {
-    const response = await client.messages.create({
-      max_tokens: 500,
-      messages: [
-        {
-          role: 'user',
-          content:
-            'What is your next clarifying question about this new requirement, or respond with "DONE" if you have enough information?',
-        },
-      ],
-      system: systemPrompt,
-    })
+    const response = await retryWithBackoff(
+      () =>
+        client.messages.create({
+          max_tokens: 500,
+          messages: [
+            {
+              role: 'user',
+              content:
+                'What is your next clarifying question about this new requirement, or respond with "DONE" if you have enough information?',
+            },
+          ],
+          system: systemPrompt,
+        }),
+      {
+        maxRetries: 3,
+        initialDelay: 1000,
+        shouldRetry: error => isNetworkError(error),
+      }
+    )
+
+    if (!response || !response.content || !Array.isArray(response.content)) {
+      process.stdout.write('✗\n')
+      throw new HoneError(
+        formatError(
+          'Invalid AI response format',
+          'The AI agent returned an unexpected response format. Please try again.'
+        )
+      )
+    }
 
     const content = response.content[0]
-    const text = content && content.type === 'text' ? content.text.trim() : ''
+    if (!content || content.type !== 'text') {
+      process.stdout.write('✗\n')
+      throw new HoneError(
+        formatError(
+          'AI response contains no text content',
+          'The AI agent did not provide a text response. Please try again.'
+        )
+      )
+    }
+
+    const text = content.text.trim()
 
     // Clear progress indicator
     process.stdout.write('✓\n')
@@ -1044,7 +1507,29 @@ ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`
   } catch (error) {
     // Clear progress indicator with error
     process.stdout.write('✗\n')
-    throw error
+
+    // Re-throw HoneError as-is
+    if (error instanceof HoneError) {
+      throw error
+    }
+
+    // Handle network errors with retry information
+    if (isNetworkError(error)) {
+      throw new HoneError(
+        formatError(
+          'Network error generating clarifying question',
+          `Failed to connect to AI service after retries.\n\nError: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your internet connection and API configuration.`
+        )
+      )
+    }
+
+    // Generic AI error
+    throw new HoneError(
+      formatError(
+        `Error generating clarifying question for round ${roundNumber}`,
+        `AI service error: ${error instanceof Error ? error.message : String(error)}\n\nThis may be a temporary issue. Please try again.`
+      )
+    )
   }
 }
 
@@ -1062,6 +1547,27 @@ export async function runRequirementRefinementQA(
   model: string,
   contentContext: ContentContext
 ): Promise<Array<{ question: string; answer: string }>> {
+  // Input validation
+  if (!requirementDescription || typeof requirementDescription !== 'string') {
+    throw new HoneError('Requirement description is required for Q&A refinement')
+  }
+
+  if (!prdContext || !prdContext.sections || !prdContext.requirements) {
+    throw new HoneError('Valid PRD context is required for Q&A refinement')
+  }
+
+  if (!config) {
+    throw new HoneError('Configuration is required for Q&A refinement')
+  }
+
+  if (!model || typeof model !== 'string') {
+    throw new HoneError('Model specification is required for Q&A refinement')
+  }
+
+  if (!contentContext) {
+    throw new HoneError('Content context is required for Q&A refinement')
+  }
+
   const qa: Array<{ question: string; answer: string }> = []
   const maxRounds = 5
 
@@ -1084,15 +1590,35 @@ export async function runRequirementRefinementQA(
       }
 
       console.log(`${round}. ${question}`)
-      const answer = await askQuestion('> ')
 
-      if (answer.toLowerCase() === 'done') {
-        break
+      try {
+        const answer = await askQuestion('> ')
+
+        if (answer.toLowerCase() === 'done') {
+          break
+        }
+
+        // Validate answer is not empty
+        if (!answer.trim()) {
+          console.log('Please provide an answer, or type "done" to finish.\n')
+          round-- // Don't count this round
+          continue
+        }
+
+        qa.push({ question, answer })
+        console.log('')
+      } catch (error) {
+        if (error instanceof HoneError && error.message.includes('interrupted')) {
+          console.log('\nUser interrupted Q&A session. Continuing with available information...\n')
+          break
+        }
+        throw error
+      }
+    } catch (error) {
+      if (error instanceof HoneError) {
+        throw error
       }
 
-      qa.push({ question, answer })
-      console.log('')
-    } catch (error) {
       console.error(
         `\nError generating clarifying question for round ${round}: ${error instanceof Error ? error.message : String(error)}`
       )
@@ -1188,22 +1714,53 @@ NON-FUNCTIONAL REQUIREMENTS:
 If no non-functional requirements are needed, write "NON-FUNCTIONAL REQUIREMENTS:\n- None identified"`
 
   try {
-    const response = await client.messages.create({
-      max_tokens: 1500,
-      messages: [
-        {
-          role: 'user',
-          content: 'Generate the requirements now following the exact format specified.',
-        },
-      ],
-      system: systemPrompt,
-    })
+    const response = await retryWithBackoff(
+      () =>
+        client.messages.create({
+          max_tokens: 1500,
+          messages: [
+            {
+              role: 'user',
+              content: 'Generate the requirements now following the exact format specified.',
+            },
+          ],
+          system: systemPrompt,
+        }),
+      {
+        maxRetries: 3,
+        initialDelay: 1000,
+        shouldRetry: error => isNetworkError(error),
+      }
+    )
+
+    if (!response || !response.content || !Array.isArray(response.content)) {
+      throw new HoneError(
+        formatError(
+          'Invalid AI response format for requirements generation',
+          'The AI agent returned an unexpected response format. Please try again.'
+        )
+      )
+    }
 
     const content = response.content[0]
-    const text = content && content.type === 'text' ? content.text.trim() : ''
+    if (!content || content.type !== 'text') {
+      throw new HoneError(
+        formatError(
+          'AI response contains no text content for requirements',
+          'The AI agent did not provide a text response for requirements generation. Please try again.'
+        )
+      )
+    }
+
+    const text = content.text.trim()
 
     if (!text) {
-      throw new Error('AI returned empty requirements content')
+      throw new HoneError(
+        formatError(
+          'AI returned empty requirements content',
+          'The AI agent provided an empty response when generating requirements. Please try again.'
+        )
+      )
     }
 
     // Parse AI response into functional and non-functional requirements
@@ -1249,8 +1806,27 @@ If no non-functional requirements are needed, write "NON-FUNCTIONAL REQUIREMENTS
 
     return { functional, nonFunctional }
   } catch (error) {
-    throw new Error(
-      `Failed to generate requirements content: ${error instanceof Error ? error.message : String(error)}`
+    // Re-throw HoneError as-is
+    if (error instanceof HoneError) {
+      throw error
+    }
+
+    // Handle network errors
+    if (isNetworkError(error)) {
+      throw new HoneError(
+        formatError(
+          'Network error generating requirements content',
+          `Failed to connect to AI service after retries.\n\nError: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your internet connection and API configuration.`
+        )
+      )
+    }
+
+    // Generic error
+    throw new HoneError(
+      formatError(
+        'Failed to generate requirements content',
+        `AI service error: ${error instanceof Error ? error.message : String(error)}\n\nThis may be a temporary issue. Please try again.`
+      )
     )
   }
 }
@@ -1545,20 +2121,42 @@ ${newReqsText}
 Generate tasks only for the NEW requirements listed above.`
 
   try {
-    const response = await client.messages.create({
-      max_tokens: 8000,
-      messages: [
-        {
-          role: 'user',
-          content: 'Generate tasks for the new requirements following the format specified.',
-        },
-      ],
-      system: systemPrompt,
-    })
+    const response = await retryWithBackoff(
+      () =>
+        client.messages.create({
+          max_tokens: 8000,
+          messages: [
+            {
+              role: 'user',
+              content: 'Generate tasks for the new requirements following the format specified.',
+            },
+          ],
+          system: systemPrompt,
+        }),
+      {
+        maxRetries: 3,
+        initialDelay: 1000,
+        shouldRetry: error => isNetworkError(error),
+      }
+    )
+
+    if (!response || !response.content || !Array.isArray(response.content)) {
+      throw new HoneError(
+        formatError(
+          'Invalid AI response format for task generation',
+          'The AI agent returned an unexpected response format. Please try again.'
+        )
+      )
+    }
 
     const content = response.content[0]
     if (!content || content.type !== 'text') {
-      throw new Error('Invalid response from AI')
+      throw new HoneError(
+        formatError(
+          'AI response contains no text content for tasks',
+          'The AI agent did not provide a text response for task generation. Please try again.'
+        )
+      )
     }
 
     // Extract JSON from response
@@ -1572,7 +2170,12 @@ Generate tasks only for the NEW requirements listed above.`
       const tasks = JSON.parse(jsonText)
 
       if (!Array.isArray(tasks)) {
-        throw new Error('Response is not an array')
+        throw new HoneError(
+          formatError(
+            'Invalid task generation response format',
+            'AI returned tasks in invalid format (expected JSON array). Please try again.'
+          )
+        )
       }
 
       // Validate and adjust task structure
@@ -1586,7 +2189,12 @@ Generate tasks only for the NEW requirements listed above.`
           !Array.isArray(task.dependencies) ||
           !Array.isArray(task.acceptance_criteria)
         ) {
-          throw new Error(`Invalid task structure: ${JSON.stringify(task)}`)
+          throw new HoneError(
+            formatError(
+              'Invalid task structure in AI response',
+              `Task missing required fields: ${JSON.stringify(task, null, 2)}\n\nRequired fields: id, title, description, status, dependencies (array), acceptance_criteria (array)`
+            )
+          )
         }
 
         // Ensure task ID is correct - adjust all tasks sequentially
@@ -1602,13 +2210,40 @@ Generate tasks only for the NEW requirements listed above.`
 
       return tasks
     } catch (error) {
-      throw new Error(
-        `Failed to parse AI response as JSON: ${error instanceof Error ? error.message : error}`
+      // Re-throw HoneError as-is
+      if (error instanceof HoneError) {
+        throw error
+      }
+
+      throw new HoneError(
+        formatError(
+          'Failed to parse AI task generation response',
+          `JSON parsing error: ${error instanceof Error ? error.message : String(error)}\n\nThe AI response may be malformed. Please try again.`
+        )
       )
     }
   } catch (error) {
-    throw new Error(
-      `Failed to generate tasks for new requirements: ${error instanceof Error ? error.message : String(error)}`
+    // Re-throw HoneError as-is
+    if (error instanceof HoneError) {
+      throw error
+    }
+
+    // Handle network errors
+    if (isNetworkError(error)) {
+      throw new HoneError(
+        formatError(
+          'Network error generating tasks',
+          `Failed to connect to AI service after retries.\n\nError: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your internet connection and API configuration.`
+        )
+      )
+    }
+
+    // Generic error
+    throw new HoneError(
+      formatError(
+        'Failed to generate tasks for new requirements',
+        `AI service error: ${error instanceof Error ? error.message : String(error)}\n\nThis may be a temporary issue. Please try again.`
+      )
     )
   }
 }
@@ -1796,26 +2431,97 @@ function formatTaskFileAsYAML(taskFile: TaskFile): string {
  * @param requirementDescription Description of the new requirement to add
  */
 export async function extendPRD(prdFile: string, requirementDescription: string): Promise<void> {
-  // Validate inputs
-  if (!prdFile) {
-    throw new Error('PRD file path is required')
+  // Comprehensive input validation
+  if (!prdFile || typeof prdFile !== 'string') {
+    throw new HoneError('PRD file path is required and must be a string')
   }
 
-  if (!requirementDescription) {
-    throw new Error('Requirement description is required')
+  if (prdFile.trim().length === 0) {
+    throw new HoneError('PRD file path cannot be empty')
+  }
+
+  if (!requirementDescription || typeof requirementDescription !== 'string') {
+    throw new HoneError('Requirement description is required and must be a string')
+  }
+
+  if (requirementDescription.trim().length === 0) {
+    throw new HoneError('Requirement description cannot be empty')
+  }
+
+  if (requirementDescription.trim().length < 10) {
+    throw new HoneError(
+      formatError(
+        'Requirement description too short',
+        'Please provide a more detailed description (at least 10 characters) to generate meaningful requirements.'
+      )
+    )
+  }
+
+  if (requirementDescription.length > 10000) {
+    throw new HoneError(
+      formatError(
+        'Requirement description too long',
+        `Description is ${requirementDescription.length} characters. Please keep it under 10,000 characters for optimal processing.`
+      )
+    )
   }
 
   // Load configuration and resolve model for extendPrd phase
-  const config = await loadConfig()
-  const model = resolveModelForPhase(config, 'extendPrd')
+  let config: any
+  let model: string
+
+  try {
+    config = await loadConfig()
+    if (!config) {
+      throw new HoneError(
+        formatError(
+          'Configuration loading failed',
+          'Could not load hone configuration. Please ensure hone.config.json exists and is valid.'
+        )
+      )
+    }
+
+    model = resolveModelForPhase(config, 'extendPrd')
+    if (!model) {
+      throw new HoneError(
+        formatError(
+          'Model resolution failed',
+          'Could not resolve model for extendPrd phase. Please check your hone.config.json configuration.'
+        )
+      )
+    }
+  } catch (error) {
+    if (error instanceof HoneError) {
+      throw error
+    }
+    throw new HoneError(
+      formatError(
+        'Configuration error',
+        `Failed to load configuration: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your hone.config.json file and try again.`
+      )
+    )
+  }
 
   console.log(`Using model: ${model} for PRD extension`)
 
   // Parse and validate existing PRD
-  const parsedPrd = await parsePrdFile(prdFile)
+  let parsedPrd: ParsedPrd
+  try {
+    parsedPrd = await parsePrdFile(prdFile)
+    // parsePrdFile already includes comprehensive validation and error handling
+  } catch (error) {
+    // Re-throw HoneError as-is (already formatted)
+    if (error instanceof HoneError) {
+      throw error
+    }
 
-  if (!parsedPrd.isValid) {
-    throw new Error(`Invalid PRD file structure:\n${parsedPrd.errors.join('\n')}`)
+    // Unexpected error
+    throw new HoneError(
+      formatError(
+        'Unexpected error parsing PRD file',
+        `An unexpected error occurred: ${error instanceof Error ? error.message : String(error)}`
+      )
+    )
   }
 
   console.log(`Extending PRD: ${prdFile}`)
@@ -1825,16 +2531,57 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
   console.log(`New requirement: ${requirementDescription}\n`)
 
   // Fetch content from any referenced files or URLs
-  const contentContext = await fetchContentReferences(requirementDescription)
+  let contentContext: ContentContext
+  try {
+    contentContext = await fetchContentReferences(requirementDescription)
+
+    // Warn about failed content references but don't fail the entire operation
+    if (contentContext.failed.length > 0) {
+      console.warn(
+        `\nWarning: Failed to fetch ${contentContext.failed.length} content reference(s):`
+      )
+      contentContext.failed.forEach(ref => {
+        console.warn(`  • ${ref.reference}: ${ref.error}`)
+      })
+      console.warn('Continuing with available content...\n')
+    }
+  } catch (error) {
+    console.warn(
+      `Warning: Content fetching encountered an error: ${error instanceof Error ? error.message : String(error)}`
+    )
+    console.warn('Continuing without external content...\n')
+
+    // Create empty content context to allow operation to continue
+    contentContext = {
+      references: [],
+      successful: [],
+      failed: [],
+    }
+  }
 
   // Run interactive Q&A refinement session
-  const qa = await runRequirementRefinementQA(
-    requirementDescription,
-    parsedPrd,
-    config,
-    model,
-    contentContext
-  )
+  let qa: Array<{ question: string; answer: string }>
+  try {
+    qa = await runRequirementRefinementQA(
+      requirementDescription,
+      parsedPrd,
+      config,
+      model,
+      contentContext
+    )
+  } catch (error) {
+    if (error instanceof HoneError) {
+      throw error
+    }
+
+    console.warn(
+      `Warning: Q&A refinement encountered an error: ${error instanceof Error ? error.message : String(error)}`
+    )
+    console.warn('Continuing without refinement...\n')
+
+    // Continue with empty Q&A if refinement fails
+    qa = []
+  }
 
   if (qa.length > 0) {
     console.log('\nRequirement refinement complete!')
@@ -1849,31 +2596,61 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
 
   try {
     // Generate and append new requirements to PRD
-    await appendRequirementsToPrd(
-      prdFile,
-      parsedPrd,
-      requirementDescription,
-      qa,
-      config,
-      model,
-      contentContext
-    )
-
-    console.log('PRD content updated successfully!')
-    console.log(`Updated PRD written to: ${prdFile}`)
+    try {
+      await appendRequirementsToPrd(
+        prdFile,
+        parsedPrd,
+        requirementDescription,
+        qa,
+        config,
+        model,
+        contentContext
+      )
+      console.log('PRD content updated successfully!')
+      console.log(`Updated PRD written to: ${prdFile}`)
+    } catch (error) {
+      if (error instanceof HoneError) {
+        throw error
+      }
+      throw new HoneError(
+        formatError(
+          'Failed to update PRD file',
+          `Error appending requirements: ${error instanceof Error ? error.message : String(error)}\n\nThe PRD file may be in an inconsistent state. Please check the file and try again.`
+        )
+      )
+    }
 
     // Generate tasks for new requirements if task file exists
     const taskFilePath = findExistingTaskFile(prdFile)
     if (taskFilePath) {
       console.log(`Found existing task file: ${taskFilePath}`)
-      await generateIncrementalTasks(taskFilePath, prdFile, parsedPrd, config, model)
+      try {
+        await generateIncrementalTasks(taskFilePath, prdFile, parsedPrd, config, model)
+      } catch (error) {
+        // Don't fail the entire operation if task generation fails
+        console.warn(
+          `Warning: Task generation failed: ${error instanceof Error ? error.message : String(error)}`
+        )
+        console.warn('The PRD was updated successfully, but task generation encountered an error.')
+        console.warn('You may need to generate tasks manually or fix the task file and retry.\n')
+      }
     } else {
       console.log('No existing task file found. Skipping task generation.')
     }
 
     console.log('\nExtend-PRD operation completed successfully!')
   } catch (error) {
-    console.error('Error during extend-PRD operation:', error)
-    throw error
+    // Re-throw HoneError as-is
+    if (error instanceof HoneError) {
+      throw error
+    }
+
+    // Handle unexpected errors
+    throw new HoneError(
+      formatError(
+        'Unexpected error during extend-PRD operation',
+        `An unexpected error occurred: ${error instanceof Error ? error.message : String(error)}\n\nPlease try again or contact support if the issue persists.`
+      )
+    )
   }
 }

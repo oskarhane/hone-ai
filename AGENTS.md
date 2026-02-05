@@ -128,3 +128,13 @@ _Detailed information is available in the .agents-docs/ directory._
 - Remove unused rollback tracking arrays if individual functions handle atomicity internally
 - AtomicTransaction class provides coordination for multiple file operations
 - Cleanup temp files properly in error conditions - avoid using fs.unlink, prefer fs.rm with recursive option
+
+## Error Handling and Validation
+
+- Use HoneError class and formatError utility for consistent error messaging patterns
+- Add path traversal protection using path.resolve and containment checks for security
+- Network operations need retry with exponential backoff (3 retries, bounded delays)
+- Input validation should catch empty strings, wrong file extensions, invalid formats early
+- Avoid dynamic imports when module already imported at top level - add to existing import statement
+- File system error codes (ENOENT, EACCES, EISDIR, etc.) handled with specific user-friendly messages
+- Graceful degradation for non-critical errors (warnings don't fail operations)
