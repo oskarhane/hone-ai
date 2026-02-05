@@ -81,6 +81,9 @@ _Detailed information is available in the .agents-docs/ directory._
 - Test files must import modules with `.js` extension (e.g., `from './extend-prd.js'`) for Bun compatibility
 - Use specific line number assertions carefully - content changes can break tests
 - Remove unused imports/constants when identified in code review to maintain clean codebase
+- Remove unused imports from bun:test (e.g. `mock`) when not used in test implementation
+- Integration tests that change `process.cwd()` acceptable for sequential tests but note potential race conditions
+- Network-dependent integration tests (e.g. `example.com` requests) may cause flaky tests - consider mocking
 
 ## YAML File Parsing
 

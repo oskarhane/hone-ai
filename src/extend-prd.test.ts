@@ -1,4 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test'
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test'
+import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs'
+import { join } from 'path'
 import {
   parsePrdContent,
   extractRequirementIds,
@@ -16,6 +18,11 @@ import {
   rollbackAtomicWrite,
   atomicWriteFile,
   AtomicTransaction,
+  parsePrdFile,
+  parseTaskFile,
+  extractTaskIds,
+  taskIdExists,
+  extendPRD,
 } from './extend-prd.js'
 
 describe('PRD Parser', () => {
@@ -641,11 +648,427 @@ describe('PRD Content Appending', () => {
   })
 })
 
-describe('Atomic File Operations', () => {
-  const { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } = require('fs')
-  const { join } = require('path')
+describe('Additional Unit Tests', () => {
+  describe('parsePrdFile', () => {
+    const testDir = join(process.cwd(), 'test-prd-parsing')
+    const testPrdFile = join(testDir, 'test.md')
 
-  const testDir = join(__dirname, 'test-atomic-operations')
+    beforeEach(() => {
+      if (existsSync(testDir)) {
+        rmSync(testDir, { recursive: true })
+      }
+      mkdirSync(testDir, { recursive: true })
+    })
+
+    afterEach(() => {
+      if (existsSync(testDir)) {
+        rmSync(testDir, { recursive: true })
+      }
+    })
+
+    it('should parse valid PRD file successfully', async () => {
+      const content = `# PRD: Test Feature
+
+## Overview
+This is a test feature.
+
+## Requirements
+
+### Functional Requirements
+- REQ-F-001: First requirement
+
+### Non-Functional Requirements
+- REQ-NF-001: First performance requirement
+`
+      writeFileSync(testPrdFile, content)
+
+      const result = await parsePrdFile(testPrdFile)
+
+      expect(result.title).toBe('Test Feature')
+      expect(result.isValid).toBe(true)
+      expect(result.requirements).toHaveLength(2)
+    })
+
+    it('should throw error for non-existent file', async () => {
+      const nonExistentFile = join(testDir, 'nonexistent.md')
+
+      await expect(parsePrdFile(nonExistentFile)).rejects.toThrow('PRD file not found')
+    })
+
+    it('should throw error for invalid file extension', async () => {
+      const invalidFile = join(testDir, 'test.txt')
+      writeFileSync(invalidFile, 'content')
+
+      await expect(parsePrdFile(invalidFile)).rejects.toThrow('Invalid PRD file format')
+    })
+
+    it('should throw error for empty file', async () => {
+      writeFileSync(testPrdFile, '')
+
+      await expect(parsePrdFile(testPrdFile)).rejects.toThrow('PRD file is empty')
+    })
+
+    it('should throw error for empty input', async () => {
+      await expect(parsePrdFile('')).rejects.toThrow(
+        'PRD file path is required and must be a string'
+      )
+    })
+
+    it('should throw error for non-string input', async () => {
+      await expect(parsePrdFile(null as any)).rejects.toThrow(
+        'PRD file path is required and must be a string'
+      )
+    })
+  })
+
+  describe('parseTaskFile', () => {
+    const testDir = join(process.cwd(), 'test-task-parsing')
+    const testTaskFile = join(testDir, 'test.yml')
+
+    beforeEach(() => {
+      if (existsSync(testDir)) {
+        rmSync(testDir, { recursive: true })
+      }
+      mkdirSync(testDir, { recursive: true })
+    })
+
+    afterEach(() => {
+      if (existsSync(testDir)) {
+        rmSync(testDir, { recursive: true })
+      }
+    })
+
+    it('should parse valid task file successfully', async () => {
+      const content = `feature: test-feature
+created_at: 2026-01-01T00:00:00.000Z
+updated_at: 2026-01-01T01:00:00.000Z
+
+tasks:
+  - id: task-001
+    title: "First task"
+    description: "Test task"
+    status: pending
+    dependencies: []
+    acceptance_criteria: ["Test passes"]
+    completed_at: null
+`
+      writeFileSync(testTaskFile, content)
+
+      const result = await parseTaskFile(testTaskFile)
+
+      expect(result.isValid).toBe(true)
+      expect(result.taskFile.feature).toBe('test-feature')
+      expect(result.taskIds).toEqual(['task-001'])
+      expect(result.highestTaskId).toBe(1)
+    })
+
+    it('should throw error for non-existent file', async () => {
+      const nonExistentFile = join(testDir, 'nonexistent.yml')
+
+      await expect(parseTaskFile(nonExistentFile)).rejects.toThrow('Task file not found')
+    })
+
+    it('should throw error for invalid file extension', async () => {
+      const invalidFile = join(testDir, 'test.txt')
+      writeFileSync(invalidFile, 'content')
+
+      await expect(parseTaskFile(invalidFile)).rejects.toThrow('Invalid task file format')
+    })
+
+    it('should throw error for empty file', async () => {
+      writeFileSync(testTaskFile, '')
+
+      await expect(parseTaskFile(testTaskFile)).rejects.toThrow('Task file is empty')
+    })
+
+    it('should throw error for empty input', async () => {
+      await expect(parseTaskFile('')).rejects.toThrow(
+        'Task file path is required and must be a string'
+      )
+    })
+  })
+
+  describe('extractTaskIds', () => {
+    it('should extract and sort task IDs', () => {
+      const parsedTaskFile = {
+        taskFile: { feature: 'test', created_at: '', updated_at: '', tasks: [] },
+        taskIds: ['task-003', 'task-001', 'task-002'],
+        highestTaskId: 3,
+        isValid: true,
+        errors: [],
+      }
+
+      const result = extractTaskIds(parsedTaskFile)
+
+      expect(result).toEqual(['task-001', 'task-002', 'task-003'])
+    })
+
+    it('should handle empty task IDs array', () => {
+      const parsedTaskFile = {
+        taskFile: { feature: 'test', created_at: '', updated_at: '', tasks: [] },
+        taskIds: [],
+        highestTaskId: 0,
+        isValid: true,
+        errors: [],
+      }
+
+      const result = extractTaskIds(parsedTaskFile)
+
+      expect(result).toEqual([])
+    })
+  })
+
+  describe('taskIdExists', () => {
+    const parsedTaskFile = {
+      taskFile: { feature: 'test', created_at: '', updated_at: '', tasks: [] },
+      taskIds: ['task-001', 'task-002', 'task-003'],
+      highestTaskId: 3,
+      isValid: true,
+      errors: [],
+    }
+
+    it('should return true for existing task ID', () => {
+      expect(taskIdExists(parsedTaskFile, 'task-002')).toBe(true)
+    })
+
+    it('should return false for non-existing task ID', () => {
+      expect(taskIdExists(parsedTaskFile, 'task-004')).toBe(false)
+    })
+
+    it('should handle empty string', () => {
+      expect(taskIdExists(parsedTaskFile, '')).toBe(false)
+    })
+  })
+})
+
+describe('Error Scenario Tests', () => {
+  describe('parsePrdContent error scenarios', () => {
+    it('should handle malformed requirement patterns', () => {
+      const content = `# PRD: Test Feature
+
+## Overview
+Test overview.
+
+## Requirements
+
+### Functional Requirements
+- REQ-INVALID-001: This is malformed
+- REQ-F-: Missing number
+- REQ-F-001 Missing colon
+- REQ-F-001: Valid requirement
+
+### Non-Functional Requirements
+- REQ-NF-001: Valid non-functional requirement
+`
+
+      const result = parsePrdContent(content)
+
+      // Should only parse valid requirements
+      expect(result.requirements).toHaveLength(2)
+      expect(result.requirements[0]?.id).toBe('REQ-F-001')
+      expect(result.requirements[1]?.id).toBe('REQ-NF-001')
+    })
+
+    it('should handle missing title', () => {
+      const content = `## Overview
+Test without title.
+
+## Requirements
+
+### Functional Requirements
+- REQ-F-001: Test requirement
+
+### Non-Functional Requirements
+`
+
+      const result = parsePrdContent(content)
+
+      expect(result.title).toBe('')
+      expect(result.sections.size).toBe(2)
+    })
+
+    it('should handle content with only requirements section', () => {
+      const content = `# PRD: Minimal Feature
+
+## Requirements
+
+### Functional Requirements
+- REQ-F-001: Only requirement
+
+### Non-Functional Requirements
+`
+
+      const result = parsePrdContent(content)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('Missing required section: Overview')
+    })
+  })
+
+  describe('parseTaskFileContent error scenarios', () => {
+    it('should handle invalid YAML', () => {
+      const content = `feature: test
+tasks:
+  - id: task-001
+    title: "Unclosed quote
+    description: "Test"
+    status: pending`
+
+      const result = parseTaskFileContent(content)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors[0]).toContain('YAML parsing error')
+    })
+
+    it('should validate task status values', () => {
+      const content = `feature: test-feature
+created_at: 2026-01-01T00:00:00.000Z
+updated_at: 2026-01-01T01:00:00.000Z
+
+tasks:
+  - id: task-001
+    title: "Test task"
+    description: "Test description"
+    status: invalid_status
+    dependencies: []
+    acceptance_criteria: []
+    completed_at: null`
+
+      const result = parseTaskFileContent(content)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('Task "task-001" has invalid status: "invalid_status"')
+    })
+
+    it('should detect duplicate task IDs', () => {
+      const content = `feature: test-feature
+created_at: 2026-01-01T00:00:00.000Z
+updated_at: 2026-01-01T01:00:00.000Z
+
+tasks:
+  - id: task-001
+    title: "First task"
+    description: "Test description"
+    status: pending
+    dependencies: []
+    acceptance_criteria: []
+    completed_at: null
+  - id: task-001
+    title: "Duplicate task"
+    description: "Test description"
+    status: pending
+    dependencies: []
+    acceptance_criteria: []
+    completed_at: null`
+
+      const result = parseTaskFileContent(content)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('Duplicate task IDs found')
+    })
+
+    it('should handle malformed task objects', () => {
+      const content = `feature: test-feature
+created_at: 2026-01-01T00:00:00.000Z
+updated_at: 2026-01-01T01:00:00.000Z
+
+tasks:
+  - invalid_task_structure
+  - id: task-002
+    title: "Valid task"
+    description: "Test description"
+    status: pending
+    dependencies: []
+    acceptance_criteria: []
+    completed_at: null`
+
+      const result = parseTaskFileContent(content)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContain('Invalid task object found')
+    })
+  })
+
+  describe('Content reference detection edge cases', () => {
+    it('should handle text with no references', () => {
+      const text = 'This is plain text with no references at all.'
+      const refs = detectContentReferences(text)
+
+      expect(refs).toEqual([])
+    })
+
+    it('should handle invalid URL patterns', () => {
+      const text = 'Visit http:// or https:// incomplete URLs'
+      const refs = detectContentReferences(text)
+
+      expect(refs).toEqual([])
+    })
+
+    it('should handle mixed case file extensions', () => {
+      const text = 'Check src/FILE.TS and docs/readme.MD for details'
+      const refs = detectContentReferences(text)
+
+      expect(refs).toHaveLength(2)
+      expect(refs[0]?.reference).toBe('src/FILE.TS')
+      expect(refs[1]?.reference).toBe('docs/readme.MD')
+    })
+
+    it('should handle very long file paths', () => {
+      const longPath = 'very/long/path/to/deeply/nested/directories/with/many/levels/file.txt'
+      const text = `See ${longPath} for details`
+      const refs = detectContentReferences(text)
+
+      expect(refs).toHaveLength(1)
+      expect(refs[0]?.reference).toBe(longPath)
+    })
+  })
+
+  describe('Requirement insertion edge cases', () => {
+    it('should handle section with no existing requirements', () => {
+      const sectionContent = `## Requirements
+
+### Functional Requirements
+
+### Non-Functional Requirements
+- REQ-NF-001: Existing non-functional requirement`
+
+      const newRequirements = ['- REQ-F-001: New functional requirement']
+
+      const result = insertRequirementsIntoSection(
+        sectionContent,
+        newRequirements,
+        'Functional Requirements'
+      )
+
+      expect(result).toContain('- REQ-F-001: New functional requirement')
+      expect(result).toContain('- REQ-NF-001: Existing non-functional requirement')
+    })
+
+    it('should handle section at the very end of content', () => {
+      const sectionContent = `## Requirements
+
+### Functional Requirements
+- REQ-F-001: Existing requirement
+
+### Non-Functional Requirements`
+
+      const newRequirements = ['- REQ-NF-001: New non-functional requirement']
+
+      const result = insertRequirementsIntoSection(
+        sectionContent,
+        newRequirements,
+        'Non-Functional Requirements'
+      )
+
+      expect(result).toContain('- REQ-NF-001: New non-functional requirement')
+    })
+  })
+})
+
+describe('Atomic File Operations', () => {
+  const { readFileSync } = require('fs')
+
+  const testDir = join(process.cwd(), 'test-atomic-operations')
   const testFile = join(testDir, 'test.txt')
 
   beforeAll(() => {
@@ -820,6 +1243,242 @@ describe('Atomic File Operations', () => {
 
       await expect(transaction.commit()).resolves.toBeUndefined()
       await expect(transaction.rollback()).resolves.toBeUndefined()
+    })
+  })
+
+  describe('Atomic operation error scenarios', () => {
+    it('should handle invalid file paths', async () => {
+      await expect(prepareAtomicWrite('', 'content')).rejects.toThrow('File path is required')
+      await expect(prepareAtomicWrite(null as any, 'content')).rejects.toThrow(
+        'File path is required'
+      )
+    })
+
+    it('should handle invalid content', async () => {
+      await expect(prepareAtomicWrite('/tmp/test.txt', null as any)).rejects.toThrow(
+        'Content must be a string'
+      )
+    })
+
+    it('should handle corrupted atomic operation', async () => {
+      const operation = {
+        targetPath: testFile,
+        tempPath: join(testDir, 'nonexistent-temp.txt'),
+        content: 'test',
+        originalExists: false,
+      }
+
+      await expect(commitAtomicWrite(operation)).rejects.toThrow('Atomic operation corrupted')
+    })
+
+    it('should handle invalid atomic operation structure', async () => {
+      const invalidOperation = {
+        targetPath: '',
+        tempPath: '',
+        content: 'test',
+        originalExists: false,
+      }
+
+      await expect(commitAtomicWrite(invalidOperation)).rejects.toThrow('Invalid atomic operation')
+    })
+  })
+})
+
+describe('Integration Tests', () => {
+  const testDir = join(process.cwd(), 'test-integration')
+  let originalCwd: string
+
+  beforeEach(() => {
+    originalCwd = process.cwd()
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true })
+    }
+    mkdirSync(testDir, { recursive: true })
+    process.chdir(testDir)
+
+    // Create necessary directories
+    mkdirSync('.plans', { recursive: true })
+  })
+
+  afterEach(() => {
+    process.chdir(originalCwd)
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true })
+    }
+  })
+
+  describe('End-to-end PRD extension', () => {
+    it('should reject invalid inputs gracefully', async () => {
+      await expect(extendPRD('', 'test requirement')).rejects.toThrow(
+        'PRD file path is required and must be a string'
+      )
+      await expect(extendPRD('test.md', '')).rejects.toThrow(
+        'Requirement description is required and must be a string'
+      )
+      await expect(extendPRD('test.md', 'short')).rejects.toThrow(
+        'Requirement description too short'
+      )
+    })
+
+    it('should handle very long requirement descriptions', async () => {
+      const longDescription = 'A'.repeat(15000) // Over 10k limit
+
+      await expect(extendPRD('test.md', longDescription)).rejects.toThrow(
+        'Requirement description too long'
+      )
+    })
+  })
+
+  describe('Content fetching integration', () => {
+    it('should handle network timeouts gracefully', async () => {
+      const text = 'Check https://example.com/nonexistent-endpoint for simulation'
+
+      // This should handle network errors without failing the entire operation
+      const context = await fetchContentReferences(text)
+
+      expect(context.references).toHaveLength(1)
+      expect(context.failed).toHaveLength(1)
+      expect(context.successful).toHaveLength(0)
+    })
+
+    it('should handle file access errors gracefully', async () => {
+      const text = 'Check /nonexistent/protected-file.txt for restricted content'
+
+      const context = await fetchContentReferences(text)
+
+      expect(context.references).toHaveLength(1)
+      expect(context.failed).toHaveLength(1)
+      expect(context.successful).toHaveLength(0)
+      expect(context.failed[0]?.error).toContain('File not found')
+    })
+
+    it('should handle mixed successful and failed content fetching', async () => {
+      // Create a test file we can successfully read
+      const testFile = join(testDir, 'test-content.txt')
+      writeFileSync(testFile, 'This is test content for reading')
+
+      const text = `Check ${testFile} for available content and /nonexistent/file.txt for missing content`
+
+      const context = await fetchContentReferences(text)
+
+      expect(context.references).toHaveLength(2)
+      expect(context.successful).toHaveLength(1)
+      expect(context.failed).toHaveLength(1)
+      expect(context.successful[0]?.content).toBe('This is test content for reading')
+    })
+  })
+})
+
+describe('Performance and Edge Case Tests', () => {
+  describe('Large data handling', () => {
+    it('should handle PRD with many requirements efficiently', () => {
+      const manyRequirements = Array.from(
+        { length: 100 },
+        (_, i) => `- REQ-F-${String(i + 1).padStart(3, '0')}: Requirement number ${i + 1}`
+      ).join('\n')
+
+      const content = `# PRD: Large Feature
+
+## Overview
+This is a feature with many requirements.
+
+## Requirements
+
+### Functional Requirements
+${manyRequirements}
+
+### Non-Functional Requirements
+- REQ-NF-001: Performance requirement
+`
+
+      const result = parsePrdContent(content)
+
+      expect(result.requirements).toHaveLength(101)
+      expect(result.isValid).toBe(true)
+      expect(extractRequirementIds(result).functional).toHaveLength(100)
+    })
+
+    it('should handle task file with many tasks efficiently', () => {
+      const tasks = Array.from(
+        { length: 50 },
+        (_, i) => `  - id: task-${String(i + 1).padStart(3, '0')}
+    title: "Task ${i + 1}"
+    description: "Description for task ${i + 1}"
+    status: pending
+    dependencies: []
+    acceptance_criteria: ["Criteria ${i + 1}"]
+    completed_at: null`
+      ).join('\n')
+
+      const content = `feature: large-feature
+created_at: 2026-01-01T00:00:00.000Z
+updated_at: 2026-01-01T01:00:00.000Z
+
+tasks:
+${tasks}`
+
+      const result = parseTaskFileContent(content)
+
+      expect(result.taskIds).toHaveLength(50)
+      expect(result.highestTaskId).toBe(50)
+      expect(result.isValid).toBe(true)
+    })
+  })
+
+  describe('Memory efficiency tests', () => {
+    it('should handle content parsing without memory leaks', () => {
+      // Test multiple parsing operations to check for memory leaks
+      for (let i = 0; i < 10; i++) {
+        const content = `# PRD: Memory Test ${i}
+
+## Overview
+Testing memory efficiency iteration ${i}.
+
+## Requirements
+
+### Functional Requirements
+- REQ-F-001: Memory test requirement ${i}
+
+### Non-Functional Requirements
+- REQ-NF-001: Performance test ${i}
+`
+        const result = parsePrdContent(content)
+        expect(result.isValid).toBe(true)
+        expect(result.title).toBe(`Memory Test ${i}`)
+      }
+    })
+  })
+
+  describe('Concurrent operations', () => {
+    it('should handle multiple atomic operations safely', async () => {
+      const concurrentTestDir = join(process.cwd(), 'test-concurrent')
+
+      if (existsSync(concurrentTestDir)) {
+        rmSync(concurrentTestDir, { recursive: true })
+      }
+      mkdirSync(concurrentTestDir, { recursive: true })
+
+      try {
+        // Test concurrent atomic writes to different files
+        const files = Array.from({ length: 5 }, (_, i) => join(concurrentTestDir, `file${i}.txt`))
+        const contents = Array.from({ length: 5 }, (_, i) => `Content for file ${i}`)
+
+        const promises = files.map((file, i) => atomicWriteFile(file, contents[i]!))
+
+        await Promise.all(promises)
+
+        // Verify all files were written correctly
+        const { readFileSync } = require('fs')
+        files.forEach((file, i) => {
+          expect(existsSync(file)).toBe(true)
+          const content = readFileSync(file, 'utf-8')
+          expect(content).toBe(contents[i])
+        })
+      } finally {
+        if (existsSync(concurrentTestDir)) {
+          rmSync(concurrentTestDir, { recursive: true })
+        }
+      }
     })
   })
 })
