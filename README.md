@@ -49,7 +49,10 @@ hone prd "Add user login with email and password"
 # 4. Generate tasks from the PRD
 hone prd-to-tasks .plans/prd-user-login.md
 
-# 5. Implement the feature
+# 5. (Optional) Extend PRD with additional requirements
+hone extend-prd .plans/prd-user-login.md "Add two-factor authentication"
+
+# 6. Implement the feature
 hone run .plans/tasks-user-login.yml -i 10
 ```
 
@@ -113,6 +116,19 @@ hone prd-to-tasks .plans/prd-feature.md     # Generate tasks
 hone run .plans/tasks-feature.yml -i 10     # Implement tasks
 ```
 
+### Extend existing PRDs with new requirements
+
+```bash
+# Add new requirements with interactive refinement
+hone extend-prd .plans/prd-user-auth.md "Add OAuth integration with Google and GitHub"
+
+# Reference files in requirement descriptions
+hone extend-prd .plans/prd-api.md "Add rate limiting based on ./docs/rate-limits.md"
+
+# Reference URLs for external specifications
+hone extend-prd .plans/prd-payment.md "Integrate Stripe API from https://docs.stripe.com/api"
+```
+
 ### Reference files and URLs in PRDs
 
 ```bash
@@ -154,9 +170,19 @@ models:
 
 **Advanced model configuration:**
 
-- Use phase-specific models (prd, implement, review, finalize)
+- Use phase-specific models (prd, prdToTasks, extendPrd, implement, review, finalize)
 - Model names need full version: `claude-sonnet-4-YYYYMMDD`
 - Check available models: `opencode --help` or `claude --help`
+
+```yaml
+models:
+  prd: claude-sonnet-4-20250514 # PRD generation
+  prdToTasks: claude-opus-4-20250514 # Task generation
+  extendPrd: claude-sonnet-4-20250514 # PRD extension
+  implement: claude-opus-4-20250514 # Implementation
+  review: claude-sonnet-4-20250514 # Code review
+  finalize: claude-sonnet-4-20250514 # Finalization
+```
 
 ## How It Works
 
@@ -185,6 +211,59 @@ When creating PRDs, you can reference files and URLs directly in your feature de
 - `http://localhost:3000/dashboard` - Reference existing pages
 
 The AI agent automatically reads files and fetches web content to generate more accurate PRDs.
+
+### Extending Existing PRDs
+
+Use `hone extend-prd` to add new requirements to existing PRD files:
+
+```bash
+hone extend-prd <prd-file> <requirement-description>
+```
+
+**Features:**
+
+- **Interactive refinement** - AI asks clarifying questions to improve requirement quality
+- **Automatic task generation** - Creates tasks for new requirements only
+- **File/URL support** - Reference local files and URLs in requirement descriptions
+- **Collision-free IDs** - Automatically assigns sequential requirement and task IDs
+- **Atomic operations** - Safe file updates with rollback on failure
+
+**Examples:**
+
+```bash
+# Basic requirement addition
+hone extend-prd .plans/prd-user-auth.md "Add password reset functionality"
+
+# Reference existing code for context
+hone extend-prd .plans/prd-dashboard.md "Add export functionality similar to ./src/reports/export.ts"
+
+# Use external documentation
+hone extend-prd .plans/prd-payment.md "Implement webhooks following https://stripe.com/docs/webhooks"
+```
+
+**Configuration:**
+
+Configure the `extendPrd` phase model in `.plans/hone.config.yml`:
+
+```yaml
+models:
+  extendPrd: claude-sonnet-4-20250514 # Model for requirement generation
+  prd: claude-opus-4-20250514 # Fallback to prd model
+```
+
+**Interactive Q&A:**
+
+The command runs an interactive session to refine requirements:
+
+- Answer clarifying questions or type "done" to finish
+- Questions focus on scope, implementation details, and integration points
+- Refined context improves requirement quality and reduces ambiguity
+
+**Output:**
+
+- Updated PRD file with new requirements in appropriate sections
+- New tasks added to existing task file (if it exists)
+- Atomic file operations ensure data integrity
 
 ## File Structure
 
@@ -215,6 +294,26 @@ npm install -g @opencode/cli
 - Failed tasks remain pending and retry on next run
 - Check `.plans/progress-<feature>.txt` for error details
 - Network errors retry automatically (3 attempts)
+
+**extend-prd command issues**
+
+```bash
+# PRD file not found
+✗ Error: PRD file not found: .plans/prd-feature.md
+# Solution: Verify file path and ensure PRD exists
+
+# Invalid PRD format
+✗ Error: PRD validation failed: Missing required section: Requirements
+# Solution: Ensure PRD has Overview and Requirements sections
+
+# File/URL reference issues
+⚠ Warning: Could not fetch content from ./missing-file.md (file not found)
+# Solution: Check file paths and network connectivity (warnings don't fail the operation)
+
+# Requirement description too short
+✗ Error: Requirement description too short
+# Solution: Provide detailed description (at least 10 characters)
+```
 
 ## Contributing
 

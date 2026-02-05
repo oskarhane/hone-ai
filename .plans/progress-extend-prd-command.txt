@@ -254,3 +254,25 @@ Key Decisions:
 - Integration tests validate end-to-end command behavior
 
 Next Task: task-013
+
+================================================================================
+TASK-013: Add documentation and usage examples
+Date: 2026-02-05T18:50:00.000Z
+================================================================================
+
+Summary:
+Added comprehensive documentation for extend-prd command including usage examples, configuration options, and troubleshooting guide. Updated CLI help text and integrated seamlessly with existing project documentation.
+
+Files Changed:
+- README.md (modified - added extend-prd command documentation with usage examples, config options, and troubleshooting guide)
+- src/index.ts (modified - updated CLI help description for extend-prd command)
+
+Key Decisions:
+- Integrated documentation into existing README structure following established patterns
+- Added comprehensive usage examples demonstrating common workflows
+- Documented phase-specific model configuration for extend-prd phase
+- Created troubleshooting section addressing common issues and error scenarios
+- Updated quick start workflow to include optional extend-prd step
+- CLI help description provides concise summary while README has full details
+
+Next Task: All tasks complete

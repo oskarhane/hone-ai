@@ -141,3 +141,11 @@ _Detailed information is available in the .agents-docs/ directory._
 - Avoid dynamic imports when module already imported at top level - add to existing import statement
 - File system error codes (ENOENT, EACCES, EISDIR, etc.) handled with specific user-friendly messages
 - Graceful degradation for non-critical errors (warnings don't fail operations)
+
+## Documentation Patterns
+
+- Integrate new command documentation into existing README structure using established patterns
+- CLI help descriptions should be concise while README provides comprehensive details
+- Include troubleshooting sections for common error scenarios and user issues
+- Document phase-specific configuration options with clear examples
+- Add usage examples demonstrating real workflow scenarios rather than abstract syntax

@@ -193,7 +193,7 @@ tasks:
     title: "Add documentation and usage examples"
     description: |
       Create comprehensive documentation for the extend-prd command including usage examples, configuration options, and troubleshooting guide. Update CLI help text and project documentation.
-    status: pending
+    status: completed
     dependencies:
       - task-012
     acceptance_criteria:
@@ -202,4 +202,4 @@ tasks:
       - "Examples demonstrate common use cases"
       - "Troubleshooting guide addresses common issues"
       - "Integration with existing documentation is seamless"
-    completed_at: null
+    completed_at: 2026-02-05T18:50:00.000Z

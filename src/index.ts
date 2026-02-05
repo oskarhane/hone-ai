@@ -36,6 +36,16 @@ Common Workflow:
   hone extend-prd .plans/prd-<feature>.md "new requirement" # Add requirements to existing PRD
   hone run .plans/tasks-<feature>.yml -i 10 # Implement the feature
 
+Extended PRD Workflow:
+  # Add new requirements with interactive refinement
+  hone extend-prd .plans/prd-user-auth.md "Add OAuth integration with Google and GitHub"
+  
+  # Reference files in requirement description
+  hone extend-prd .plans/prd-api.md "Add rate limiting based on ./docs/rate-limits.md"
+  
+  # Reference URLs for external specifications  
+  hone extend-prd .plans/prd-payment.md "Integrate Stripe API from https://docs.stripe.com/api"
+
 Model Configuration:
   Configure models in .plans/hone.config.yml:
   
@@ -192,7 +202,9 @@ program
 
 program
   .command('extend-prd <prd-file> <requirement-description>')
-  .description('Add new requirements to existing PRD file with interactive refinement')
+  .description(
+    'Add new requirements to existing PRD file with AI-generated questions and task generation (supports file paths and URLs)'
+  )
   .action(async (prdFile: string, requirementDescription: string) => {
     try {
       setVerbose(program.opts().verbose || false)
