@@ -1,4 +1,4 @@
-import { readFile, access } from 'fs/promises'
+import { readFile, writeFile, access } from 'fs/promises'
 import yaml from 'js-yaml'
 import { loadConfig, resolveModelForPhase } from './config'
 import { AgentClient } from './agent-client'
@@ -937,6 +937,339 @@ export async function runRequirementRefinementQA(
 }
 
 /**
+ * Generate new requirements content using AI
+ * @param requirementDescription Initial requirement description
+ * @param qa Q&A responses for refinement
+ * @param prdContext Parsed PRD for context
+ * @param config Configuration object
+ * @param model Model to use for generation
+ * @param contentContext Content fetched from files and URLs
+ * @returns Object with functional and non-functional requirements
+ */
+async function generateNewRequirementsContent(
+  requirementDescription: string,
+  qa: Array<{ question: string; answer: string }>,
+  prdContext: ParsedPrd,
+  config: any,
+  model: string,
+  contentContext: ContentContext
+): Promise<{ functional: string[]; nonFunctional: string[] }> {
+  const client = new AgentClient({
+    agent: config.defaultAgent,
+    model,
+  })
+
+  console.log('Generating refined requirements content...')
+
+  const qaHistory = qa.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n')
+
+  // Format existing requirements for context
+  const existingRequirements = prdContext.requirements
+    .map(req => `${req.id}: ${req.description}`)
+    .join('\n')
+
+  // Format content context
+  let contentSection = ''
+  if (contentContext.successful.length > 0) {
+    const successfulContent = contentContext.successful
+      .map(ref => {
+        const preview =
+          ref.content!.length > 1000
+            ? ref.content!.substring(0, 1000) + '...(truncated)'
+            : ref.content!
+        return `${ref.type.toUpperCase()}: ${ref.reference}\nContent:\n${preview}\n`
+      })
+      .join('\n')
+
+    contentSection = `\nReferenced Content:\n${successfulContent}\n`
+  }
+
+  const systemPrompt = `You are generating specific requirement statements for a Product Requirements Document (PRD).
+
+Based on the initial requirement description, Q&A refinement session, and existing PRD context, generate concise, actionable requirements that can be added to the PRD.
+
+IMPORTANT FORMATTING RULES:
+- Generate requirements as bullet points without REQ-ID prefixes (IDs will be added automatically)
+- Use clear, specific language that describes what the system must do
+- Keep each requirement to 1-2 sentences maximum
+- Focus on the NEW requirement being added, not existing requirements
+- Separate functional requirements (what the system does) from non-functional requirements (how well it does it)
+- Make requirements testable and measurable where possible
+
+PRD Context:
+- Title: ${prdContext.title}
+- Existing Requirements:
+${existingRequirements}
+
+New Requirement Details:
+- Initial Description: ${requirementDescription}
+${contentSection}${qaHistory ? `\nRefinement Q&A:\n${qaHistory}` : ''}
+
+Generate requirements in this exact format:
+
+FUNCTIONAL REQUIREMENTS:
+- [First functional requirement]
+- [Second functional requirement]
+- [Additional functional requirements as needed]
+
+NON-FUNCTIONAL REQUIREMENTS:
+- [First non-functional requirement]
+- [Second non-functional requirement]
+- [Additional non-functional requirements as needed]
+
+If no non-functional requirements are needed, write "NON-FUNCTIONAL REQUIREMENTS:\n- None identified"`
+
+  try {
+    const response = await client.messages.create({
+      max_tokens: 1500,
+      messages: [
+        {
+          role: 'user',
+          content: 'Generate the requirements now following the exact format specified.',
+        },
+      ],
+      system: systemPrompt,
+    })
+
+    const content = response.content[0]
+    const text = content && content.type === 'text' ? content.text.trim() : ''
+
+    if (!text) {
+      throw new Error('AI returned empty requirements content')
+    }
+
+    // Parse AI response into functional and non-functional requirements
+    // Expected format: sections marked by "FUNCTIONAL REQUIREMENTS:" and "NON-FUNCTIONAL REQUIREMENTS:"
+    // followed by bullet points (lines starting with "-")
+    const functional: string[] = []
+    const nonFunctional: string[] = []
+
+    const lines = text.split('\n')
+    let currentSection: 'functional' | 'non-functional' | null = null
+
+    for (const line of lines) {
+      const trimmed = line.trim()
+
+      if (trimmed.toUpperCase().includes('FUNCTIONAL REQUIREMENTS:')) {
+        currentSection = 'functional'
+        continue
+      }
+
+      if (trimmed.toUpperCase().includes('NON-FUNCTIONAL REQUIREMENTS:')) {
+        currentSection = 'non-functional'
+        continue
+      }
+
+      // Skip empty lines and non-bullet points
+      if (!trimmed || !trimmed.startsWith('-')) {
+        continue
+      }
+
+      const requirement = trimmed.substring(1).trim()
+      if (requirement && requirement !== 'None identified') {
+        if (currentSection === 'functional') {
+          functional.push(requirement)
+        } else if (currentSection === 'non-functional') {
+          nonFunctional.push(requirement)
+        }
+      }
+    }
+
+    console.log(
+      `Generated ${functional.length} functional and ${nonFunctional.length} non-functional requirements`
+    )
+
+    return { functional, nonFunctional }
+  } catch (error) {
+    throw new Error(
+      `Failed to generate requirements content: ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
+}
+
+/**
+ * Format requirement with proper ID and formatting
+ * @param requirement Requirement text
+ * @param id Requirement ID (e.g., REQ-F-001)
+ * @returns Formatted requirement string
+ */
+export function formatRequirement(requirement: string, id: string): string {
+  return `- ${id}: ${requirement}`
+}
+
+/**
+ * Insert new requirements into PRD section content
+ * @param sectionContent Current section content
+ * @param newRequirements Array of formatted requirements to insert
+ * @param subsectionTitle Subsection to insert into (e.g., "Functional Requirements")
+ * @returns Updated section content
+ */
+export function insertRequirementsIntoSection(
+  sectionContent: string,
+  newRequirements: string[],
+  subsectionTitle: string
+): string {
+  if (newRequirements.length === 0) {
+    return sectionContent
+  }
+
+  const lines = sectionContent.split('\n')
+  const subsectionHeader = `### ${subsectionTitle}`
+  let insertIndex = -1
+  let foundSubsection = false
+
+  // Find the subsection and determine where to insert
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i]?.trim() === subsectionHeader) {
+      foundSubsection = true
+      // Look for the end of this subsection (next ### or end of section)
+      for (let j = i + 1; j < lines.length; j++) {
+        const line = lines[j]?.trim() || ''
+
+        // If we hit another subsection or section, insert before it
+        if (line.startsWith('###') || line.startsWith('##')) {
+          insertIndex = j
+          break
+        }
+
+        // If we reach the end, insert at the end
+        if (j === lines.length - 1) {
+          insertIndex = lines.length
+          break
+        }
+      }
+      break
+    }
+  }
+
+  if (!foundSubsection) {
+    // If subsection doesn't exist, we'll need to create it
+    // This shouldn't happen with valid PRDs, but handle gracefully
+    throw new Error(`Subsection "${subsectionTitle}" not found in Requirements section`)
+  }
+
+  if (insertIndex === -1) {
+    insertIndex = lines.length
+  }
+
+  // Insert the new requirements
+  const newLines = [...lines]
+  newLines.splice(insertIndex, 0, ...newRequirements, '')
+
+  return newLines.join('\n')
+}
+
+/**
+ * Append new requirements to PRD file
+ * @param prdFilePath Path to PRD file
+ * @param parsedPrd Parsed PRD structure
+ * @param requirementDescription Original requirement description
+ * @param qa Q&A responses
+ * @param config Configuration object
+ * @param model Model to use
+ * @param contentContext Fetched content context
+ * @returns Updated PRD content
+ */
+async function appendRequirementsToPrd(
+  prdFilePath: string,
+  parsedPrd: ParsedPrd,
+  requirementDescription: string,
+  qa: Array<{ question: string; answer: string }>,
+  config: any,
+  model: string,
+  contentContext: ContentContext
+): Promise<string> {
+  // Generate new requirements using AI
+  const { functional, nonFunctional } = await generateNewRequirementsContent(
+    requirementDescription,
+    qa,
+    parsedPrd,
+    config,
+    model,
+    contentContext
+  )
+
+  // Read the original PRD file content
+  const originalContent = await readFile(prdFilePath, 'utf-8')
+  const lines = originalContent.split('\n')
+
+  // Get the Requirements section
+  const requirementsSection = parsedPrd.sections.get('Requirements')
+  if (!requirementsSection) {
+    throw new Error('Requirements section not found in PRD')
+  }
+
+  // Generate requirement IDs and format requirements
+  const formattedFunctional: string[] = []
+  for (let i = 0; i < functional.length; i++) {
+    const reqId = getNextRequirementId(parsedPrd, 'functional')
+    formattedFunctional.push(formatRequirement(functional[i]!, reqId))
+
+    // Update parsedPrd to reflect the new requirement for next ID calculation
+    parsedPrd.requirements.push({
+      id: reqId,
+      description: functional[i]!,
+      type: 'functional',
+      lineNumber: -1, // Indicates newly added requirement not yet persisted to file
+    })
+  }
+
+  const formattedNonFunctional: string[] = []
+  for (let i = 0; i < nonFunctional.length; i++) {
+    const reqId = getNextRequirementId(parsedPrd, 'non-functional')
+    formattedNonFunctional.push(formatRequirement(nonFunctional[i]!, reqId))
+
+    // Update parsedPrd to reflect the new requirement for next ID calculation
+    parsedPrd.requirements.push({
+      id: reqId,
+      description: nonFunctional[i]!,
+      type: 'non-functional',
+      lineNumber: -1, // Indicates newly added requirement not yet persisted to file
+    })
+  }
+
+  // Update the Requirements section content
+  let updatedRequirementsContent = requirementsSection.content
+
+  // Insert functional requirements
+  if (formattedFunctional.length > 0) {
+    updatedRequirementsContent = insertRequirementsIntoSection(
+      updatedRequirementsContent,
+      formattedFunctional,
+      'Functional Requirements'
+    )
+  }
+
+  // Insert non-functional requirements
+  if (formattedNonFunctional.length > 0) {
+    updatedRequirementsContent = insertRequirementsIntoSection(
+      updatedRequirementsContent,
+      formattedNonFunctional,
+      'Non-Functional Requirements'
+    )
+  }
+
+  // Reconstruct the full PRD content with updated Requirements section
+  const newLines = [...lines]
+  const startLine = requirementsSection.startLine - 1 // Convert to 0-based index
+  const endLine = requirementsSection.endLine - 1
+
+  // Replace the Requirements section
+  const requirementsSectionLines = updatedRequirementsContent.split('\n')
+  // Add the section header back
+  requirementsSectionLines.unshift('## Requirements')
+
+  newLines.splice(startLine, endLine - startLine + 1, ...requirementsSectionLines)
+
+  const updatedContent = newLines.join('\n')
+
+  // Write the updated content back to the file
+  await writeFile(prdFilePath, updatedContent, 'utf-8')
+
+  return updatedContent
+}
+
+/**
  * Extend an existing PRD file with new requirements
  * @param prdFile Path to the existing PRD file
  * @param requirementDescription Description of the new requirement to add
@@ -994,10 +1327,25 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
   }
 
   // ✓ Implemented file/URL content fetching in task-006
-  // TODO: Implement PRD content appending in task-007
+  // ✓ Implement PRD content appending in task-007
+
+  // Generate and append new requirements to PRD
+  const updatedPrdContent = await appendRequirementsToPrd(
+    prdFile,
+    parsedPrd,
+    requirementDescription,
+    qa,
+    config,
+    model,
+    contentContext
+  )
+
+  console.log('PRD content updated successfully!')
+  console.log(`Updated PRD written to: ${prdFile}`)
+
   // TODO: Implement task generation in task-008
 
   throw new Error(
-    'extend-prd functionality partially implemented - remaining tasks: PRD appending, task generation'
+    'extend-prd functionality partially implemented - remaining tasks: task generation'
   )
 }

@@ -105,3 +105,11 @@ _Detailed information is available in the .agents-docs/ directory._
 - Export functions used by tests to prevent import errors during development
 - Home directory (`~`) expansion must be implemented manually using `process.env.HOME`
 - Test all regex edge cases including file extensions, relative paths, and spurious absolute path detection
+
+## AI Response Parsing
+
+- Document AI response format expectations in comments for maintainability
+- Use clear section markers (e.g. "FUNCTIONAL REQUIREMENTS:") for reliable parsing
+- Implement robust parsing that handles variations in AI response format
+- Track in-memory state mutations with clear documentation (e.g. `lineNumber: -1` pattern)
+- Consider extracting parsing logic into separate testable functions for complex AI responses
