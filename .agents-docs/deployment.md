@@ -1,54 +1,69 @@
 # Deployment
 
 DEPLOYMENT STRATEGY: CLI binary distribution + NPM package registry
-CONTAINERIZATION: None - standalone compiled binaries via Bun
-CI/CD: GitHub Actions with 4 workflows (CI validation, minor/major releases, manual NPM publish)
-HOSTING: Self-hosted/local installation (CLI tool, not a hosted service)
-ENVIRONMENT MANAGEMENT: CI environment variables only; no runtime env config
+CONTAINERIZATION: None - no Docker/container configuration
+CI/CD: GitHub Actions with comprehensive validation and release pipelines
+HOSTING: NPM registry for package distribution; GitHub Releases for platform-specific binaries
+ENVIRONMENT MANAGEMENT: CI-based with Bun caching; no .env files or runtime config
 
 ## Detailed Analysis
 
-### Build & Distribution
-- **Bun runtime** compiles to standalone executables
-- Cross-platform binaries: `hone-linux` (~104MB) and `hone-macos` (~57MB)
-- Distribution channels:
-  1. **NPM**: `npm install -g hone-ai` (source package)
-  2. **GitHub Releases**: Pre-built binary zips attached to releases
+### CI/CD Pipeline Structure
 
-### CI/CD Pipeline (GitHub Actions)
+**4 GitHub Actions Workflows:**
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `ci.yml` | push/PR to master | Type checking, tests, build validation |
-| `release-minor.yml` | manual (workflow_dispatch) | Semantic version bump, binary build, GitHub release |
-| `release-major.yml` | manual (workflow_dispatch) | Breaking change release with same process |
-| `publish-npm-manual.yml` | manual | OIDC trusted publishing to NPM registry |
+1. **ci.yml** - Continuous validation on push/PR to master:
+   - TypeScript type checking (`tsc --noEmit`)
+   - Bun test suite execution
+   - Build validation (compiles Linux + macOS binaries)
+   - Dependency caching via `actions/cache`
+   - 10-minute timeout with fail-fast strategy
 
-### Release Process
-1. Manual trigger with "CONFIRM" safety gate
-2. Version bump via `npm version` command
-3. Build Linux + macOS binaries
-4. Create zip archives: `hone-v{version}-{platform}.zip`
-5. Push git tag, create GitHub Release with binaries attached
-6. Separate manual NPM publish step (decoupled for flexibility)
+2. **release-minor.yml** - Manual minor version releases:
+   - Requires explicit "CONFIRM" input (safety gate)
+   - Bumps minor version via `npm version minor`
+   - Builds platform binaries (Linux x64, macOS ARM64)
+   - Creates zipped release archives
+   - Pushes git tag and creates GitHub Release
+   - Auto-generates changelog from commit history
 
-### Security & Authentication
-- **NPM Trusted Publisher**: OIDC authentication (no API tokens stored)
-- Requires npm 11.5.1+ (Node.js 24)
-- `id-token: write` permission for OIDC provenance
+3. **release-major.yml** - Manual major version releases:
+   - Identical structure to minor, for breaking changes
+   - Separate workflow for semantic versioning clarity
 
-### Infrastructure
-- **No containers**: Direct binary execution
-- **No cloud deployment**: Local CLI tool
-- **No database**: File-based state (`.plans/` directory)
-- **No serverless**: Not applicable
+4. **publish-npm-manual.yml** - Manual NPM publication:
+   - Uses OIDC trusted publishing (no NPM_TOKEN secret)
+   - Verifies package.json version matches input
+   - Requires Node.js 24+ with npm 11.5.1+ for provenance
+   - Decoupled from release (allows review before publish)
 
-### Missing/Not Present
-- No Dockerfile or container orchestration
-- No Terraform/CloudFormation IaC
-- No `.env` files or secrets management
-- No monitoring/logging infrastructure
-- No deployment scripts (tool runs locally)
+### Build Artifacts
+
+**Binary Targets** (Bun native compilation):
+- `hone-linux` - Linux x64 executable
+- `hone-macos` - macOS ARM64 executable
+
+**Distribution Format:**
+- Zipped archives: `hone-v{VERSION}-{platform}.zip`
+- Contains single `hone` binary in versioned folder
+- Attached to GitHub Releases
+
+### Key Infrastructure Patterns
+
+1. **No containerization** - Direct binary distribution, no Docker
+2. **Bun runtime** - Version 1.2.21 pinned in workflows
+3. **Semantic versioning** - Strict x.y.z format validation
+4. **Confirmation gates** - Manual releases require "CONFIRM" input
+5. **Caching** - Bun dependency cache keyed on `bun.lock` hash
+6. **OIDC auth** - NPM trusted publisher (no secrets for npm publish)
+
+### Operational Considerations
+
+- **Release decoupling**: GitHub Release created before NPM publish
+- **Provenance**: NPM publish includes OIDC-based attestation
+- **No secrets management**: Uses `GITHUB_TOKEN` and OIDC only
+- **Artifact cleanup**: Build artifacts removed after release creation
+- **Remote sync**: Workflows pull latest before committing version bumps
 
 ---
 

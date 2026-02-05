@@ -289,10 +289,10 @@ tasks:
       And It needs to look into the project for how to get feedback. It should look into the project's README
       for hints on how to get feedback. It should also look at the projects project file like
       (package.json, pyproject.toml, and equivalent for other languages and frameworks) to see how to run linting, formatting, and unit tests.
-    status: pending
+    status: completed
     dependencies:
     acceptance_criteria:
       - "in the output AGENTS.md should include section for feedback commands/instructions, that's inline"
       - "include instructions for running linting, formatting, and unit tests"
       - "the instructions are project specific and makes sure they are accurate and uses the tooling specified in the project file"
-    completed_at: null
+    completed_at: 2026-02-05T11:50:15.000Z

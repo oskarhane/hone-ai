@@ -1,7 +1,15 @@
 # Project Overview
 
 PRIMARY LANGUAGES: [TypeScript]
-USAGE CONTEXT: TypeScript is the sole programming language used. It powers the entire CLI application - an AI coding agent orchestrator that generates PRDs, manages tasks, and spawns AI agents (Claude/OpenCode). Built with Bun runtime, uses commander.js for CLI, js-yaml for YAML parsing, and the Vercel AI SDK. All source files in src/ are .ts including tests (*.test.ts).
+USAGE CONTEXT:
+- **TypeScript**: The entire codebase is written in TypeScript (28 `.ts` files in `src/`). No JavaScript files exist. TypeScript is used for:
+  - CLI application logic (`index.ts`, `run.ts`)
+  - AI agent orchestration (`agent.ts`, `agent-client.ts`)
+  - PRD and task generation (`prd-generator.ts`, `task-generator.ts`)
+  - Configuration management (`config.ts`)
+  - Unit and integration tests (`*.test.ts`, `*.integration.test.ts`)
+  
+The project uses Bun as its runtime/bundler with strict TypeScript settings (`strict: true`). It compiles to native binaries for Linux and macOS distribution.
 
 ---
 

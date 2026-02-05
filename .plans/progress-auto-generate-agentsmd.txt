@@ -402,4 +402,23 @@ Key Decisions:
 - Added proper type annotation for feedbackCommands array: string[]
 - Addressed all high and medium priority review feedback items
 
+Next Task: task-018
+
+================================================================================
+TASK-018: make section in AGENTS.md for feedback inline
+Date: 2026-02-05T11:50:15.000Z
+================================================================================
+
+Summary:
+Successfully moved feedback instructions section inline at the top of AGENTS.md and made it project-specific by reading actual package.json scripts. Addressed review feedback by cleaning up duplicate imports.
+
+Files Changed:
+- src/agents-md-generator.ts (cleaned up duplicate imports, replaced fs.* and path.* with named imports)
+- .plans/tasks-auto-generate-agentsmd.yml (marked task-018 as completed)
+
+Key Decisions:
+- Cleaned up import statements to use consistent named imports instead of namespace imports
+- All tests continue to pass (174/174) after changes
+- Feedback instructions are correctly generated from actual package.json scripts
+
 Next Task: All tasks complete

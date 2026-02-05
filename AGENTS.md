@@ -2,6 +2,24 @@
 
 Learnings and patterns for future agents working on this project.
 
+## Feedback Instructions
+
+Run these commands to validate your changes before committing:
+
+**Unit Tests:** `npm run test` or `bun test`
+
+**Code Formatting:** `npm run format` or `prettier --write "**/*.ts"`
+
+**Code Linting:** `eslint . --fix`
+
+**YAML Formatting:** `npm run format:yaml` or `prettier --write "**/*.yml" "**/*.yaml"`
+
+**YAML Linting:** `npm run lint:yaml` or `yamllint -c .yamllint.yml **/*.yml **/*.yaml`
+
+**Build:** `npm run build` or `bun run build:linux && bun run build:macos`
+
+These commands are project-specific based on the configured scripts and tooling.
+
 ## Project Overview
 
 PRIMARY LANGUAGES: [TypeScript]
@@ -22,7 +40,7 @@ See [@.agents-docs/testing.md](.agents-docs/testing.md) for detailed information
 
 ## Architecture
 
-ARCHITECTURE PATTERN: CLI Orchestration with Subprocess Delegation - A layered orchestrator that accepts CLI commands
+ARCHITECTURE PATTERN: CLI Orchestration with Subprocess Delegation
 
 See [@.agents-docs/architecture.md](.agents-docs/architecture.md) for detailed information.
 

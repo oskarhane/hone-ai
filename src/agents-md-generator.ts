@@ -12,7 +12,7 @@ import {
 } from './config'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import { AgentClient } from './agent-client'
 import { log, logError, logVerbose, logVerboseError } from './logger'
 
@@ -425,44 +425,76 @@ async function executeParallelScanning(
 }
 
 /**
- * Generate feedback instructions content based on project analysis
+ * Generate project-specific feedback commands based on package.json and project files
  */
-function generateFeedbackContent(analysis: ProjectAnalysis): string {
+function generateFeedbackContent(projectPath: string, analysis: ProjectAnalysis): string {
   const feedbackCommands: string[] = []
 
-  // Unit tests - use detected testing framework
-  if (analysis.testingFrameworks.some(fw => fw.toLowerCase().includes('jest'))) {
+  // Read package.json to get actual project scripts
+  let packageJsonScripts: Record<string, string> = {}
+  try {
+    const packageJsonPath = join(projectPath, 'package.json')
+    if (existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+      packageJsonScripts = packageJson.scripts || {}
+    }
+  } catch (error) {
+    logVerbose('[AgentsMd] Could not read package.json scripts')
+  }
+
+  // Unit tests - use actual package.json scripts or detected framework
+  if (packageJsonScripts.test) {
+    feedbackCommands.push(`**Unit Tests:** \`npm run test\` or \`${packageJsonScripts.test}\``)
+  } else if (analysis.testingFrameworks.some(fw => fw.toLowerCase().includes('jest'))) {
     feedbackCommands.push('**Unit Tests:** `npm test` or `jest`')
   } else if (analysis.testingFrameworks.some(fw => fw.toLowerCase().includes('pytest'))) {
     feedbackCommands.push('**Unit Tests:** `pytest`')
   } else if (analysis.testingFrameworks.some(fw => fw.toLowerCase().includes('bun'))) {
     feedbackCommands.push('**Unit Tests:** `bun test`')
   } else {
-    // Default fallback
     feedbackCommands.push('**Unit Tests:** `bun test`')
   }
 
-  // TypeScript/JavaScript formatting and linting
-  if (
+  // Code formatting - use actual package.json scripts if available
+  if (packageJsonScripts.format) {
+    feedbackCommands.push(
+      `**Code Formatting:** \`npm run format\` or \`${packageJsonScripts.format}\``
+    )
+  } else if (
     analysis.languages.some(
       lang => lang.toLowerCase().includes('typescript') || lang.toLowerCase().includes('javascript')
     )
   ) {
     feedbackCommands.push('**Code Formatting:** `prettier --write "**/*.{ts,tsx,js,jsx}"`')
+  }
+
+  // Code linting - check for lint script or eslint
+  if (packageJsonScripts.lint) {
+    feedbackCommands.push(`**Code Linting:** \`npm run lint\` or \`${packageJsonScripts.lint}\``)
+  } else if (
+    analysis.languages.some(
+      lang => lang.toLowerCase().includes('typescript') || lang.toLowerCase().includes('javascript')
+    )
+  ) {
     feedbackCommands.push('**Code Linting:** `eslint . --fix`')
   }
 
-  // YAML formatting and linting (if YAML files detected)
-  const hasYaml =
-    analysis.buildSystems.some(sys => sys.toLowerCase().includes('yaml')) ||
-    analysis.testingFrameworks.some(test => test.toLowerCase().includes('yaml'))
-  if (hasYaml) {
-    feedbackCommands.push('**YAML Formatting:** `prettier --write "**/*.yml" "**/*.yaml"`')
-    feedbackCommands.push('**YAML Linting:** `yamllint -c .yamllint.yml **/*.yml **/*.yaml`')
+  // YAML formatting and linting from package.json scripts
+  if (packageJsonScripts['format:yaml']) {
+    feedbackCommands.push(
+      `**YAML Formatting:** \`npm run format:yaml\` or \`${packageJsonScripts['format:yaml']}\``
+    )
+  }
+  if (packageJsonScripts['lint:yaml']) {
+    feedbackCommands.push(
+      `**YAML Linting:** \`npm run lint:yaml\` or \`${packageJsonScripts['lint:yaml']}\``
+    )
   }
 
-  // Build command if build system detected
-  if (analysis.buildSystems.length > 0) {
+  // Build command - use actual package.json scripts or detected build systems
+  if (packageJsonScripts.build) {
+    feedbackCommands.push(`**Build:** \`npm run build\` or \`${packageJsonScripts.build}\``)
+  } else if (analysis.buildSystems.length > 0) {
     const buildSystems = analysis.buildSystems.map(sys => sys.toLowerCase())
     if (buildSystems.some(sys => sys.includes('bun'))) {
       feedbackCommands.push('**Build:** `bun run build`')
@@ -475,11 +507,11 @@ function generateFeedbackContent(analysis: ProjectAnalysis): string {
     }
   }
 
-  return `How to run feedback loops during development:
+  return `Run these commands to validate your changes before committing:
 
 ${feedbackCommands.join('\n\n')}
 
-Run these commands to validate your changes before committing.`
+These commands are project-specific based on the configured scripts and tooling.`
 }
 
 /**
@@ -487,7 +519,8 @@ Run these commands to validate your changes before committing.`
  */
 function createTemplateSections(
   scanResults: Record<keyof typeof DISCOVERY_PROMPTS, string>,
-  analysis: ProjectAnalysis
+  analysis: ProjectAnalysis,
+  projectPath: string
 ): TemplateSection[] {
   const sections: TemplateSection[] = []
 
@@ -558,12 +591,12 @@ function createTemplateSections(
     })
   }
 
-  // Add feedback section with project-specific commands
+  // Add feedback section inline at the top with project-specific commands
   sections.push({
     title: 'Feedback Instructions',
-    content: generateFeedbackContent(analysis),
-    priority: 6,
-    detailFile: 'feedback.md',
+    content: generateFeedbackContent(projectPath, analysis),
+    priority: 0, // Highest priority to appear at top
+    detailFile: undefined, // Force inline, never create separate file
   })
 
   // Sort by priority
@@ -609,16 +642,25 @@ ${section.content}
     )
   }
 
-  // Compact version with references to ${AGENTS_DOCS_DIR}/ files
+  // Compact version with references to ${AGENTS_DOCS_DIR}/ files, but keep inline sections inline
   const compactSections = sections
-    .map(
-      section => `## ${section.title}
+    .map(section => {
+      // If section has no detailFile, render it inline (like Feedback Instructions)
+      if (!section.detailFile) {
+        return `## ${section.title}
+
+${section.content}
+`
+      }
+
+      // Otherwise, use compact format with reference to detail file
+      return `## ${section.title}
 
 ${getFirstSentence(section.content)}
 
 See [@${AGENTS_DOCS_DIR}/${section.detailFile}](${AGENTS_DOCS_DIR}/${section.detailFile}) for detailed information.
 `
-    )
+    })
     .join('\n')
 
   return (
@@ -746,7 +788,7 @@ async function generateContent(
     log('-'.repeat(80))
 
     // Create adaptive template sections based on discovered tech stack
-    const sections = createTemplateSections(scanResults, analysis)
+    const sections = createTemplateSections(scanResults, analysis, projectPath)
 
     // Generate initial content to check line count
     const fullContent = generateCompactContent(sections, false)
