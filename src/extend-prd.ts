@@ -579,6 +579,32 @@ export function getNextRequirementId(
 }
 
 /**
+ * Derive task filename from PRD filename following established naming convention
+ * @param prdFilePath Path to PRD file (e.g., "path/to/prd-feature-name.md")
+ * @returns Task filename (e.g., "tasks-feature-name.yml")
+ */
+export function derivePrdToTaskFilename(prdFilePath: string): string {
+  if (!prdFilePath || typeof prdFilePath !== 'string') {
+    throw new HoneError('PRD file path is required and must be a string')
+  }
+
+  const prdBasename = basename(prdFilePath)
+  const featureMatch = prdBasename.match(/^prd-(.+)\.md$/)
+
+  if (!featureMatch || !featureMatch[1]) {
+    throw new HoneError(
+      formatError(
+        `Invalid PRD filename format: ${prdBasename}`,
+        `Expected format: prd-<feature-name>.md\nExample: prd-user-auth.md`
+      )
+    )
+  }
+
+  const featureName = featureMatch[1]
+  return `tasks-${featureName}.yml`
+}
+
+/**
  * Parse and validate PRD file
  * @param prdFile Path to PRD file
  * @returns ParsedPrd object
@@ -2642,11 +2668,20 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
       console.log('No existing task file found. Skipping task generation.')
     }
 
-    console.log('\nExtend-PRD operation completed successfully!')
-    if (newTaskCount > 0) {
+    console.log(`✓ Extended PRD with new requirements`)
+    if (newTaskCount > 0 && taskFilePath) {
+      const taskFilename = derivePrdToTaskFilename(prdFile)
+      console.log(`✓ Added ${newTaskCount} new task${newTaskCount === 1 ? '' : 's'}`)
+      console.log(`✓ Updated .plans/${taskFilename}\n`)
       console.log(
-        `Generated ${newTaskCount} new task${newTaskCount === 1 ? '' : 's'} for the extended requirements.`
+        `Now run "hone run .plans/${taskFilename} -i ${newTaskCount}" to execute the new tasks\n`
       )
+    } else if (newTaskCount > 0) {
+      console.log(
+        `✓ Generated ${newTaskCount} new task${newTaskCount === 1 ? '' : 's'} for the extended requirements`
+      )
+    } else {
+      console.log(`✓ PRD updated successfully`)
     }
   } catch (error) {
     // Re-throw HoneError as-is

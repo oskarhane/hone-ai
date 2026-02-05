@@ -319,3 +319,24 @@ Key Decisions:
 - Applied basename() to handle directory paths safely without security concerns
 
 Next Task: task-016
+
+================================================================================
+TASK-016: Design completion message format matching prd-to-tasks pattern
+Date: 2026-02-05T23:45:00.000Z
+================================================================================
+
+Summary:
+Implemented completion message formatting that matches prd-to-tasks command style. Applied review feedback to remove redundant basename() call. Message format includes proper command syntax for running newly added tasks.
+
+Files Changed:
+- src/extend-prd.ts (modified - added completion message display logic with task filename derivation and new task count, removed redundant basename() call per review feedback)
+
+Key Decisions:
+- Applied feedback: removed redundant basename() call since derivePrdToTaskFilename already handles path extraction
+- Message format exactly matches prd-to-tasks: "hone run .plans/{taskFilename} -i {newTaskCount}"
+- Uses ✓ prefix for consistency with other hone-ai commands  
+- Handles singular/plural task count appropriately ("task" vs "tasks")
+- Proper integration with completion flow showing next steps to user
+- All 268 tests continue passing after applying feedback
+
+Next Task: task-017
