@@ -297,3 +297,25 @@ Key Decisions:
 - All 263 tests continue passing after cleanup
 
 Next Task: task-015
+
+================================================================================
+TASK-015: Create task filename derivation from PRD filename
+Date: 2026-02-05T17:30:00.000Z
+================================================================================
+
+Summary:
+Implemented derivePrdToTaskFilename function to convert PRD filenames to task filenames following established naming convention. Added comprehensive test coverage with all edge cases and validation scenarios.
+
+Files Changed:
+- src/extend-prd.ts (modified - added derivePrdToTaskFilename function with regex validation and proper filename derivation)
+- src/extend-prd.test.ts (modified - added comprehensive unit tests covering happy path, edge cases, error scenarios, and input validation)
+
+Key Decisions:
+- Used regex pattern /^prd-(.+)\.md$/ to extract feature name from PRD filename
+- Function handles absolute/relative paths using basename() for path-safe operations
+- Comprehensive input validation prevents malformed filenames and wrong types
+- All edge cases tested: complex names with hyphens/numbers, invalid formats, missing feature names
+- Returns just the filename without directory prefix - caller handles .plans/ path prepending
+- Applied basename() to handle directory paths safely without security concerns
+
+Next Task: task-016

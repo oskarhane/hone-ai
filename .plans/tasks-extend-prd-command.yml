@@ -238,7 +238,7 @@ tasks:
     description: |
       Implement logic to derive the correct task filename from the original PRD filename following the established naming convention. This ensures the completion message displays the correct file path that users can reference for running tasks.
 
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
@@ -247,7 +247,7 @@ tasks:
       - "Generated task filename follows established naming patterns"
       - "Function handles edge cases like missing extensions or special characters"
       - "Derived filename matches actual generated task file name"
-    completed_at: null
+    completed_at: 2026-02-05T17:30:00.000Z
 
   - id: task-016
     title: "Design completion message format matching prd-to-tasks pattern"

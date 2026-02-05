@@ -108,6 +108,8 @@ _Detailed information is available in the .agents-docs/ directory._
 - Export functions used by tests to prevent import errors during development
 - Home directory (`~`) expansion must be implemented manually using `process.env.HOME`
 - Test all regex edge cases including file extensions, relative paths, and spurious absolute path detection
+- Filename derivation regex: use capturing groups like `/^prd-(.+)\.md$/` for extracting feature names
+- Validate regex patterns against edge cases: empty captures, missing extensions, special characters
 
 ## AI Response Parsing
 
