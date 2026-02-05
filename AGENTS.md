@@ -162,3 +162,10 @@ _Detailed information is available in the .agents-docs/ directory._
 - Underlying agents focus on individual task execution and atomicity
 - Underlying agents can be instructed to fetch data from external sources and to read local files
 - Underlying agents can be instructed to write data to local files and to execute shell commands
+
+## Content Fetching Delegation
+
+- Delegate file/URL content fetching to underlying agents rather than local implementation
+- Agents handle network timeouts, retries, and content access using built-in tools
+- Local content fetching removal preserves interfaces until complete refactor is done
+- Empty contentContext with explanatory comments maintains code structure during transition

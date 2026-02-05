@@ -7,7 +7,6 @@ import {
   getNextRequirementId,
   runRequirementRefinementQA,
   detectContentReferences,
-  fetchContentReferences,
   formatRequirement,
   insertRequirementsIntoSection,
   parseTaskFileContent,
@@ -547,28 +546,6 @@ describe('Content Reference Detection', () => {
       const text = 'Use x.y but not this short match'
       const refs = detectContentReferences(text)
       expect(refs).toEqual([])
-    })
-  })
-
-  describe('fetchContentReferences', () => {
-    it('should return content context structure', async () => {
-      const text = 'No references here'
-      const context = await fetchContentReferences(text)
-
-      expect(context).toHaveProperty('references')
-      expect(context).toHaveProperty('successful')
-      expect(context).toHaveProperty('failed')
-      expect(Array.isArray(context.references)).toBe(true)
-      expect(Array.isArray(context.successful)).toBe(true)
-      expect(Array.isArray(context.failed)).toBe(true)
-    })
-
-    it('should handle empty input', async () => {
-      const context = await fetchContentReferences('')
-
-      expect(context.references).toHaveLength(0)
-      expect(context.successful).toHaveLength(0)
-      expect(context.failed).toHaveLength(0)
     })
   })
 })
@@ -1377,45 +1354,6 @@ describe('Integration Tests', () => {
       await expect(extendPRD('test.md', longDescription)).rejects.toThrow(
         'Requirement description too long'
       )
-    })
-  })
-
-  describe('Content fetching integration', () => {
-    it('should handle network timeouts gracefully', async () => {
-      const text = 'Check https://example.com/nonexistent-endpoint for simulation'
-
-      // This should handle network errors without failing the entire operation
-      const context = await fetchContentReferences(text)
-
-      expect(context.references).toHaveLength(1)
-      expect(context.failed).toHaveLength(1)
-      expect(context.successful).toHaveLength(0)
-    })
-
-    it('should handle file access errors gracefully', async () => {
-      const text = 'Check /nonexistent/protected-file.txt for restricted content'
-
-      const context = await fetchContentReferences(text)
-
-      expect(context.references).toHaveLength(1)
-      expect(context.failed).toHaveLength(1)
-      expect(context.successful).toHaveLength(0)
-      expect(context.failed[0]?.error).toContain('File not found')
-    })
-
-    it('should handle mixed successful and failed content fetching', async () => {
-      // Create a test file we can successfully read
-      const testFile = join(testDir, 'test-content.txt')
-      writeFileSync(testFile, 'This is test content for reading')
-
-      const text = `Check ${testFile} for available content and /nonexistent/file.txt for missing content`
-
-      const context = await fetchContentReferences(text)
-
-      expect(context.references).toHaveLength(2)
-      expect(context.successful).toHaveLength(1)
-      expect(context.failed).toHaveLength(1)
-      expect(context.successful[0]?.content).toBe('This is test content for reading')
     })
   })
 })
