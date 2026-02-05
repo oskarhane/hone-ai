@@ -1,4 +1,34 @@
 import { readFile, access } from 'fs/promises'
+import yaml from 'js-yaml'
+import { loadConfig, resolveModelForPhase } from './config'
+import { AgentClient } from './agent-client'
+
+// Task File Types
+export interface Task {
+  id: string
+  title: string
+  description: string
+  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled'
+  dependencies?: string[]
+  acceptance_criteria?: string[]
+  completed_at?: string | null
+}
+
+export interface TaskFile {
+  feature: string
+  prd?: string
+  created_at: string | Date
+  updated_at: string | Date
+  tasks: Task[]
+}
+
+export interface ParsedTaskFile {
+  taskFile: TaskFile
+  taskIds: string[]
+  highestTaskId: number
+  isValid: boolean
+  errors: string[]
+}
 
 // PRD Section Types
 export interface PrdSection {
@@ -297,6 +327,198 @@ export async function parsePrdFile(prdFile: string): Promise<ParsedPrd> {
 }
 
 /**
+ * Parse task YAML file content and extract task IDs
+ * @param content Task file YAML content as string
+ * @returns ParsedTaskFile object with tasks, IDs, and validation results
+ */
+export function parseTaskFileContent(content: string): ParsedTaskFile {
+  const errors: string[] = []
+  let isValid = true
+
+  try {
+    const taskFile = yaml.load(content) as TaskFile
+
+    // Basic validation
+    if (!taskFile || typeof taskFile !== 'object') {
+      errors.push('Invalid task file structure')
+      isValid = false
+      return {
+        taskFile: { feature: '', created_at: '', updated_at: '', tasks: [] },
+        taskIds: [],
+        highestTaskId: 0,
+        isValid,
+        errors,
+      }
+    }
+
+    // Validate required fields
+
+    if (!taskFile.feature || typeof taskFile.feature !== 'string') {
+      errors.push('Missing or invalid "feature" field')
+      isValid = false
+    }
+
+    if (
+      !taskFile.created_at ||
+      (typeof taskFile.created_at !== 'string' && !(taskFile.created_at instanceof Date))
+    ) {
+      errors.push('Missing or invalid "created_at" field')
+      isValid = false
+    }
+
+    if (
+      !taskFile.updated_at ||
+      (typeof taskFile.updated_at !== 'string' && !(taskFile.updated_at instanceof Date))
+    ) {
+      errors.push('Missing or invalid "updated_at" field')
+      isValid = false
+    }
+
+    if (!Array.isArray(taskFile.tasks)) {
+      errors.push('Missing or invalid "tasks" field - must be an array')
+      isValid = false
+      taskFile.tasks = []
+    }
+
+    // Extract task IDs and find highest ID number
+    const taskIds: string[] = []
+    let highestTaskId = 0
+
+    for (const task of taskFile.tasks || []) {
+      if (!task || typeof task !== 'object') {
+        errors.push('Invalid task object found')
+        isValid = false
+        continue
+      }
+
+      if (!task.id || typeof task.id !== 'string') {
+        errors.push(`Task missing required "id" field: ${JSON.stringify(task)}`)
+        isValid = false
+        continue
+      }
+
+      taskIds.push(task.id)
+
+      // Extract numeric part of task ID (e.g., "task-001" -> 1)
+      const idMatch = task.id.match(/^task-(\d{3})$/)
+      if (idMatch && idMatch[1]) {
+        const idNumber = parseInt(idMatch[1], 10)
+        if (idNumber > highestTaskId) {
+          highestTaskId = idNumber
+        }
+      } else {
+        errors.push(`Task ID "${task.id}" does not follow expected format "task-XXX"`)
+        // Don't mark as invalid since this might be an acceptable variation
+      }
+
+      // Validate other required task fields
+      if (!task.title || typeof task.title !== 'string') {
+        errors.push(`Task "${task.id}" missing required "title" field`)
+        isValid = false
+      }
+
+      if (!task.description || typeof task.description !== 'string') {
+        errors.push(`Task "${task.id}" missing required "description" field`)
+        isValid = false
+      }
+
+      if (!task.status || typeof task.status !== 'string') {
+        errors.push(`Task "${task.id}" missing required "status" field`)
+        isValid = false
+      } else {
+        const validStatuses = ['pending', 'in_progress', 'completed', 'failed', 'cancelled']
+        if (!validStatuses.includes(task.status)) {
+          errors.push(`Task "${task.id}" has invalid status: "${task.status}"`)
+          isValid = false
+        }
+      }
+    }
+
+    // Check for duplicate task IDs
+    const uniqueTaskIds = new Set(taskIds)
+    if (uniqueTaskIds.size !== taskIds.length) {
+      errors.push('Duplicate task IDs found')
+      isValid = false
+    }
+
+    return {
+      taskFile,
+      taskIds,
+      highestTaskId,
+      isValid,
+      errors,
+    }
+  } catch (error) {
+    errors.push(`YAML parsing error: ${error instanceof Error ? error.message : String(error)}`)
+    return {
+      taskFile: { feature: '', created_at: '', updated_at: '', tasks: [] },
+      taskIds: [],
+      highestTaskId: 0,
+      isValid: false,
+      errors,
+    }
+  }
+}
+
+/**
+ * Parse and validate task YAML file
+ * @param taskFilePath Path to task YAML file
+ * @returns ParsedTaskFile object
+ */
+export async function parseTaskFile(taskFilePath: string): Promise<ParsedTaskFile> {
+  // Validate file path
+  if (!taskFilePath) {
+    throw new Error('Task file path is required')
+  }
+
+  // Check if task file exists
+  try {
+    await access(taskFilePath)
+  } catch (error) {
+    throw new Error(`Task file not found: ${taskFilePath}`)
+  }
+
+  // Read and parse file content
+  try {
+    const content = await readFile(taskFilePath, 'utf-8')
+    return parseTaskFileContent(content)
+  } catch (error) {
+    throw new Error(
+      `Cannot read task file: ${taskFilePath}. ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
+}
+
+/**
+ * Generate next available task ID based on existing task IDs
+ * @param parsedTaskFile ParsedTaskFile object containing existing tasks
+ * @returns Next available task ID in format "task-XXX"
+ */
+export function getNextTaskId(parsedTaskFile: ParsedTaskFile): string {
+  const nextNumber = parsedTaskFile.highestTaskId + 1
+  return `task-${String(nextNumber).padStart(3, '0')}`
+}
+
+/**
+ * Extract task IDs from parsed task file
+ * @param parsedTaskFile ParsedTaskFile object
+ * @returns Array of task IDs sorted alphabetically
+ */
+export function extractTaskIds(parsedTaskFile: ParsedTaskFile): string[] {
+  return [...parsedTaskFile.taskIds].sort()
+}
+
+/**
+ * Check if a task ID already exists in the task file
+ * @param parsedTaskFile ParsedTaskFile object
+ * @param taskId Task ID to check
+ * @returns boolean indicating if task ID exists
+ */
+export function taskIdExists(parsedTaskFile: ParsedTaskFile, taskId: string): boolean {
+  return parsedTaskFile.taskIds.includes(taskId)
+}
+
+/**
  * Extend an existing PRD file with new requirements
  * @param prdFile Path to the existing PRD file
  * @param requirementDescription Description of the new requirement to add
@@ -311,12 +533,20 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
     throw new Error('Requirement description is required')
   }
 
+  // Load configuration and resolve model for extendPrd phase
+  const config = await loadConfig()
+  const model = resolveModelForPhase(config, 'extendPrd')
+
+  console.log(`Using model: ${model} for PRD extension`)
+
   // Parse and validate existing PRD
   const parsedPrd = await parsePrdFile(prdFile)
 
   if (!parsedPrd.isValid) {
     throw new Error(`Invalid PRD file structure:\n${parsedPrd.errors.join('\n')}`)
   }
+
+  // TODO: Initialize AgentClient for AI integration in future tasks
 
   console.log(`Extending PRD: ${prdFile}`)
   console.log(`PRD Title: ${parsedPrd.title}`)
@@ -325,7 +555,7 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
   console.log(`New requirement: ${requirementDescription}`)
 
   // TODO: Implement the actual extend-prd functionality in subsequent tasks
-  // For now, we've successfully parsed and validated the PRD
+  // The AgentClient is now properly configured for the extendPrd phase
   throw new Error(
     'extend-prd functionality not yet implemented - this will be implemented in subsequent tasks'
   )

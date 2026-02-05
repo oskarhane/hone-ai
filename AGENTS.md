@@ -59,7 +59,7 @@ _Detailed information is available in the .agents-docs/ directory._
 
 ## Phase-Specific Model Configuration
 
-- Config supports optional phase-specific model overrides: `prd`, `prdToTasks`, `implement`, `review`, `finalize`
+- Config supports optional phase-specific model overrides: `prd`, `prdToTasks`, `extendPrd`, `implement`, `review`, `finalize`
 - Model resolution priority: phase-specific model > agent-specific model > default model
 - `resolveModelForPhase(config, phase?, agent?)` resolves correct model for any phase
 - Phase-specific models in config.models are optional - system falls back gracefully
@@ -67,6 +67,7 @@ _Detailed information is available in the .agents-docs/ directory._
 - Model version availability depends on agent (check `opencode --help` or `claude --help` for supported versions)
 - All phases (implement/review/finalize) pass resolved model to `spawnAgent()`
 - PRD generation and task generation use `resolveModelForPhase()` for consistency
+- Adding new phases: update ModelPhase type, phases validation array, and add fallback logic if needed
 
 ## CLI Command Implementation
 
