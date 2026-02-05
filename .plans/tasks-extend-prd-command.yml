@@ -316,7 +316,7 @@ tasks:
     title: "Update extend-prd system prompts for agent-based content fetching"
     description: |
       Modify the system prompts used in extend-prd to instruct the underlying agent to automatically read file paths and fetch URLs using its built-in tools. Update prompt templates to delegate content fetching responsibility to the agent.
-    status: pending
+    status: completed
     dependencies:
       - task-019
     acceptance_criteria:
@@ -325,7 +325,7 @@ tasks:
       - "Prompts clearly delegate content fetching responsibility to agent"
       - "Prompt templates updated to remove local content fetching references"
       - "Agent receives clear instructions for handling inaccessible content"
-    completed_at: null
+    completed_at: 2026-02-06T06:00:00.000Z
 
   - id: task-021
     title: "Refactor Q&A generation to use agent-based content fetching"

@@ -6,7 +6,6 @@ import {
   extractRequirementIds,
   getNextRequirementId,
   runRequirementRefinementQA,
-  detectContentReferences,
   formatRequirement,
   insertRequirementsIntoSection,
   parseTaskFileContent,
@@ -457,95 +456,6 @@ Test
 
       expect(nextFuncId).toBe('REQ-F-001')
       expect(nextNonFuncId).toBe('REQ-NF-001')
-    })
-  })
-})
-
-describe('Content Reference Detection', () => {
-  describe('detectContentReferences', () => {
-    it('should detect HTTP URLs', () => {
-      const text = 'See https://example.com/api and http://test.com/docs for reference'
-      const refs = detectContentReferences(text)
-
-      expect(refs).toEqual([
-        { type: 'url', reference: 'https://example.com/api' },
-        { type: 'url', reference: 'http://test.com/docs' },
-      ])
-    })
-
-    it('should detect relative file paths', () => {
-      const text = 'Check ./src/config.ts and ../docs/readme.md for details'
-      const refs = detectContentReferences(text)
-
-      expect(refs).toEqual([
-        { type: 'file', reference: './src/config.ts' },
-        { type: 'file', reference: '../docs/readme.md' },
-      ])
-    })
-
-    it('should detect absolute file paths', () => {
-      const text = 'Look at /etc/config.json and ~/Documents/spec.txt'
-      const refs = detectContentReferences(text)
-
-      expect(refs).toEqual([
-        { type: 'file', reference: '/etc/config.json' },
-        { type: 'file', reference: '~/Documents/spec.txt' },
-      ])
-    })
-
-    it('should detect file extensions', () => {
-      const text = 'Based on src/index.ts, config/settings.json, and docs/api.md requirements'
-      const refs = detectContentReferences(text)
-
-      expect(refs).toEqual([
-        { type: 'file', reference: 'src/index.ts' },
-        { type: 'file', reference: 'config/settings.json' },
-        { type: 'file', reference: 'docs/api.md' },
-      ])
-    })
-
-    it('should remove duplicate references', () => {
-      const text = 'Check src/file.ts and also look at src/file.ts again'
-      const refs = detectContentReferences(text)
-
-      expect(refs).toHaveLength(1)
-      expect(refs[0]).toEqual({ type: 'file', reference: 'src/file.ts' })
-    })
-
-    it('should clean trailing punctuation', () => {
-      const text = 'Visit https://example.com/api. Also check src/file.ts!'
-      const refs = detectContentReferences(text)
-
-      expect(refs).toEqual([
-        { type: 'url', reference: 'https://example.com/api' },
-        { type: 'file', reference: 'src/file.ts' },
-      ])
-    })
-
-    it('should handle mixed content types', () => {
-      const text = `
-        Based on the specification at https://api.example.com/docs,
-        implement features described in ./specs/feature.md and
-        follow patterns from src/utils/helper.ts.
-      `
-      const refs = detectContentReferences(text)
-
-      expect(refs).toEqual([
-        { type: 'url', reference: 'https://api.example.com/docs' },
-        { type: 'file', reference: './specs/feature.md' },
-        { type: 'file', reference: 'src/utils/helper.ts' },
-      ])
-    })
-
-    it('should handle empty text', () => {
-      const refs = detectContentReferences('')
-      expect(refs).toEqual([])
-    })
-
-    it('should ignore very short matches', () => {
-      const text = 'Use x.y but not this short match'
-      const refs = detectContentReferences(text)
-      expect(refs).toEqual([])
     })
   })
 })
@@ -1014,40 +924,6 @@ tasks:
 
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Invalid task object found')
-    })
-  })
-
-  describe('Content reference detection edge cases', () => {
-    it('should handle text with no references', () => {
-      const text = 'This is plain text with no references at all.'
-      const refs = detectContentReferences(text)
-
-      expect(refs).toEqual([])
-    })
-
-    it('should handle invalid URL patterns', () => {
-      const text = 'Visit http:// or https:// incomplete URLs'
-      const refs = detectContentReferences(text)
-
-      expect(refs).toEqual([])
-    })
-
-    it('should handle mixed case file extensions', () => {
-      const text = 'Check src/FILE.TS and docs/readme.MD for details'
-      const refs = detectContentReferences(text)
-
-      expect(refs).toHaveLength(2)
-      expect(refs[0]?.reference).toBe('src/FILE.TS')
-      expect(refs[1]?.reference).toBe('docs/readme.MD')
-    })
-
-    it('should handle very long file paths', () => {
-      const longPath = 'very/long/path/to/deeply/nested/directories/with/many/levels/file.txt'
-      const text = `See ${longPath} for details`
-      const refs = detectContentReferences(text)
-
-      expect(refs).toHaveLength(1)
-      expect(refs[0]?.reference).toBe(longPath)
     })
   })
 

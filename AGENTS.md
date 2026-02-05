@@ -171,3 +171,4 @@ _Detailed information is available in the .agents-docs/ directory._
 - Empty contentContext with explanatory comments maintains code structure during transition
 - Interface removal requires updating all function signatures that used the interface as parameters
 - JSDoc comments must be updated when parameter signatures change to avoid stale documentation
+- System prompts must explicitly instruct agents to fetch content: "automatically detect and read file paths using file reading tools" and "fetch URLs using web fetching tools"

@@ -405,3 +405,25 @@ Key Decisions:
 - Module compiles without TypeScript errors after interface removal
 
 Next Task: task-020
+
+================================================================================
+TASK-020: Update extend-prd system prompts for agent-based content fetching
+Date: 2026-02-06T06:00:00.000Z
+================================================================================
+
+Summary:
+Updated system prompts in generateClarifyingQuestion and generateNewRequirementsContent functions to instruct underlying agents to automatically fetch URL and file content using their built-in tools, completing the content fetching delegation architecture.
+
+Files Changed:
+- src/extend-prd.ts (modified - updated system prompts to instruct agent to fetch URLs and read file paths automatically, removed contentSection variable usage)
+- src/extend-prd.test.ts (modified - removed detectContentReferences import and related tests as cleanup from task-019)
+
+Key Decisions:
+- System prompts now explicitly instruct agent to detect and read file paths using file reading tools
+- Prompts clearly delegate URL fetching responsibility to agent web fetching tools  
+- Agent receives instructions to handle inaccessible content gracefully and inform user
+- Removed contentSection variable from prompt templates since content fetching is delegated
+- Test cleanup removed detectContentReferences function tests that should have been removed in task-019
+- All 250 tests pass with successful build on Linux and macOS platforms
+
+Next Task: task-021

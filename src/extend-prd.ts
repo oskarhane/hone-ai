@@ -1088,13 +1088,18 @@ async function generateClarifyingQuestion(
     .map(req => `${req.id}: ${req.description}`)
     .join('\n')
 
-  // Content fetching is handled by the underlying agent via system prompt instructions
-  const contentSection = ''
+  // Content fetching is now delegated to the underlying agent via system prompt instructions
 
   const systemPrompt = `You are helping extend a Product Requirements Document (PRD) with a new requirement.
 The user has provided a new requirement description, and you need to ask clarifying questions to make it comprehensive and well-integrated with existing requirements.
 
 IMPORTANT: Focus on clarifying the NEW requirement, not rewriting the entire PRD.
+
+CONTENT FETCHING INSTRUCTIONS:
+- Automatically detect and read any file paths mentioned in the requirement description using your file reading tools
+- Automatically fetch and analyze content from any URLs mentioned in the requirement description using your web fetching tools
+- Use the fetched content to inform your questions and better understand the context
+- If files or URLs are inaccessible, acknowledge this and continue with the information you have
 
 Rules:
 - Ask ONE specific, focused question at a time
@@ -1118,7 +1123,7 @@ ${agentsContent}
 `
     : ''
 }New requirement description: ${requirementDescription}
-${contentSection}
+
 ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`
 
   try {
@@ -1324,12 +1329,17 @@ async function generateNewRequirementsContent(
     .map(req => `${req.id}: ${req.description}`)
     .join('\n')
 
-  // Content fetching is handled by the underlying agent via system prompt instructions
-  const contentSection = ''
+  // Content fetching is now delegated to the underlying agent via system prompt instructions
 
   const systemPrompt = `You are generating specific requirement statements for a Product Requirements Document (PRD).
 
 Based on the initial requirement description, Q&A refinement session, and existing PRD context, generate concise, actionable requirements that can be added to the PRD.
+
+CONTENT FETCHING INSTRUCTIONS:
+- Automatically detect and read any file paths mentioned in the requirement description or Q&A responses using your file reading tools
+- Automatically fetch and analyze content from any URLs mentioned in the requirement description or Q&A responses using your web fetching tools
+- Use the fetched content to inform your requirements generation and ensure accuracy
+- If files or URLs are inaccessible, acknowledge this and generate requirements based on available information
 
 IMPORTANT FORMATTING RULES:
 - Generate requirements as bullet points without REQ-ID prefixes (IDs will be added automatically)
@@ -1345,8 +1355,7 @@ PRD Context:
 ${existingRequirements}
 
 New Requirement Details:
-- Initial Description: ${requirementDescription}
-${contentSection}${qaHistory ? `\nRefinement Q&A:\n${qaHistory}` : ''}
+- Initial Description: ${requirementDescription}${qaHistory ? `\n- Refinement Q&A:\n${qaHistory}` : ''}
 
 Generate requirements in this exact format:
 
