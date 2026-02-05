@@ -169,3 +169,5 @@ _Detailed information is available in the .agents-docs/ directory._
 - Agents handle network timeouts, retries, and content access using built-in tools
 - Local content fetching removal preserves interfaces until complete refactor is done
 - Empty contentContext with explanatory comments maintains code structure during transition
+- Interface removal requires updating all function signatures that used the interface as parameters
+- JSDoc comments must be updated when parameter signatures change to avoid stale documentation

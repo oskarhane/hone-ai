@@ -989,80 +989,6 @@ interface QAResponse {
   shouldContinue: boolean
 }
 
-// Content fetching types
-export interface ContentReference {
-  type: 'file' | 'url'
-  reference: string
-  content: string | null
-  error: string | null
-}
-
-export interface ContentContext {
-  references: ContentReference[]
-  successful: ContentReference[]
-  failed: ContentReference[]
-}
-
-/**
- * Extract content references (file paths and URLs) from text
- * @param text Text to analyze
- * @returns Array of content references with type and reference
- */
-export function detectContentReferences(
-  text: string
-): Array<{ type: 'file' | 'url'; reference: string }> {
-  const references: Array<{ type: 'file' | 'url'; reference: string }> = []
-
-  // Extract URLs first
-  const urlPattern = /https?:\/\/[^\s\)]+/gi
-  const urlMatches = text.match(urlPattern) || []
-  let remainingText = text
-
-  for (const url of urlMatches) {
-    // Clean trailing punctuation
-    const cleanUrl = url.replace(/[.,;!?\)]+$/, '')
-    references.push({ type: 'url', reference: cleanUrl })
-    remainingText = remainingText.replace(url, ' ')
-  }
-
-  // File path detection - use a comprehensive regex and filter matches
-  const fileMatches: string[] = []
-
-  // Combined regex to capture file paths with extensions in order
-  const pathRegex =
-    /(\.\.?\/[\w/-]+\.\w+|~\/[\w/-]+\.\w+|(?<![.\w])\/[\w/-]+\.\w+|\b[\w-]+(?:\/[\w.-]+)+\.\w+)/g
-
-  let match
-  const seenFiles = new Set<string>()
-
-  while ((match = pathRegex.exec(remainingText)) !== null) {
-    const rawPath = match[0]
-    const cleanPath = rawPath.replace(/[.,;!?\)]+$/, '')
-
-    if (cleanPath.length >= 3 && !cleanPath.includes('://') && !seenFiles.has(cleanPath)) {
-      // Additional validation to avoid spurious matches
-      if (cleanPath.includes('.') && (cleanPath.includes('/') || cleanPath.startsWith('.'))) {
-        seenFiles.add(cleanPath)
-        fileMatches.push(cleanPath)
-      }
-    }
-  }
-
-  // Add file matches
-  for (const filePath of fileMatches) {
-    references.push({ type: 'file', reference: filePath })
-  }
-
-  // Remove duplicates
-  const seen = new Set<string>()
-  return references.filter(ref => {
-    const key = `${ref.type}:${ref.reference}`
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
-}
-
 /**
  * Ask user a question interactively via command line
  * @param prompt Question to ask the user
@@ -1126,7 +1052,6 @@ async function askQuestion(prompt: string): Promise<string> {
  * @param prdContext Parsed PRD context including existing requirements
  * @param previousQA Previous Q&A history
  * @param roundNumber Current question round
- * @param contentContext Content fetched from files and URLs
  * @returns QAResponse with question or indication to stop
  */
 async function generateClarifyingQuestion(
@@ -1135,8 +1060,7 @@ async function generateClarifyingQuestion(
   previousQA: Array<{ question: string; answer: string }>,
   roundNumber: number,
   config: any,
-  model: string,
-  contentContext: ContentContext
+  model: string
 ): Promise<QAResponse> {
   const client = new AgentClient({
     agent: config.defaultAgent,
@@ -1164,26 +1088,8 @@ async function generateClarifyingQuestion(
     .map(req => `${req.id}: ${req.description}`)
     .join('\n')
 
-  // Format fetched content context
-  let contentSection = ''
-  if (contentContext.references.length > 0) {
-    const successfulContent = contentContext.successful
-      .map(ref => {
-        const preview =
-          ref.content!.length > 500
-            ? ref.content!.substring(0, 500) + '...(truncated)'
-            : ref.content!
-        return `${ref.type.toUpperCase()}: ${ref.reference}\nContent:\n${preview}\n`
-      })
-      .join('\n')
-
-    const failedRefs =
-      contentContext.failed.length > 0
-        ? `\nFailed to access:\n${contentContext.failed.map(ref => `- ${ref.reference}: ${ref.error}`).join('\n')}`
-        : ''
-
-    contentSection = `\nReferenced Content:\n${successfulContent}${failedRefs}\n`
-  }
+  // Content fetching is handled by the underlying agent via system prompt instructions
+  const contentSection = ''
 
   const systemPrompt = `You are helping extend a Product Requirements Document (PRD) with a new requirement.
 The user has provided a new requirement description, and you need to ask clarifying questions to make it comprehensive and well-integrated with existing requirements.
@@ -1307,8 +1213,7 @@ export async function runRequirementRefinementQA(
   requirementDescription: string,
   prdContext: ParsedPrd,
   config: any,
-  model: string,
-  contentContext: ContentContext
+  model: string
 ): Promise<Array<{ question: string; answer: string }>> {
   // Input validation
   if (!requirementDescription || typeof requirementDescription !== 'string') {
@@ -1327,10 +1232,6 @@ export async function runRequirementRefinementQA(
     throw new HoneError('Model specification is required for Q&A refinement')
   }
 
-  if (!contentContext) {
-    throw new HoneError('Content context is required for Q&A refinement')
-  }
-
   const qa: Array<{ question: string; answer: string }> = []
   const maxRounds = 5
 
@@ -1344,8 +1245,7 @@ export async function runRequirementRefinementQA(
         qa,
         round,
         config,
-        model,
-        contentContext
+        model
       )
 
       if (!shouldContinue || !question) {
@@ -1408,8 +1308,7 @@ async function generateNewRequirementsContent(
   qa: Array<{ question: string; answer: string }>,
   prdContext: ParsedPrd,
   config: any,
-  model: string,
-  contentContext: ContentContext
+  model: string
 ): Promise<{ functional: string[]; nonFunctional: string[] }> {
   const client = new AgentClient({
     agent: config.defaultAgent,
@@ -1425,21 +1324,8 @@ async function generateNewRequirementsContent(
     .map(req => `${req.id}: ${req.description}`)
     .join('\n')
 
-  // Format content context
-  let contentSection = ''
-  if (contentContext.successful.length > 0) {
-    const successfulContent = contentContext.successful
-      .map(ref => {
-        const preview =
-          ref.content!.length > 1000
-            ? ref.content!.substring(0, 1000) + '...(truncated)'
-            : ref.content!
-        return `${ref.type.toUpperCase()}: ${ref.reference}\nContent:\n${preview}\n`
-      })
-      .join('\n')
-
-    contentSection = `\nReferenced Content:\n${successfulContent}\n`
-  }
+  // Content fetching is handled by the underlying agent via system prompt instructions
+  const contentSection = ''
 
   const systemPrompt = `You are generating specific requirement statements for a Product Requirements Document (PRD).
 
@@ -1683,8 +1569,7 @@ async function appendRequirementsToPrd(
   requirementDescription: string,
   qa: Array<{ question: string; answer: string }>,
   config: any,
-  model: string,
-  contentContext: ContentContext
+  model: string
 ): Promise<string> {
   // Generate new requirements using AI
   const { functional, nonFunctional } = await generateNewRequirementsContent(
@@ -1692,8 +1577,7 @@ async function appendRequirementsToPrd(
     qa,
     parsedPrd,
     config,
-    model,
-    contentContext
+    model
   )
 
   // Read the original PRD file content
@@ -2291,22 +2175,11 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
   console.log(`New requirement: ${requirementDescription}\n`)
 
   // Content fetching will be handled by the underlying agent
-  const contentContext: ContentContext = {
-    references: [],
-    successful: [],
-    failed: [],
-  }
 
   // Run interactive Q&A refinement session
   let qa: Array<{ question: string; answer: string }>
   try {
-    qa = await runRequirementRefinementQA(
-      requirementDescription,
-      parsedPrd,
-      config,
-      model,
-      contentContext
-    )
+    qa = await runRequirementRefinementQA(requirementDescription, parsedPrd, config, model)
   } catch (error) {
     if (error instanceof HoneError) {
       throw error
@@ -2335,15 +2208,7 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
   try {
     // Generate and append new requirements to PRD
     try {
-      await appendRequirementsToPrd(
-        prdFile,
-        parsedPrd,
-        requirementDescription,
-        qa,
-        config,
-        model,
-        contentContext
-      )
+      await appendRequirementsToPrd(prdFile, parsedPrd, requirementDescription, qa, config, model)
       console.log('PRD content updated successfully!')
       console.log(`Updated PRD written to: ${prdFile}`)
     } catch (error) {
