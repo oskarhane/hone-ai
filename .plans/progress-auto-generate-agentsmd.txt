@@ -380,4 +380,26 @@ Key Decisions:
 - agents-md now falls back to DEFAULT_AGENT when no config exists without creating files
 - Proper error handling with console.error and graceful fallback to default agent
 
+Next Task: task-017
+
+================================================================================
+TASK-017: Add section in AGENTS.md for feedback instructions
+Date: 2026-02-05T11:45:00.000Z
+================================================================================
+
+Summary:
+Applied review feedback to improve generateFeedbackContent() function. Fixed hardcoded test command, project-specific checks, file extensions, and missing linting commands. All tests pass after fixes.
+
+Files Changed:
+- src/agents-md-generator.ts (enhanced generateFeedbackContent function with dynamic test framework detection, broader file extensions, eslint support, and removed hardcoded project checks)
+- .plans/tasks-auto-generate-agentsmd.yml (updated task-017 status to completed)
+
+Key Decisions:
+- Fixed hardcoded 'bun test' to use detected testing framework (jest, pytest, bun with fallback)
+- Removed hardcoded 'hone-ai' project name check for better portability
+- Expanded prettier command to include .tsx, .js, .jsx files using pattern "**/*.{ts,tsx,js,jsx}"
+- Added eslint linting command for TypeScript/JavaScript projects
+- Added proper type annotation for feedbackCommands array: string[]
+- Addressed all high and medium priority review feedback items
+
 Next Task: All tasks complete

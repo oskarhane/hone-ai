@@ -425,6 +425,64 @@ async function executeParallelScanning(
 }
 
 /**
+ * Generate feedback instructions content based on project analysis
+ */
+function generateFeedbackContent(analysis: ProjectAnalysis): string {
+  const feedbackCommands: string[] = []
+
+  // Unit tests - use detected testing framework
+  if (analysis.testingFrameworks.some(fw => fw.toLowerCase().includes('jest'))) {
+    feedbackCommands.push('**Unit Tests:** `npm test` or `jest`')
+  } else if (analysis.testingFrameworks.some(fw => fw.toLowerCase().includes('pytest'))) {
+    feedbackCommands.push('**Unit Tests:** `pytest`')
+  } else if (analysis.testingFrameworks.some(fw => fw.toLowerCase().includes('bun'))) {
+    feedbackCommands.push('**Unit Tests:** `bun test`')
+  } else {
+    // Default fallback
+    feedbackCommands.push('**Unit Tests:** `bun test`')
+  }
+
+  // TypeScript/JavaScript formatting and linting
+  if (
+    analysis.languages.some(
+      lang => lang.toLowerCase().includes('typescript') || lang.toLowerCase().includes('javascript')
+    )
+  ) {
+    feedbackCommands.push('**Code Formatting:** `prettier --write "**/*.{ts,tsx,js,jsx}"`')
+    feedbackCommands.push('**Code Linting:** `eslint . --fix`')
+  }
+
+  // YAML formatting and linting (if YAML files detected)
+  const hasYaml =
+    analysis.buildSystems.some(sys => sys.toLowerCase().includes('yaml')) ||
+    analysis.testingFrameworks.some(test => test.toLowerCase().includes('yaml'))
+  if (hasYaml) {
+    feedbackCommands.push('**YAML Formatting:** `prettier --write "**/*.yml" "**/*.yaml"`')
+    feedbackCommands.push('**YAML Linting:** `yamllint -c .yamllint.yml **/*.yml **/*.yaml`')
+  }
+
+  // Build command if build system detected
+  if (analysis.buildSystems.length > 0) {
+    const buildSystems = analysis.buildSystems.map(sys => sys.toLowerCase())
+    if (buildSystems.some(sys => sys.includes('bun'))) {
+      feedbackCommands.push('**Build:** `bun run build`')
+    } else if (buildSystems.some(sys => sys.includes('npm') || sys.includes('yarn'))) {
+      feedbackCommands.push('**Build:** `npm run build` or `yarn build`')
+    } else if (buildSystems.some(sys => sys.includes('maven'))) {
+      feedbackCommands.push('**Build:** `mvn clean compile`')
+    } else if (buildSystems.some(sys => sys.includes('gradle'))) {
+      feedbackCommands.push('**Build:** `./gradlew build`')
+    }
+  }
+
+  return `How to run feedback loops during development:
+
+${feedbackCommands.join('\n\n')}
+
+Run these commands to validate your changes before committing.`
+}
+
+/**
  * Create adaptive template sections based on discovered tech stack
  */
 function createTemplateSections(
@@ -499,6 +557,14 @@ function createTemplateSections(
       detailFile: 'deployment.md',
     })
   }
+
+  // Add feedback section with project-specific commands
+  sections.push({
+    title: 'Feedback Instructions',
+    content: generateFeedbackContent(analysis),
+    priority: 6,
+    detailFile: 'feedback.md',
+  })
 
   // Sort by priority
   return sections.sort((a, b) => a.priority - b.priority)
