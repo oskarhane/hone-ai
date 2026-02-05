@@ -1211,7 +1211,6 @@ ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`
  * Run interactive Q&A session to refine requirement description
  * @param requirementDescription Initial requirement description
  * @param prdContext Parsed PRD context
- * @param contentContext Content fetched from files and URLs
  * @returns Array of Q&A pairs
  */
 export async function runRequirementRefinementQA(
@@ -1305,7 +1304,6 @@ export async function runRequirementRefinementQA(
  * @param prdContext Parsed PRD for context
  * @param config Configuration object
  * @param model Model to use for generation
- * @param contentContext Content fetched from files and URLs
  * @returns Object with functional and non-functional requirements
  */
 async function generateNewRequirementsContent(
@@ -1569,7 +1567,6 @@ export function insertRequirementsIntoSection(
  * @param qa Q&A responses
  * @param config Configuration object
  * @param model Model to use
- * @param contentContext Fetched content context
  * @returns Updated PRD content
  */
 async function appendRequirementsToPrd(

@@ -331,7 +331,7 @@ tasks:
     title: "Refactor Q&A generation to use agent-based content fetching"
     description: |
       Modify the Q&A generation function to rely on agent-based content fetching instead of local content fetching. Update the function to pass content references directly to the agent and let it handle fetching operations.
-    status: pending
+    status: completed
     dependencies:
       - task-020
     acceptance_criteria:
@@ -340,7 +340,7 @@ tasks:
       - "Function maintains same output quality as before refactoring"
       - "Error handling updated for agent-based fetching failures"
       - "Function tests pass with agent-based content fetching"
-    completed_at: null
+    completed_at: 2026-02-06T07:30:00.000Z
 
   - id: task-022
     title: "Refactor requirements generation to use agent-based content fetching"
