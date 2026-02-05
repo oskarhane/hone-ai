@@ -268,3 +268,15 @@ tasks:
       - "no .plans/ dir or .plans/hone.config.yml file is created when running agents-md command"
       - "default to claude agent when no config file is present, but centralize this default in a central variable/constant and use it in other places as well"
     completed_at: 2026-01-30T22:59:00.000Z
+
+  - id: task-017
+    title: "Add section in AGENTS.md for feedback instructions"
+    description: |
+      Be explicit in the AGENTS.md file on how to get feedback.
+      How should the agent run linting? and how should it run formatting? and how should it run unit tests?
+    status: pending
+    dependencies:
+    acceptance_criteria:
+      - "in the output AGENTS.md should include section for feedback commands/instructions"
+      - "include instructions for running linting, formatting, and unit tests"
+    completed_at: null
