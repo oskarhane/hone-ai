@@ -80,3 +80,11 @@ _Detailed information is available in the .agents-docs/ directory._
 - Test files must import modules with `.js` extension (e.g., `from './extend-prd.js'`) for Bun compatibility
 - Use specific line number assertions carefully - content changes can break tests
 - Remove unused imports/constants when identified in code review to maintain clean codebase
+
+## YAML File Parsing
+
+- Use `yaml` package for robust YAML parsing with proper error handling
+- Implement validation for required fields early in parsing process
+- ID extraction patterns: task IDs follow `task-###` format, requirement IDs use `REQ-F-###` or `REQ-NF-###`
+- Sequential ID generation should find highest existing ID and increment by 1 to avoid collisions
+- Pure parsing functions that don't mutate original data structures are preferred
