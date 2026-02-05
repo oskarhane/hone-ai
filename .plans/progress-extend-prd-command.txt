@@ -103,3 +103,24 @@ Key Decisions:
 - Added progress indicators and error handling with informative user feedback
 
 Next Task: task-006
+
+================================================================================
+TASK-006: Implement file and URL content fetching
+Date: 2026-02-06T01:45:00.000Z
+================================================================================
+
+Summary:
+Fixed critical regex pattern issues in content reference detection and implemented complete file/URL content fetching system with proper error handling and home directory expansion.
+
+Files Changed:
+- src/extend-prd.ts (modified - fixed detectContentReferences regex patterns, added proper home directory expansion in fetchFileContent, exported detectContentReferences function)
+
+Key Decisions:
+- Fixed regex patterns to properly capture file extensions and avoid spurious matches
+- Implemented text-order preservation for consistent file path detection
+- Added home directory (~/) expansion using process.env.HOME
+- Exported detectContentReferences function for testing compatibility
+- Combined regex approach prevents overlapping matches between different path types
+- Enhanced error handling for file access permissions and missing files
+
+Next Task: task-007

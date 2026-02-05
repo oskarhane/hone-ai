@@ -527,6 +527,214 @@ interface QAResponse {
   shouldContinue: boolean
 }
 
+// Content fetching types
+export interface ContentReference {
+  type: 'file' | 'url'
+  reference: string
+  content: string | null
+  error: string | null
+}
+
+export interface ContentContext {
+  references: ContentReference[]
+  successful: ContentReference[]
+  failed: ContentReference[]
+}
+
+/**
+ * Extract content references (file paths and URLs) from text
+ * @param text Text to analyze
+ * @returns Array of content references with type and reference
+ */
+export function detectContentReferences(
+  text: string
+): Array<{ type: 'file' | 'url'; reference: string }> {
+  const references: Array<{ type: 'file' | 'url'; reference: string }> = []
+
+  // Extract URLs first
+  const urlPattern = /https?:\/\/[^\s\)]+/gi
+  const urlMatches = text.match(urlPattern) || []
+  let remainingText = text
+
+  for (const url of urlMatches) {
+    // Clean trailing punctuation
+    const cleanUrl = url.replace(/[.,;!?\)]+$/, '')
+    references.push({ type: 'url', reference: cleanUrl })
+    remainingText = remainingText.replace(url, ' ')
+  }
+
+  // File path detection - use a comprehensive regex and filter matches
+  const fileMatches: string[] = []
+
+  // Combined regex to capture file paths with extensions in order
+  const pathRegex =
+    /(\.\.?\/[\w/-]+\.\w+|~\/[\w/-]+\.\w+|(?<![.\w])\/[\w/-]+\.\w+|\b[\w-]+(?:\/[\w.-]+)+\.\w+)/g
+
+  let match
+  const seenFiles = new Set<string>()
+
+  while ((match = pathRegex.exec(remainingText)) !== null) {
+    const rawPath = match[0]
+    const cleanPath = rawPath.replace(/[.,;!?\)]+$/, '')
+
+    if (cleanPath.length >= 3 && !cleanPath.includes('://') && !seenFiles.has(cleanPath)) {
+      // Additional validation to avoid spurious matches
+      if (cleanPath.includes('.') && (cleanPath.includes('/') || cleanPath.startsWith('.'))) {
+        seenFiles.add(cleanPath)
+        fileMatches.push(cleanPath)
+      }
+    }
+  }
+
+  // Add file matches
+  for (const filePath of fileMatches) {
+    references.push({ type: 'file', reference: filePath })
+  }
+
+  // Remove duplicates
+  const seen = new Set<string>()
+  return references.filter(ref => {
+    const key = `${ref.type}:${ref.reference}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+/**
+ * Fetch content from a URL
+ * @param url URL to fetch content from
+ * @returns Content string or null if failed
+ */
+async function fetchUrlContent(
+  url: string
+): Promise<{ content: string | null; error: string | null }> {
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'hone-ai/0.15.0 (Content Fetcher)',
+      },
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      return {
+        content: null,
+        error: `HTTP ${response.status}: ${response.statusText}`,
+      }
+    }
+
+    const content = await response.text()
+    return { content, error: null }
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        return { content: null, error: 'Request timeout (10 seconds)' }
+      }
+      return { content: null, error: error.message }
+    }
+    return { content: null, error: 'Unknown network error' }
+  }
+}
+
+/**
+ * Fetch content from a local file
+ * @param filePath Path to the file
+ * @returns Content string or null if failed
+ */
+async function fetchFileContent(
+  filePath: string
+): Promise<{ content: string | null; error: string | null }> {
+  try {
+    // Handle relative paths and home directory
+    let resolvedPath = filePath
+    if (filePath.startsWith('~')) {
+      resolvedPath = filePath.replace(/^~/, process.env.HOME || '')
+    } else if (!filePath.startsWith('/')) {
+      resolvedPath = join(process.cwd(), filePath)
+    }
+
+    // Check file exists and is accessible
+    await access(resolvedPath)
+
+    const content = await readFile(resolvedPath, 'utf-8')
+    return { content, error: null }
+  } catch (error) {
+    if (error instanceof Error) {
+      const nodeError = error as any
+      if (nodeError.code === 'ENOENT') {
+        return { content: null, error: 'File not found' }
+      }
+      if (nodeError.code === 'EACCES') {
+        return { content: null, error: 'Permission denied' }
+      }
+      return { content: null, error: error.message }
+    }
+    return { content: null, error: 'Unknown file access error' }
+  }
+}
+
+/**
+ * Fetch content from detected file paths and URLs
+ * @param requirementDescription Text to search for content references
+ * @returns ContentContext with fetched content and errors
+ */
+export async function fetchContentReferences(
+  requirementDescription: string
+): Promise<ContentContext> {
+  const detectedRefs = detectContentReferences(requirementDescription)
+  const references: ContentReference[] = []
+
+  console.log(`Detected ${detectedRefs.length} content references to fetch...`)
+
+  for (const ref of detectedRefs) {
+    console.log(`Fetching ${ref.type}: ${ref.reference}`)
+
+    let result: { content: string | null; error: string | null }
+
+    if (ref.type === 'url') {
+      result = await fetchUrlContent(ref.reference)
+    } else {
+      result = await fetchFileContent(ref.reference)
+    }
+
+    const contentRef: ContentReference = {
+      type: ref.type,
+      reference: ref.reference,
+      content: result.content,
+      error: result.error,
+    }
+
+    references.push(contentRef)
+
+    if (result.content) {
+      console.log(
+        `✓ Successfully fetched ${ref.type}: ${ref.reference} (${result.content.length} chars)`
+      )
+    } else {
+      console.log(`✗ Failed to fetch ${ref.type}: ${ref.reference} - ${result.error}`)
+    }
+  }
+
+  const successful = references.filter(r => r.content !== null)
+  const failed = references.filter(r => r.content === null)
+
+  console.log(
+    `Content fetching complete: ${successful.length} successful, ${failed.length} failed\n`
+  )
+
+  return {
+    references,
+    successful,
+    failed,
+  }
+}
+
 /**
  * Ask user a question interactively via command line
  * @param prompt Question to ask the user
@@ -552,6 +760,7 @@ async function askQuestion(prompt: string): Promise<string> {
  * @param prdContext Parsed PRD context including existing requirements
  * @param previousQA Previous Q&A history
  * @param roundNumber Current question round
+ * @param contentContext Content fetched from files and URLs
  * @returns QAResponse with question or indication to stop
  */
 async function generateClarifyingQuestion(
@@ -560,7 +769,8 @@ async function generateClarifyingQuestion(
   previousQA: Array<{ question: string; answer: string }>,
   roundNumber: number,
   config: any,
-  model: string
+  model: string,
+  contentContext: ContentContext
 ): Promise<QAResponse> {
   const client = new AgentClient({
     agent: config.defaultAgent,
@@ -588,6 +798,27 @@ async function generateClarifyingQuestion(
     .map(req => `${req.id}: ${req.description}`)
     .join('\n')
 
+  // Format fetched content context
+  let contentSection = ''
+  if (contentContext.references.length > 0) {
+    const successfulContent = contentContext.successful
+      .map(ref => {
+        const preview =
+          ref.content!.length > 500
+            ? ref.content!.substring(0, 500) + '...(truncated)'
+            : ref.content!
+        return `${ref.type.toUpperCase()}: ${ref.reference}\nContent:\n${preview}\n`
+      })
+      .join('\n')
+
+    const failedRefs =
+      contentContext.failed.length > 0
+        ? `\nFailed to access:\n${contentContext.failed.map(ref => `- ${ref.reference}: ${ref.error}`).join('\n')}`
+        : ''
+
+    contentSection = `\nReferenced Content:\n${successfulContent}${failedRefs}\n`
+  }
+
   const systemPrompt = `You are helping extend a Product Requirements Document (PRD) with a new requirement.
 The user has provided a new requirement description, and you need to ask clarifying questions to make it comprehensive and well-integrated with existing requirements.
 
@@ -598,6 +829,7 @@ Rules:
 - Questions should help clarify the requirement's scope, implementation details, edge cases, or integration points
 - Keep questions concise and actionable
 - Consider how this requirement relates to existing requirements
+- Use the content from referenced files and URLs to inform your questions
 - If you have enough information to write a good requirement, respond with "DONE" instead of a question
 - You are on round ${roundNumber} of maximum 5 rounds
 
@@ -614,7 +846,7 @@ ${agentsContent}
 `
     : ''
 }New requirement description: ${requirementDescription}
-
+${contentSection}
 ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`
 
   try {
@@ -652,13 +884,15 @@ ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`
  * Run interactive Q&A session to refine requirement description
  * @param requirementDescription Initial requirement description
  * @param prdContext Parsed PRD context
+ * @param contentContext Content fetched from files and URLs
  * @returns Array of Q&A pairs
  */
 export async function runRequirementRefinementQA(
   requirementDescription: string,
   prdContext: ParsedPrd,
   config: any,
-  model: string
+  model: string,
+  contentContext: ContentContext
 ): Promise<Array<{ question: string; answer: string }>> {
   const qa: Array<{ question: string; answer: string }> = []
   const maxRounds = 5
@@ -673,7 +907,8 @@ export async function runRequirementRefinementQA(
         qa,
         round,
         config,
-        model
+        model,
+        contentContext
       )
 
       if (!shouldContinue || !question) {
@@ -735,8 +970,17 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
   console.log(`Found ${parsedPrd.sections.size} sections`)
   console.log(`New requirement: ${requirementDescription}\n`)
 
+  // Fetch content from any referenced files or URLs
+  const contentContext = await fetchContentReferences(requirementDescription)
+
   // Run interactive Q&A refinement session
-  const qa = await runRequirementRefinementQA(requirementDescription, parsedPrd, config, model)
+  const qa = await runRequirementRefinementQA(
+    requirementDescription,
+    parsedPrd,
+    config,
+    model,
+    contentContext
+  )
 
   if (qa.length > 0) {
     console.log('\nRequirement refinement complete!')
@@ -749,11 +993,11 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
     console.log('\nNo additional clarification needed.\n')
   }
 
-  // TODO: Implement file/URL content fetching in task-006
+  // ✓ Implemented file/URL content fetching in task-006
   // TODO: Implement PRD content appending in task-007
   // TODO: Implement task generation in task-008
 
   throw new Error(
-    'extend-prd functionality partially implemented - remaining tasks: content fetching, PRD appending, task generation'
+    'extend-prd functionality partially implemented - remaining tasks: PRD appending, task generation'
   )
 }

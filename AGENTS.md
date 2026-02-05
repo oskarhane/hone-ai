@@ -97,3 +97,11 @@ _Detailed information is available in the .agents-docs/ directory._
 - Use readline interface for user interaction with graceful interruption handling ("done")
 - Read AGENTS.md for project context to improve AI question generation
 - Progress indicators improve UX during AI processing time
+
+## Regex Pattern Implementation
+
+- Complex regex patterns for content detection need careful testing to avoid overlapping matches
+- Use combined regex with text position tracking to preserve order rather than sequential pattern application
+- Export functions used by tests to prevent import errors during development
+- Home directory (`~`) expansion must be implemented manually using `process.env.HOME`
+- Test all regex edge cases including file extensions, relative paths, and spurious absolute path detection
