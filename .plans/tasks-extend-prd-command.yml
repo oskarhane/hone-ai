@@ -8,7 +8,7 @@ tasks:
     title: "Add extend-prd command structure to CLI"
     description: |
       Implement the basic command structure in src/index.ts using Commander.js. Add argument parsing for PRD file path and requirement description. Set up command validation and help text.
-      
+
     status: completed
     dependencies: []
     acceptance_criteria:
@@ -23,7 +23,7 @@ tasks:
     title: "Create PRD file parser and validator"
     description: |
       Implement utilities to parse existing PRD markdown files and validate their structure. Create functions to identify sections (Functional Requirements, Non-Functional Requirements, etc.) and extract existing requirement IDs.
-      
+
     status: completed
     dependencies:
       - task-001
@@ -39,7 +39,7 @@ tasks:
     title: "Create task file parser and ID management"
     description: |
       Implement utilities to parse existing task YAML files and extract task IDs. Create collision-free ID generation that continues from the highest existing task ID. Preserve existing task structure and metadata.
-      
+
     status: completed
     dependencies:
       - task-001
@@ -55,7 +55,7 @@ tasks:
     title: "Implement model configuration for extend-prd phase"
     description: |
       Extend the existing model resolution system to support 'extendPrd' phase-specific configuration. Follow the existing pattern in resolveModelForPhase() and integrate with the config validation system.
-      
+
     status: completed
     dependencies:
       - task-001
@@ -71,7 +71,7 @@ tasks:
     title: "Create interactive Q&A refinement system"
     description: |
       Implement the clarifying question flow for new requirements using the existing PRD generation patterns. Reuse Q&A logic from prd-generator.ts and adapt it for requirement refinement rather than full PRD creation.
-      
+
     status: completed
     dependencies:
       - task-002
@@ -88,7 +88,7 @@ tasks:
     title: "Implement file and URL content fetching"
     description: |
       Add support for processing file paths and URLs mentioned in requirement descriptions. Implement automatic content fetching and integration into the requirement context for better AI understanding.
-      
+
     status: completed
     dependencies:
       - task-005
@@ -104,7 +104,7 @@ tasks:
     title: "Create PRD content appending system"
     description: |
       Implement logic to append new requirements to appropriate PRD sections while maintaining existing structure. Handle requirement numbering, section identification, and content formatting consistency.
-      
+
     status: completed
     dependencies:
       - task-002
@@ -121,7 +121,7 @@ tasks:
     title: "Implement incremental task generation"
     description: |
       Adapt the existing task generation logic to create tasks only for new requirements. Analyze dependencies between new and existing tasks. Reuse patterns from task-generator.ts while ensuring only incremental tasks are created.
-      
+
     status: completed
     dependencies:
       - task-003
@@ -138,7 +138,7 @@ tasks:
     title: "Create atomic file operation system"
     description: |
       Implement atomic file operations to prevent corruption during PRD and task file updates. Use temporary files and atomic moves to ensure data integrity even if the process is interrupted.
-      
+
     status: completed
     dependencies:
       - task-007
@@ -155,7 +155,7 @@ tasks:
     title: "Implement task file metadata updates"
     description: |
       Update task file metadata (updated_at timestamp, task count, etc.) when new tasks are added. Ensure metadata accuracy and consistency with the existing task file structure.
-      
+
     status: completed
     dependencies:
       - task-008
@@ -172,7 +172,7 @@ tasks:
     title: "Add comprehensive error handling and validation"
     description: |
       Implement robust error handling for all failure scenarios including missing files, invalid formats, network errors, and file access issues. Provide clear, actionable error messages.
-      
+
     status: completed
     dependencies:
       - task-009
@@ -189,7 +189,7 @@ tasks:
     title: "Create comprehensive test suite"
     description: |
       Write unit and integration tests covering all extend-prd functionality including file parsing, task generation, error scenarios, and atomic operations. Follow existing test patterns using Bun's test runner.
-      
+
     status: completed
     dependencies:
       - task-011
@@ -205,7 +205,7 @@ tasks:
     title: "Add documentation and usage examples"
     description: |
       Create comprehensive documentation for the extend-prd command including usage examples, configuration options, and troubleshooting guide. Update CLI help text and project documentation.
-      
+
     status: completed
     dependencies:
       - task-012
@@ -221,8 +221,8 @@ tasks:
     title: "Implement task count tracking for newly added tasks"
     description: |
       Add functionality to accurately count and track the number of new tasks generated during the PRD extension process. This involves capturing the initial task count before generation and calculating the difference after new tasks are added to ensure only incremental additions are counted.
-      
-    status: pending
+
+    status: completed
     dependencies:
       - task-008
     acceptance_criteria:
@@ -231,13 +231,13 @@ tasks:
       - "Count calculation handles edge cases (empty task files, parsing errors)"
       - "Task count is accessible for display in completion message"
       - "Count calculation is accurate across different task file formats"
-    completed_at: null
+    completed_at: 2026-02-05T22:00:00.000Z
 
   - id: task-015
     title: "Create task filename derivation from PRD filename"
     description: |
       Implement logic to derive the correct task filename from the original PRD filename following the established naming convention. This ensures the completion message displays the correct file path that users can reference for running tasks.
-      
+
     status: pending
     dependencies:
       - task-002
@@ -253,7 +253,7 @@ tasks:
     title: "Design completion message format matching prd-to-tasks pattern"
     description: |
       Analyze the existing prd-to-tasks command output format and design a consistent completion message structure. The message should follow the same pattern and style while displaying the specific command format for running newly added tasks.
-      
+
     status: pending
     dependencies:
       - task-001
@@ -269,7 +269,7 @@ tasks:
     title: "Implement completion message generation and display"
     description: |
       Create the system to generate and display the completion message with the exact command format. The message should include the derived task filename and accurate new task count, formatted as 'hone run .plans/{tasks-filename} -i {new-task-count}' to guide users on next steps.
-      
+
     status: pending
     dependencies:
       - task-014

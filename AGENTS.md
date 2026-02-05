@@ -124,6 +124,8 @@ _Detailed information is available in the .agents-docs/ directory._
 - Sequential ID generation: `task-${String(startId + index).padStart(3, '0')}`
 - Update ID counters only after all validation/processing is complete
 - Remove unused function parameters identified during code review
+- Task count tracking: capture initial count before generation, return only incremental additions
+- Remove unused variables even when they seem related to task (e.g. originalRequirementCount)
 
 ## Atomic File Operations
 

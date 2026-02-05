@@ -2286,7 +2286,7 @@ async function generateIncrementalTasks(
   parsedPrd: ParsedPrd,
   config: any,
   model: string
-): Promise<void> {
+): Promise<number> {
   // Parse existing task file
   const existingTaskFile = await parseTaskFile(taskFilePath)
 
@@ -2294,17 +2294,12 @@ async function generateIncrementalTasks(
     throw new Error(`Invalid task file structure:\n${existingTaskFile.errors.join('\n')}`)
   }
 
-  // Get the original requirement count (before any new requirements were added)
-  const originalRequirementCount = parsedPrd.requirements.filter(
-    req => req.lineNumber !== -1
-  ).length
-
   // Get new requirements that were just added
   const newRequirements = getNewRequirements(parsedPrd)
 
   if (newRequirements.length === 0) {
     console.log('No new requirements found. Skipping task generation.')
-    return
+    return 0
   }
 
   console.log(`Found ${newRequirements.length} new requirements:`)
@@ -2323,7 +2318,7 @@ async function generateIncrementalTasks(
 
   if (newTasks.length === 0) {
     console.log('No new tasks generated.')
-    return
+    return 0
   }
 
   console.log(`Generated ${newTasks.length} new tasks:`)
@@ -2368,6 +2363,8 @@ async function generateIncrementalTasks(
   console.log(`✓ Added ${newTasks.length} new tasks to existing ${originalTaskCount} tasks`)
   console.log(`✓ Total tasks: ${newTaskCount}`)
   console.log(`✓ Metadata updated at: ${updatedTaskFile.updated_at}`)
+
+  return newTasks.length
 }
 
 /**
@@ -2621,11 +2618,18 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
     }
 
     // Generate tasks for new requirements if task file exists
+    let newTaskCount = 0
     const taskFilePath = findExistingTaskFile(prdFile)
     if (taskFilePath) {
       console.log(`Found existing task file: ${taskFilePath}`)
       try {
-        await generateIncrementalTasks(taskFilePath, prdFile, parsedPrd, config, model)
+        newTaskCount = await generateIncrementalTasks(
+          taskFilePath,
+          prdFile,
+          parsedPrd,
+          config,
+          model
+        )
       } catch (error) {
         // Don't fail the entire operation if task generation fails
         console.warn(
@@ -2639,6 +2643,11 @@ export async function extendPRD(prdFile: string, requirementDescription: string)
     }
 
     console.log('\nExtend-PRD operation completed successfully!')
+    if (newTaskCount > 0) {
+      console.log(
+        `Generated ${newTaskCount} new task${newTaskCount === 1 ? '' : 's'} for the extended requirements.`
+      )
+    }
   } catch (error) {
     // Re-throw HoneError as-is
     if (error instanceof HoneError) {

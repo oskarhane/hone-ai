@@ -275,4 +275,25 @@ Key Decisions:
 - Updated quick start workflow to include optional extend-prd step
 - CLI help description provides concise summary while README has full details
 
-Next Task: All tasks complete
+Next Task: task-014
+
+================================================================================
+TASK-014: Implement task count tracking for newly added tasks
+Date: 2026-02-05T22:00:00.000Z
+================================================================================
+
+Summary:
+Implemented task count tracking functionality that accurately captures initial task count before generation and calculates only newly added tasks. Applied review feedback to remove unused variable. All acceptance criteria met with comprehensive test coverage.
+
+Files Changed:
+- src/extend-prd.ts (modified - removed unused originalRequirementCount variable per review feedback)
+
+Key Decisions:
+- Applied finalization feedback: removed unused originalRequirementCount variable (lines 2298-2300)
+- Task count tracking implemented in generateIncrementalTasks function returning newTasks.length
+- Original task count captured at line 2338 before task generation
+- New task count properly used in completion message at lines 2651-2654
+- Edge cases handled: returns 0 for no new requirements/tasks, throws error for invalid task file structure
+- All 263 tests continue passing after cleanup
+
+Next Task: task-015
