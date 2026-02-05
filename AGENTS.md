@@ -52,11 +52,11 @@ See [@.agents-docs/deployment.md](.agents-docs/deployment.md) for detailed infor
 
 ---
 
-*This AGENTS.md was generated using agent-based project discovery.*
-*Detailed information is available in the .agents-docs/ directory.*
-
+_This AGENTS.md was generated using agent-based project discovery._
+_Detailed information is available in the .agents-docs/ directory._
 
 <!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->
+
 ## Phase-Specific Model Configuration
 
 - Config supports optional phase-specific model overrides: `prd`, `prdToTasks`, `implement`, `review`, `finalize`
@@ -67,3 +67,10 @@ See [@.agents-docs/deployment.md](.agents-docs/deployment.md) for detailed infor
 - Model version availability depends on agent (check `opencode --help` or `claude --help` for supported versions)
 - All phases (implement/review/finalize) pass resolved model to `spawnAgent()`
 - PRD generation and task generation use `resolveModelForPhase()` for consistency
+
+## CLI Command Implementation
+
+- Use Commander.js patterns consistent with existing commands in src/index.ts
+- Import style should be `import { readFile, writeFile } from 'fs/promises'` not `import { promises as fs } from 'fs'`
+- Implement comprehensive input validation with clear error messages before core logic
+- Use placeholder implementations with TODO comments for incremental development

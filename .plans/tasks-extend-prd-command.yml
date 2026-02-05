@@ -8,7 +8,7 @@ tasks:
     title: "Add extend-prd command structure to CLI"
     description: |
       Implement the basic command structure in src/index.ts using Commander.js. Add argument parsing for PRD file path and requirement description. Set up command validation and help text.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "Command 'hone extend-prd' is recognized by CLI"
@@ -16,7 +16,7 @@ tasks:
       - "Arguments are properly parsed and validated"
       - "Error handling for missing arguments is implemented"
       - "Command follows existing CLI patterns"
-    completed_at: null
+    completed_at: 2026-02-05T17:57:47.000Z
 
   - id: task-002
     title: "Create PRD file parser and validator"

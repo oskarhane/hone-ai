@@ -33,6 +33,7 @@ Common Workflow:
   hone prd "your feature description"       # Create a PRD
   # Manually review .plans/prd-<feature>.md
   hone prd-to-tasks .plans/prd-<feature>.md # Generate tasks from PRD
+  hone extend-prd .plans/prd-<feature>.md "new requirement" # Add requirements to existing PRD
   hone run .plans/tasks-<feature>.yml -i 10 # Implement the feature
 
 Model Configuration:
@@ -185,6 +186,20 @@ program
       await generateTasksFromPRD(prdFile)
     } catch (error) {
       console.error('\n✗ Error generating tasks:', error instanceof Error ? error.message : error)
+      process.exit(1)
+    }
+  })
+
+program
+  .command('extend-prd <prd-file> <requirement-description>')
+  .description('Add new requirements to existing PRD file with interactive refinement')
+  .action(async (prdFile: string, requirementDescription: string) => {
+    try {
+      setVerbose(program.opts().verbose || false)
+      const { extendPRD } = await import('./extend-prd')
+      await extendPRD(prdFile, requirementDescription)
+    } catch (error) {
+      console.error('\n✗ Error extending PRD:', error instanceof Error ? error.message : error)
       process.exit(1)
     }
   })
