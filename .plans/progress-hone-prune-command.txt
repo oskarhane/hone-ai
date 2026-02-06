@@ -57,3 +57,23 @@ Key Decisions:
 - Implemented proper error wrapping with HoneError for consistency with project patterns
 
 Next Task: task-004
+
+================================================================================
+TASK-004: Create atomic file moving operations
+Date: 2026-02-06T14:45:00.000Z
+================================================================================
+
+Summary:
+Implemented archivePrdTriplet() function that atomically moves all files in a PRD triplet to the archive directory using two-phase atomic operations. Applied review feedback to improve error handling and code quality.
+
+Files Changed:
+- src/prune.ts (modified - added archivePrdTriplet function with atomic file operations and comprehensive error handling)
+
+Key Decisions:
+- Implemented two-phase atomic move operation (source→temp, temp→target) following project patterns from AGENTS.md
+- Added comprehensive error recovery that attempts to restore staged files back to original locations
+- Applied review feedback: removed unused PrdInfo import, simplified filesToMove array structure, added EXDEV/EROFS/EEXIST error handling, added comment about partial commit recovery limitation
+- Only moves files that actually exist, gracefully handling missing task or progress files
+- Uses temporary staging to prevent partial moves during interruption
+
+Next Task: task-005

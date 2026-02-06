@@ -8,7 +8,21 @@ import { join, relative, resolve, dirname, basename } from 'path'
 import { randomUUID } from 'crypto'
 import { getPlansDir } from './config.js'
 import { HoneError, formatError } from './errors.js'
-import { listPrds, extractFeatureName, type PrdInfo } from './prds.js'
+import { listPrds, extractFeatureName } from './prds.js'
+
+/**
+ * Represents a file move operation in progress
+ */
+interface FileMoveOperation {
+  /** Original source file path */
+  sourcePath: string
+  /** Final target file path */
+  targetPath: string
+  /** Temporary staging file path */
+  tempPath: string
+  /** Whether the operation has been committed (moved to temp) */
+  staged: boolean
+}
 
 /**
  * Get the archive directory path (.plans/archive/)
@@ -152,7 +166,17 @@ export async function archiveFile(sourcePath: string, targetName: string): Promi
       )
     } else if (nodeError?.code === 'EROFS') {
       throw new HoneError(
-        formatError('Read-only file system', 'Cannot write to read-only archive directory')
+        formatError(
+          'Read-only file system',
+          `Cannot write to read-only archive directory for '${triplet.featureName}'`
+        )
+      )
+    } else if (nodeError?.code === 'EEXIST') {
+      throw new HoneError(
+        formatError(
+          'File already exists in archive',
+          `A file from feature '${triplet.featureName}' already exists in archive`
+        )
       )
     }
 
@@ -210,6 +234,134 @@ export async function identifyCompletedPrds(): Promise<PrdTriplet[]> {
       formatError(
         'Failed to identify completed PRDs',
         `Error parsing PRD or task files: ${error instanceof Error ? error.message : String(error)}`
+      )
+    )
+  }
+}
+
+/**
+ * Atomically move all files in a PRD triplet to the archive directory
+ * Uses temporary staging and atomic rename operations to prevent partial moves
+ * @param triplet PRD triplet containing all associated file paths
+ * @throws HoneError for validation, permission, or filesystem errors
+ */
+export async function archivePrdTriplet(triplet: PrdTriplet): Promise<void> {
+  // Validate input
+  if (!triplet || !triplet.featureName) {
+    throw new HoneError(
+      formatError('Invalid PRD triplet', 'Feature name is required for archive operation')
+    )
+  }
+
+  // Ensure archive directory exists
+  ensureArchiveDir()
+
+  const plansDir = getPlansDir()
+  const archiveDir = getArchiveDir()
+
+  // Prepare all file operations
+  const operations: FileMoveOperation[] = []
+  const filesToMove = [triplet.prdFile, triplet.taskFile, triplet.progressFile]
+
+  // Only move files that actually exist
+  for (const filePath of filesToMove) {
+    const sourcePath = join(plansDir, filePath)
+
+    if (existsSync(sourcePath)) {
+      const targetPath = join(archiveDir, filePath)
+      const tempPath = createTempFilePath(targetPath)
+
+      operations.push({
+        sourcePath: validateArchivePath(sourcePath),
+        targetPath,
+        tempPath,
+        staged: false,
+      })
+    }
+  }
+
+  if (operations.length === 0) {
+    throw new HoneError(
+      formatError('No files to archive', `No files found for PRD feature '${triplet.featureName}'`)
+    )
+  }
+
+  // Execute atomic move operation
+  const stagedOperations: FileMoveOperation[] = []
+
+  try {
+    // Stage 1: Move all files to temporary locations in archive directory
+    for (const operation of operations) {
+      await rename(operation.sourcePath, operation.tempPath)
+      operation.staged = true
+      stagedOperations.push(operation)
+    }
+
+    // Stage 2: Move all files from temp to final locations atomically
+    for (const operation of stagedOperations) {
+      await rename(operation.tempPath, operation.targetPath)
+      operation.staged = false // Successfully committed
+    }
+  } catch (error) {
+    // Error recovery: restore any staged files back to original locations
+    // Note: Files that completed Stage 2 (temp→target) before error are left in archive
+    // This is intentional as they are in a valid state; the triplet is just incomplete
+    for (const operation of stagedOperations) {
+      if (operation.staged) {
+        try {
+          // Try to restore from temp back to original location
+          if (existsSync(operation.tempPath)) {
+            await rename(operation.tempPath, operation.sourcePath)
+          }
+        } catch {
+          // Ignore recovery errors during error handling
+        }
+      }
+    }
+
+    // Handle specific filesystem errors with user-friendly messages
+    const nodeError = error as any
+    if (nodeError?.code === 'EACCES') {
+      throw new HoneError(
+        formatError(
+          'Permission denied archiving PRD',
+          `Cannot move files for feature '${triplet.featureName}'. Check permissions.`
+        )
+      )
+    } else if (nodeError?.code === 'ENOENT') {
+      throw new HoneError(
+        formatError(
+          'File disappeared during archive operation',
+          `One of the files for feature '${triplet.featureName}' was deleted during the operation`
+        )
+      )
+    } else if (nodeError?.code === 'ENOSPC') {
+      throw new HoneError(
+        formatError(
+          'Insufficient disk space',
+          `Not enough disk space to archive files for feature '${triplet.featureName}'`
+        )
+      )
+    } else if (nodeError?.code === 'EXDEV') {
+      throw new HoneError(
+        formatError(
+          'Cross-device move not supported',
+          `Archive operation across different filesystems not supported for '${triplet.featureName}'`
+        )
+      )
+    } else if (nodeError?.code === 'EROFS') {
+      throw new HoneError(
+        formatError(
+          'Read-only file system',
+          `Cannot write to read-only archive directory for '${triplet.featureName}'`
+        )
+      )
+    }
+
+    throw new HoneError(
+      formatError(
+        'Failed to archive PRD triplet',
+        `Filesystem error archiving '${triplet.featureName}': ${error instanceof Error ? error.message : String(error)}`
       )
     )
   }

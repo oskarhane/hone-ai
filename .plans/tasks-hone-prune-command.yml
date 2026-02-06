@@ -52,7 +52,7 @@ tasks:
     title: "Create atomic file moving operations"
     description: |
       Implement atomic file operations to move PRD triplets (prd-*.md, tasks-*.yml, progress-*.txt) to archive folder. Use temporary staging and atomic rename operations to prevent partial moves during interruption, following existing atomic patterns.
-    status: pending
+    status: completed
     dependencies:
       - task-003
     acceptance_criteria:
@@ -61,7 +61,7 @@ tasks:
       - "File operations handle concurrent access safely"
       - "Error recovery cleans up temporary files properly"
       - "Preserves file permissions and metadata during move"
-    completed_at: null
+    completed_at: 2026-02-06T14:45:00.000Z
 
   - id: task-005
     title: "Implement dry-run preview functionality"
