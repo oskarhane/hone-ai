@@ -199,3 +199,10 @@ _Detailed information is available in the .agents-docs/ directory._
 - Use consistent placeholder naming across file structure examples (`<feature>` not mix of `<feature>` and `<completed>`)
 - Review feedback on documentation should address naming consistency and clarity
 - Integration tests can have mock conflicts with unit tests - use CLI-based integration tests to avoid in-process mock state
+
+## Agent Response Parsing for Error Handling
+
+- When delegating content fetching to agents, parse agent responses for access issues instead of catching local errors
+- Use regex patterns to detect agent content access failures: `/(?:could not access|not found|inaccessible)[^\n.]*/gi`
+- Apply deduplication with `[...new Set(issues)]` to prevent duplicate error reporting from overlapping patterns
+- Agent-based error handling maintains same UX while delegating content access responsibility

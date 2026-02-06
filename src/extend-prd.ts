@@ -1099,7 +1099,7 @@ CONTENT FETCHING INSTRUCTIONS:
 - Automatically detect and read any file paths mentioned in the requirement description using your file reading tools
 - Automatically fetch and analyze content from any URLs mentioned in the requirement description using your web fetching tools
 - Use the fetched content to inform your questions and better understand the context
-- If files or URLs are inaccessible, acknowledge this and continue with the information you have
+- If files or URLs are inaccessible, mention this in your response (e.g., "Note: Could not access [file/URL]") and continue with the information you have
 
 Rules:
 - Ask ONE specific, focused question at a time
@@ -1170,6 +1170,13 @@ ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`
 
     const text = content.text.trim()
 
+    // Check if agent reported content access issues and inform user
+    const accessIssues = extractContentAccessIssues(text)
+    if (accessIssues.length > 0) {
+      console.log('⚠️  Note: The AI agent reported content access issues:')
+      accessIssues.forEach(issue => console.log(`   - ${issue}`))
+    }
+
     // Clear progress indicator
     process.stdout.write('✓\n')
 
@@ -1192,7 +1199,7 @@ ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`
       throw new HoneError(
         formatError(
           'Network error generating clarifying question',
-          `Failed to connect to AI service after retries.\n\nError: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your internet connection and API configuration.`
+          `Failed to connect to AI service after retries.\n\nError: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your internet connection and API configuration.\n\nNote: Content fetching is handled by the AI agent, so network issues prevent both question generation and content access.`
         )
       )
     }
@@ -1200,8 +1207,8 @@ ${qaHistory ? `Previous Q&A:\n${qaHistory}` : 'This is the first question.'}`
     // Generic AI error
     throw new HoneError(
       formatError(
-        `Error generating clarifying question for round ${roundNumber}`,
-        `AI service error: ${error instanceof Error ? error.message : String(error)}\n\nThis may be a temporary issue. Please try again.`
+        'Failed to generate clarifying question',
+        `AI service error: ${error instanceof Error ? error.message : String(error)}\n\nThis may be a temporary issue. Please try again.\n\nNote: The AI agent handles content fetching, so this error may also affect access to files or URLs mentioned in your requirement.`
       )
     )
   }
@@ -1337,7 +1344,7 @@ CONTENT FETCHING INSTRUCTIONS:
 - Automatically detect and read any file paths mentioned in the requirement description or Q&A responses using your file reading tools
 - Automatically fetch and analyze content from any URLs mentioned in the requirement description or Q&A responses using your web fetching tools
 - Use the fetched content to inform your requirements generation and ensure accuracy
-- If files or URLs are inaccessible, acknowledge this and generate requirements based on available information
+- If files or URLs are inaccessible, mention this clearly in your output (e.g., "Note: Could not access [file/URL]") and generate requirements based on available information
 
 IMPORTANT FORMATTING RULES:
 - Generate requirements as bullet points without REQ-ID prefixes (IDs will be added automatically)
@@ -1419,6 +1426,15 @@ If no non-functional requirements are needed, write "NON-FUNCTIONAL REQUIREMENTS
       )
     }
 
+    // Check if agent reported content access issues and inform user
+    const accessIssues = extractContentAccessIssues(text)
+    if (accessIssues.length > 0) {
+      console.log(
+        '⚠️  Note: The AI agent reported content access issues. Requirements have been generated based on available information:'
+      )
+      accessIssues.forEach(issue => console.log(`   - ${issue}`))
+    }
+
     // Parse AI response into functional and non-functional requirements
     // Expected format: sections marked by "FUNCTIONAL REQUIREMENTS:" and "NON-FUNCTIONAL REQUIREMENTS:"
     // followed by bullet points (lines starting with "-")
@@ -1472,7 +1488,7 @@ If no non-functional requirements are needed, write "NON-FUNCTIONAL REQUIREMENTS
       throw new HoneError(
         formatError(
           'Network error generating requirements content',
-          `Failed to connect to AI service after retries.\n\nError: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your internet connection and API configuration.`
+          `Failed to connect to AI service after retries.\n\nError: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your internet connection and API configuration.\n\nNote: Content fetching is handled by the AI agent, so network issues prevent both requirement generation and content access.`
         )
       )
     }
@@ -1481,10 +1497,40 @@ If no non-functional requirements are needed, write "NON-FUNCTIONAL REQUIREMENTS
     throw new HoneError(
       formatError(
         'Failed to generate requirements content',
-        `AI service error: ${error instanceof Error ? error.message : String(error)}\n\nThis may be a temporary issue. Please try again.`
+        `AI service error: ${error instanceof Error ? error.message : String(error)}\n\nThis may be a temporary issue. Please try again.\n\nNote: The AI agent handles content fetching, so this error may also affect access to files or URLs mentioned in your requirement.`
       )
     )
   }
+}
+
+/**
+ * Check if agent response indicates content access issues
+ * @param text Agent response text
+ * @returns Array of content access issues mentioned by agent, or empty array
+ */
+export function extractContentAccessIssues(text: string): string[] {
+  const issues: string[] = []
+
+  // Common patterns agents might use to report access issues
+  const accessPatterns = [
+    // "could not access file.txt", "cannot retrieve document", "unable to fetch data", "failed to access url"
+    /(?:could not|cannot|unable to|failed to)\s+(?:access|fetch|retrieve|read)[^\n.]*/gi,
+    // "file.txt is inaccessible", "document not accessible", "access denied to file"
+    /(?:inaccessible|not accessible|access denied)[^\n.]*/gi,
+    // "file path/to/file not found", "url example.com unavailable", "url ... not found"
+    /(?:file|url|link|path)\s+[^\n]*\s+(?:not found|unavailable|inaccessible)[^\n.]*/gi,
+    // "not found" patterns for files/urls
+    /(?:file|url|link|path|document)[^:\n]*(?:not found)[^\n.]*/gi,
+  ]
+
+  for (const pattern of accessPatterns) {
+    const matches = text.match(pattern)
+    if (matches) {
+      issues.push(...matches.map(match => match.trim()))
+    }
+  }
+
+  return [...new Set(issues)]
 }
 
 /**
@@ -1886,7 +1932,7 @@ Generate tasks only for the NEW requirements listed above.`
       throw new HoneError(
         formatError(
           'Network error generating tasks',
-          `Failed to connect to AI service after retries.\n\nError: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your internet connection and API configuration.`
+          `Failed to connect to AI service after retries.\n\nError: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your internet connection and API configuration.\n\nNote: Content fetching is handled by the AI agent, so network issues prevent both task generation and content access.`
         )
       )
     }
@@ -1895,7 +1941,7 @@ Generate tasks only for the NEW requirements listed above.`
     throw new HoneError(
       formatError(
         'Failed to generate tasks for new requirements',
-        `AI service error: ${error instanceof Error ? error.message : String(error)}\n\nThis may be a temporary issue. Please try again.`
+        `AI service error: ${error instanceof Error ? error.message : String(error)}\n\nThis may be a temporary issue. Please try again.\n\nNote: The AI agent handles content fetching for referenced files or URLs, so this error may also affect content analysis.`
       )
     )
   }

@@ -467,3 +467,24 @@ Key Decisions:
 - Task status tracking updated to reflect completion of content fetching delegation
 
 Next Task: task-023
+
+================================================================================
+TASK-023: Update error handling for agent-based content fetching
+Date: 2026-02-06T16:30:00.000Z
+================================================================================
+
+Summary:
+Implemented new error handling system for agent-based content fetching using response parsing instead of local network/file error catching. Added extractContentAccessIssues function to detect agent content access failures and provide equivalent user feedback.
+
+Files Changed:
+- src/extend-prd.ts (modified - added extractContentAccessIssues function with regex pattern matching, updated Q&A and requirements generation to handle agent content access failures, applied deduplication feedback)
+
+Key Decisions:
+- Created extractContentAccessIssues function to parse agent responses for content access issues
+- Used regex patterns to detect common agent failure messages: "could not access", "file not found", "URL inaccessible"
+- Added user notifications in Q&A and requirements generation when agent reports content access issues
+- Updated error messages to mention agent-based content fetching instead of local errors
+- Applied review feedback: added deduplication with Set to prevent duplicate issue reporting
+- Error handling maintains same user experience quality while delegating content access to agent
+
+Next Task: task-024
