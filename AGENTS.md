@@ -211,6 +211,13 @@ _Detailed information is available in the .agents-docs/ directory._
 - Test titles must match test behavior - check assertion expectations align with test descriptions
 - Comprehensive test cleanup: tests using temp files should use proper cleanup patterns like `rollbackAtomicWrite()`
 
+## Mock Implementation and Test Performance
+
+- Enhanced mock implementations that cover more function signatures can actually fix pre-existing test failures
+- Mock module improvements often have beneficial side effects across test suites due to shared module state
+- When validating test suite performance, comprehensive mocks prevent failures that would otherwise require more complex testing approaches
+- Mock completeness should be balanced - implement functions that are actually called to prevent missing function errors
+
 ## Agent Response Parsing for Error Handling
 
 - When delegating content fetching to agents, parse agent responses for access issues instead of catching local errors

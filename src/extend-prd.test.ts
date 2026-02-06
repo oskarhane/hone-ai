@@ -74,28 +74,112 @@ mock.module('readline', () => ({
 // Mock error utilities
 mock.module('./errors', () => ({
   HoneError: class HoneError extends Error {
-    constructor(message: string) {
+    constructor(
+      message: string,
+      public readonly exitCode: number = 1
+    ) {
       super(message)
       this.name = 'HoneError'
     }
   },
-  formatError: (title: string, message: string) => `${title}: ${message}`,
+  formatError: (message: string, details?: string) => {
+    let output = `✗ ${message}`
+    if (details) {
+      output += `\n\n${details}`
+    }
+    return output
+  },
   isNetworkError: mock((error: any) => {
-    return error.message && error.message.includes('Network')
+    if (!error || typeof error !== 'object') return false
+    const message = error.message?.toLowerCase() || ''
+    const code = error.code?.toLowerCase() || ''
+
+    return (
+      message.includes('network') ||
+      message.includes('econnrefused') ||
+      message.includes('etimedout') ||
+      message.includes('fetch failed') ||
+      code.includes('econnrefused') ||
+      code.includes('etimedout')
+    )
   }),
   retryWithBackoff: mock(async (fn: any, options: any) => {
-    // For testing, simulate retry behavior
-    try {
-      return await fn()
-    } catch (error: any) {
-      if (error.message && error.message.includes('Network')) {
-        // Simulate one retry for network errors
+    let attempts = 0
+    const maxRetries = options?.maxRetries || 3
+
+    while (attempts < maxRetries) {
+      try {
         return await fn()
+      } catch (error: any) {
+        attempts++
+        if (attempts >= maxRetries) {
+          throw error
+        }
+        // Continue to next retry
       }
-      throw error
     }
   }),
-  ErrorMessages: {},
+  ErrorMessages: {
+    MISSING_API_KEY: {
+      message: 'Missing API key',
+      details: 'Check your .env file and visit https://console.anthropic.com/',
+    },
+    FILE_NOT_FOUND: (path: string) => ({
+      message: 'File not found',
+      details: `Could not find file: ${path}`,
+    }),
+    AGENT_NOT_FOUND: (agent: string) => ({
+      message: `Agent ${agent} not found`,
+      details: 'Run npm install to install the agent',
+    }),
+    GIT_NOT_INITIALIZED: {
+      message: 'Git not initialized',
+      details: 'Run git init to initialize the repository',
+    },
+    AGENT_SPAWN_FAILED: (agent: string, error: string) => ({
+      message: `Failed to spawn ${agent}`,
+      details: `Error: ${error}. Check your PATH.`,
+    }),
+    MODEL_UNAVAILABLE: (model: string, agent: string) => ({
+      message: `Model ${model} unavailable`,
+      details: `Agent ${agent} doesn't support this model. Run ${agent} --help for supported models.`,
+    }),
+    RATE_LIMIT_ERROR: (agent: string, retryAfter?: number) => ({
+      message: 'Rate limit exceeded',
+      details: retryAfter
+        ? `Please wait ${retryAfter} seconds before trying again`
+        : `Please wait before trying again with ${agent}`,
+    }),
+    AGENT_ERROR: (agent: string, exitCode: number, details: string) => ({
+      message: `Agent ${agent} failed`,
+      details: `Exit code: ${exitCode}. Details: ${details}`,
+    }),
+  },
+  isRateLimitError: mock((error: any) => {
+    if (!error || typeof error !== 'object') return false
+    const message = error.message?.toLowerCase() || ''
+    return message.includes('rate limit') || message.includes('too many requests')
+  }),
+  isModelUnavailableError: mock((error: any) => {
+    if (!error || typeof error !== 'object') return false
+    const message = error.message?.toLowerCase() || ''
+    return (
+      message.includes('model') &&
+      (message.includes('unavailable') || message.includes('not found'))
+    )
+  }),
+  parseAgentError: mock((stdout: string, exitCode: number) => {
+    if (stdout.toLowerCase().includes('network') || stdout.toLowerCase().includes('econnrefused')) {
+      return { type: 'network', message: 'Network error' }
+    }
+    if (stdout.toLowerCase().includes('rate limit')) {
+      return { type: 'rateLimit', message: 'Rate limit exceeded' }
+    }
+    if (stdout.toLowerCase().includes('model') && stdout.toLowerCase().includes('unavailable')) {
+      return { type: 'modelUnavailable', message: 'Model unavailable' }
+    }
+    return { type: 'unknown', message: 'Unknown error' }
+  }),
 }))
 
 describe('PRD Parser', () => {
