@@ -215,7 +215,8 @@ describe('parseAgentError', () => {
 describe('ErrorMessages', () => {
   test('MISSING_API_KEY has correct format', () => {
     const { message, details } = ErrorMessages.MISSING_API_KEY
-    expect(message).toContain('ANTHROPIC_API_KEY')
+    expect(message).toBe('Missing API key')
+    expect(details).toContain('ANTHROPIC_API_KEY')
     expect(details).toContain('.env')
     expect(details).toContain('https://console.anthropic.com/')
   })
@@ -256,7 +257,7 @@ describe('ErrorMessages', () => {
       'claude-sonnet-4-invalid',
       'opencode'
     )
-    expect(message).toContain('Model not available')
+    expect(message).toBe('Model claude-sonnet-4-invalid unavailable')
     expect(details).toContain('claude-sonnet-4-invalid')
     expect(details).toContain('opencode')
     expect(details).toContain('--help')
@@ -278,7 +279,7 @@ describe('ErrorMessages', () => {
   test('AGENT_ERROR includes details', () => {
     const { message, details } = ErrorMessages.AGENT_ERROR('opencode', 2, 'Invalid input')
     expect(message).toContain('opencode')
-    expect(details).toContain('code 2')
+    expect(details).toContain('Exit code: 2')
     expect(details).toContain('Invalid input')
   })
 })

@@ -71,6 +71,7 @@ export function isNetworkError(error: unknown): boolean {
  * Check if error indicates rate limiting
  */
 export function isRateLimitError(errorText: string): boolean {
+  if (!errorText) return false
   const lowerError = errorText.toLowerCase()
   const rateLimitIndicators = [
     'rate limit',
@@ -88,6 +89,7 @@ export function isRateLimitError(errorText: string): boolean {
  * Check if error indicates model unavailability
  */
 export function isModelUnavailableError(errorText: string): boolean {
+  if (!errorText) return false
   const lowerError = errorText.toLowerCase()
   const modelErrorIndicators = [
     'model not found',
@@ -96,7 +98,6 @@ export function isModelUnavailableError(errorText: string): boolean {
     'invalid model',
     'unknown model',
     '404',
-    'not found',
   ]
 
   return modelErrorIndicators.some(indicator => lowerError.includes(indicator))
@@ -112,6 +113,17 @@ export interface AgentErrorInfo {
 }
 
 export function parseAgentError(stderr: string, exitCode?: number): AgentErrorInfo {
+  if (!stderr && exitCode === undefined) {
+    return { type: 'unknown', retryable: false }
+  }
+
+  const stderrLower = (stderr || '').toLowerCase()
+
+  // Check for spawn-related failures first (ENOENT typically means command not found)
+  if (stderrLower.includes('enoent') || exitCode === 127) {
+    return { type: 'spawn_failed', retryable: false }
+  }
+
   if (isNetworkError({ message: stderr })) {
     return { type: 'network', retryable: true }
   }
@@ -128,13 +140,8 @@ export function parseAgentError(stderr: string, exitCode?: number): AgentErrorIn
   }
 
   // Check for timeout (exit code 124 or timeout in stderr)
-  if (exitCode === 124 || stderr.toLowerCase().includes('timed out')) {
+  if (exitCode === 124 || stderrLower.includes('timed out')) {
     return { type: 'timeout', retryable: false }
-  }
-
-  // Check for spawn-related failures (typically exit code undefined or ENOENT)
-  if (exitCode === undefined || stderr.toLowerCase().includes('enoent')) {
-    return { type: 'spawn_failed', retryable: false }
   }
 
   return { type: 'unknown', retryable: false }
@@ -160,15 +167,21 @@ export async function retryWithBackoff<T>(
   } = options
 
   let lastError: unknown
+  let attempt = 0
 
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  while (attempt <= maxRetries) {
     try {
       return await fn()
     } catch (error) {
       lastError = error
 
-      // Don't retry if not a network error or if we're out of retries
-      if (!shouldRetry(error) || attempt === maxRetries) {
+      // Check if we should retry this error
+      const shouldRetryError = shouldRetry(error)
+
+      // Don't retry if:
+      // 1. Error is not retryable according to predicate
+      // 2. We've exhausted all retries
+      if (!shouldRetryError || attempt >= maxRetries) {
         throw error
       }
 
@@ -181,6 +194,7 @@ export async function retryWithBackoff<T>(
 
       // Wait before retrying
       await new Promise(resolve => setTimeout(resolve, delay))
+      attempt++
     }
   }
 
@@ -193,8 +207,8 @@ export async function retryWithBackoff<T>(
  */
 export const ErrorMessages = {
   MISSING_API_KEY: {
-    message: 'Error: ANTHROPIC_API_KEY not found',
-    details: `Please create a .env file in your project root with:
+    message: 'Missing API key',
+    details: `ANTHROPIC_API_KEY not found. Please create a .env file in your project root with:
 ANTHROPIC_API_KEY=your-api-key-here
 
 Get your API key at: https://console.anthropic.com/`,
@@ -257,7 +271,7 @@ Please ensure ${agent} is properly installed and in your PATH.`,
   }),
 
   MODEL_UNAVAILABLE: (model: string, agent: string) => ({
-    message: `Error: Model not available`,
+    message: `Model ${model} unavailable`,
     details: `The model "${model}" is not available for agent "${agent}".
 
 Please check:
@@ -304,10 +318,7 @@ Try:
 
   AGENT_ERROR: (agent: string, exitCode: number, stderr: string) => ({
     message: `Error: ${agent} agent failed`,
-    details: `The ${agent} agent exited with code ${exitCode}.
-
-Error output:
-${stderr.trim() || '(no error output)'}
+    details: `Exit code: ${exitCode}. Details: ${stderr.trim() || '(no error output)'}
 
 This may indicate:
   • Invalid prompt or parameters

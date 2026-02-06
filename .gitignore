@@ -41,3 +41,5 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # integration test directories
 test-cli-integration
 .plans-test
+test-agents-md-cli-integration
+test-workspace-prunt-integration

@@ -38,7 +38,7 @@ function mockListPrds() {
 
 // Mock the config and prds modules
 mock.module('./config.js', () => ({
-  getPlansDir: () => join(TEST_CWD, '.plans'),
+  getPlansDir: () => join(process.cwd(), '.plans'),
 }))
 
 mock.module('./prds.js', () => ({

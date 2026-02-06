@@ -50,16 +50,8 @@ mock.module('./agent-client', () => ({
   AgentClient: mock(() => mockAgentClient),
 }))
 
-// Mock config and model resolution
-mock.module('./config', () => ({
-  loadConfig: mock(() =>
-    Promise.resolve({
-      defaultAgent: 'opencode',
-      models: {},
-    })
-  ),
-  resolveModelForPhase: mock(() => 'claude-sonnet-4-20250514'),
-}))
+// Don't mock config - let it use real file system in test workspace
+// This avoids mock leakage that affects config.test.ts
 
 // Mock readline for interactive Q&A tests
 const mockReadlineInterface = {
@@ -104,81 +96,170 @@ mock.module('./errors', () => ({
     )
   }),
   retryWithBackoff: mock(async (fn: any, options: any) => {
-    let attempts = 0
-    const maxRetries = options?.maxRetries || 3
+    const {
+      maxRetries = 3,
+      initialDelay = 1000,
+      maxDelay = 10000,
+      shouldRetry = (error: any) => {
+        if (!error || typeof error !== 'object') return false
+        const err = error as any
+        const message = err.message?.toLowerCase() || ''
+        const code = err.code?.toLowerCase() || ''
+        const networkIndicators = [
+          'econnrefused',
+          'econnreset',
+          'etimedout',
+          'enotfound',
+          'enetunreach',
+          'network',
+          'timeout',
+          'fetch failed',
+          'socket hang up',
+        ]
+        return networkIndicators.some(
+          indicator => message.includes(indicator) || code.includes(indicator)
+        )
+      },
+    } = options || {}
 
-    while (attempts < maxRetries) {
+    let lastError: unknown
+    let attempt = 0
+
+    while (attempt <= maxRetries) {
       try {
         return await fn()
-      } catch (error: any) {
-        attempts++
-        if (attempts >= maxRetries) {
+      } catch (error) {
+        lastError = error
+        const shouldRetryError = shouldRetry(error)
+        if (!shouldRetryError || attempt >= maxRetries) {
           throw error
         }
-        // Continue to next retry
+        // Skip delays in mock to avoid test timeouts
+        attempt++
       }
     }
+    throw lastError
   }),
   ErrorMessages: {
     MISSING_API_KEY: {
       message: 'Missing API key',
-      details: 'Check your .env file and visit https://console.anthropic.com/',
+      details: `ANTHROPIC_API_KEY not found. Please create a .env file in your project root with:
+ANTHROPIC_API_KEY=your-api-key-here
+
+Get your API key at: https://console.anthropic.com/`,
     },
     FILE_NOT_FOUND: (path: string) => ({
-      message: 'File not found',
-      details: `Could not find file: ${path}`,
+      message: 'Error: File not found',
+      details: `Could not find file: ${path}
+
+Please check the path and try again.`,
     }),
     AGENT_NOT_FOUND: (agent: string) => ({
-      message: `Agent ${agent} not found`,
+      message: `Error: ${agent} command not found`,
       details: 'Run npm install to install the agent',
     }),
     GIT_NOT_INITIALIZED: {
-      message: 'Git not initialized',
-      details: 'Run git init to initialize the repository',
+      message: 'Error: Git repository not initialized',
+      details: `Please initialize git first:
+git init`,
     },
     AGENT_SPAWN_FAILED: (agent: string, error: string) => ({
-      message: `Failed to spawn ${agent}`,
-      details: `Error: ${error}. Check your PATH.`,
+      message: `Error: Failed to start ${agent}`,
+      details: `Could not spawn ${agent} agent process.
+
+Error: ${error}
+
+Please ensure ${agent} is properly installed and in your PATH.`,
     }),
     MODEL_UNAVAILABLE: (model: string, agent: string) => ({
       message: `Model ${model} unavailable`,
-      details: `Agent ${agent} doesn't support this model. Run ${agent} --help for supported models.`,
+      details: `The model "${model}" is not available for agent "${agent}".
+
+Please check:
+  • Model name is correct (format: claude-<tier>-<version>-YYYYMMDD)
+  • Model version is supported by ${agent} (check with: ${agent} --help)
+  • Your ${agent} CLI is up to date
+
+Supported tiers: sonnet, opus
+Example: claude-sonnet-4-20250514`,
     }),
-    RATE_LIMIT_ERROR: (agent: string, retryAfter?: number) => ({
-      message: 'Rate limit exceeded',
-      details: retryAfter
-        ? `Please wait ${retryAfter} seconds before trying again`
-        : `Please wait before trying again with ${agent}`,
-    }),
-    AGENT_ERROR: (agent: string, exitCode: number, details: string) => ({
-      message: `Agent ${agent} failed`,
-      details: `Exit code: ${exitCode}. Details: ${details}`,
+    RATE_LIMIT_ERROR: (agent: string, retryAfter?: number) => {
+      const retryMsg = retryAfter
+        ? `Please retry after ${retryAfter} seconds.`
+        : 'Please wait a few minutes before retrying.'
+      return {
+        message: 'Error: Rate limit exceeded',
+        details: `The ${agent} agent has exceeded its rate limit.
+
+${retryMsg}
+
+Consider:
+  • Spacing out your requests
+  • Using a different model if available
+  • Checking your API usage dashboard`,
+      }
+    },
+    AGENT_ERROR: (agent: string, exitCode: number, stderr: string) => ({
+      message: `Error: ${agent} agent failed`,
+      details: `Exit code: ${exitCode}. Details: ${stderr.trim() || '(no error output)'}
+
+This may indicate:
+  • Invalid prompt or parameters
+  • Model configuration issue
+  • Agent internal error
+
+Review the error output above for specific details.`,
     }),
   },
-  isRateLimitError: mock((error: any) => {
-    if (!error || typeof error !== 'object') return false
-    const message = error.message?.toLowerCase() || ''
-    return message.includes('rate limit') || message.includes('too many requests')
+  isRateLimitError: mock((errorText: string) => {
+    if (!errorText) return false
+    const lowerError = errorText.toLowerCase()
+    const rateLimitIndicators = [
+      'rate limit',
+      'rate_limit',
+      'too many requests',
+      '429',
+      'quota exceeded',
+      'rate exceeded',
+    ]
+    return rateLimitIndicators.some(indicator => lowerError.includes(indicator))
   }),
-  isModelUnavailableError: mock((error: any) => {
-    if (!error || typeof error !== 'object') return false
-    const message = error.message?.toLowerCase() || ''
-    return (
-      message.includes('model') &&
-      (message.includes('unavailable') || message.includes('not found'))
-    )
+  isModelUnavailableError: mock((errorText: string) => {
+    if (!errorText) return false
+    const lowerError = errorText.toLowerCase()
+    const modelErrorIndicators = [
+      'model not found',
+      'model unavailable',
+      'model does not exist',
+      'invalid model',
+      'unknown model',
+      '404',
+    ]
+    return modelErrorIndicators.some(indicator => lowerError.includes(indicator))
   }),
-  parseAgentError: mock((stdout: string, exitCode: number) => {
-    if (stdout.toLowerCase().includes('network') || stdout.toLowerCase().includes('econnrefused')) {
-      return { type: 'network', message: 'Network error' }
+  parseAgentError: mock((stderr: string, exitCode?: number) => {
+    if (!stderr && exitCode === undefined) {
+      return { type: 'unknown', retryable: false }
     }
-    if (stdout.toLowerCase().includes('rate limit')) {
-      return { type: 'rateLimit', message: 'Rate limit exceeded' }
+    const stderrLower = (stderr || '').toLowerCase()
+    if (stderrLower.includes('enoent') || exitCode === 127) {
+      return { type: 'spawn_failed', retryable: false }
     }
-    if (stdout.toLowerCase().includes('model') && stdout.toLowerCase().includes('unavailable')) {
-      return { type: 'modelUnavailable', message: 'Model unavailable' }
+    if (stderrLower.includes('network') || stderrLower.includes('econnrefused')) {
+      return { type: 'network', retryable: true }
     }
-    return { type: 'unknown', message: 'Unknown error' }
+    if (stderrLower.includes('rate limit')) {
+      const retryMatch = stderr.match(/retry[- ]after[:\s]+(\d+)/i)
+      const retryAfter = retryMatch && retryMatch[1] ? parseInt(retryMatch[1], 10) : undefined
+      return { type: 'rate_limit', retryable: false, retryAfter }
+    }
+    if (stderrLower.includes('model not found') || stderrLower.includes('model unavailable')) {
+      return { type: 'model_unavailable', retryable: false }
+    }
+    if (exitCode === 124 || stderrLower.includes('timed out')) {
+      return { type: 'timeout', retryable: false }
+    }
+    return { type: 'unknown', retryable: false }
   }),
 }))
 
