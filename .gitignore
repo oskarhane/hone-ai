@@ -42,4 +42,5 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 test-cli-integration
 .plans-test
 test-agents-md-cli-integration
-test-workspace-prunt-integration
+test-workspace-prune-integration
+test-atomic-operations
