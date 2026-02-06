@@ -346,7 +346,7 @@ tasks:
     title: "Refactor requirements generation to use agent-based content fetching"
     description: |
       Modify the requirements generation function to rely on agent-based content fetching instead of local content fetching. Update the function to delegate all URL and file content fetching to the underlying agent via system prompts.
-    status: pending
+    status: completed
     dependencies:
       - task-021
     acceptance_criteria:
@@ -355,7 +355,7 @@ tasks:
       - "Function maintains same requirement generation quality"
       - "Agent handles content fetching errors appropriately"
       - "Function tests updated and passing"
-    completed_at: null
+    completed_at: 2026-02-06T15:00:00.000Z
 
   - id: task-023
     title: "Update error handling for agent-based content fetching"

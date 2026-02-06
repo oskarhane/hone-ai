@@ -448,3 +448,22 @@ Key Decisions:
 - All 250 tests pass confirming function works with agent-based content fetching
 
 Next Task: task-022
+
+================================================================================
+TASK-022: Refactor requirements generation to use agent-based content fetching
+Date: 2026-02-06T15:00:00.000Z
+================================================================================
+
+Summary:
+Completed refactoring requirements generation function to delegate all URL and file content fetching to underlying agent via system prompts. Implementation was already complete from previous tasks, only needed task status update.
+
+Files Changed:
+- .plans/tasks-extend-prd-command.yml (modified - marked task-022 as completed with completion timestamp)
+
+Key Decisions:
+- generateNewRequirementsContent function already had "CONTENT FETCHING INSTRUCTIONS" section in system prompt
+- Agent-based content fetching delegation was implemented in task-020 for all functions
+- No code changes needed as implementation already met all acceptance criteria
+- Task status tracking updated to reflect completion of content fetching delegation
+
+Next Task: task-023
