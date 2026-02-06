@@ -35,6 +35,7 @@ Common Workflow:
   hone prd-to-tasks .plans/prd-<feature>.md # Generate tasks from PRD
   hone extend-prd .plans/prd-<feature>.md "new requirement" # Add requirements to existing PRD
   hone run .plans/tasks-<feature>.yml -i 10 # Implement the feature
+  hone prune                                # Archive completed PRDs to .plans/archive/
 
 Extended PRD Workflow:
   # Add new requirements with interactive refinement
@@ -263,6 +264,21 @@ program
     } catch (error) {
       console.error('\n✗ Failed to generate AGENTS.md')
       console.error(`\nError: ${error instanceof Error ? error.message : error}`)
+      process.exit(1)
+    }
+  })
+
+program
+  .command('prune')
+  .description('Move completed PRDs and their associated files to .plans/archive/')
+  .option('--dry-run', 'Preview operations without executing moves')
+  .action(async (options: { dryRun?: boolean }) => {
+    try {
+      setVerbose(program.opts().verbose || false)
+      const { pruneCompletedPrds } = await import('./prune')
+      await pruneCompletedPrds(options.dryRun || false)
+    } catch (error) {
+      console.error('\n✗ Error pruning PRDs:', error instanceof Error ? error.message : error)
       process.exit(1)
     }
   })

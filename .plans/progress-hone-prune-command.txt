@@ -1,0 +1,19 @@
+================================================================================
+TASK-001: Add prune command structure to CLI
+Date: 2026-02-06T08:39:15.000Z
+================================================================================
+
+Summary:
+Implemented basic 'hone prune' command structure in CLI with Commander.js patterns. Added --dry-run flag support, help text, and integrated with existing CLI architecture.
+
+Files Changed:
+- src/index.ts (modified - added prune command with --dry-run flag and help text)
+- src/prune.ts (created - placeholder implementation with function signature)
+
+Key Decisions:
+- Used dynamic import pattern consistent with other commands (extend-prd, run, agents-md)
+- Added prune command to workflow example in help text
+- Implemented --dry-run as optional boolean flag with default false
+- Used established error handling pattern wrapping async code
+
+Next Task: task-002

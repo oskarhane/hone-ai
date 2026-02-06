@@ -8,7 +8,7 @@ tasks:
     title: "Add prune command structure to CLI"
     description: |
       Implement the basic 'hone prune' command structure in src/index.ts using Commander.js patterns. Add --dry-run flag support, help text, and integrate with existing CLI architecture following established patterns from other commands.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "Command 'hone prune' is recognized by CLI with proper help text"
@@ -16,7 +16,7 @@ tasks:
       - "Command follows existing CLI patterns and error handling"
       - "Help text explains command purpose and dry-run functionality"
       - "Command integrates seamlessly with existing CLI structure"
-    completed_at: null
+    completed_at: 2026-02-06T08:39:15.000Z
 
   - id: task-002
     title: "Create archive directory utility functions"
