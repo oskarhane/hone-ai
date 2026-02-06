@@ -1313,7 +1313,7 @@ export async function runRequirementRefinementQA(
  * @param model Model to use for generation
  * @returns Object with functional and non-functional requirements
  */
-async function generateNewRequirementsContent(
+export async function generateNewRequirementsContent(
   requirementDescription: string,
   qa: Array<{ question: string; answer: string }>,
   prdContext: ParsedPrd,

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test'
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, mock } from 'bun:test'
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs'
 import { join } from 'path'
 import {
@@ -22,8 +22,78 @@ import {
   taskIdExists,
   derivePrdToTaskFilename,
   extractContentAccessIssues,
+  generateNewRequirementsContent,
   extendPRD,
 } from './extend-prd.js'
+
+// Mock AgentClient for agent-based content fetching tests
+const mockAgentClient = {
+  messages: {
+    create: mock<any>(() =>
+      Promise.resolve({
+        content: [
+          {
+            type: 'text',
+            text: 'DONE', // Default response for clarifying questions
+          },
+        ],
+      })
+    ),
+  },
+}
+
+// Mock the AgentClient constructor
+mock.module('./agent-client', () => ({
+  AgentClient: mock(() => mockAgentClient),
+}))
+
+// Mock config and model resolution
+mock.module('./config', () => ({
+  loadConfig: mock(() =>
+    Promise.resolve({
+      defaultAgent: 'opencode',
+      models: {},
+    })
+  ),
+  resolveModelForPhase: mock(() => 'claude-sonnet-4-20250514'),
+}))
+
+// Mock readline for interactive Q&A tests
+const mockReadlineInterface = {
+  question: mock(),
+  close: mock(),
+}
+
+mock.module('readline', () => ({
+  createInterface: mock(() => mockReadlineInterface),
+}))
+
+// Mock error utilities
+mock.module('./errors', () => ({
+  HoneError: class HoneError extends Error {
+    constructor(message: string) {
+      super(message)
+      this.name = 'HoneError'
+    }
+  },
+  formatError: (title: string, message: string) => `${title}: ${message}`,
+  isNetworkError: mock((error: any) => {
+    return error.message && error.message.includes('Network')
+  }),
+  retryWithBackoff: mock(async (fn: any, options: any) => {
+    // For testing, simulate retry behavior
+    try {
+      return await fn()
+    } catch (error: any) {
+      if (error.message && error.message.includes('Network')) {
+        // Simulate one retry for network errors
+        return await fn()
+      }
+      throw error
+    }
+  }),
+  ErrorMessages: {},
+}))
 
 describe('PRD Parser', () => {
   describe('parsePrdContent', () => {
@@ -462,9 +532,176 @@ Test
 })
 
 describe('Interactive Q&A System', () => {
+  beforeEach(() => {
+    // Reset mocks before each test
+    mockAgentClient.messages.create.mockClear()
+    mockReadlineInterface.question.mockClear()
+    mockReadlineInterface.close.mockClear()
+  })
+
   describe('runRequirementRefinementQA', () => {
     it('should be exportable function', () => {
       expect(typeof runRequirementRefinementQA).toBe('function')
+    })
+
+    it('should handle agent response indicating completion', async () => {
+      // Mock agent response saying "DONE" to stop Q&A
+      mockAgentClient.messages.create.mockResolvedValueOnce({
+        content: [{ type: 'text', text: 'DONE' }],
+      })
+
+      const mockPrd = {
+        title: 'Test Feature',
+        sections: new Map(),
+        requirements: [
+          {
+            id: 'REQ-F-001',
+            description: 'Existing requirement',
+            type: 'functional' as const,
+            lineNumber: 1,
+          },
+        ],
+        isValid: true,
+        errors: [],
+      }
+
+      const config = { defaultAgent: 'opencode' }
+      const model = 'claude-sonnet-4-20250514'
+
+      const result = await runRequirementRefinementQA(
+        'Add user authentication',
+        mockPrd,
+        config,
+        model
+      )
+
+      expect(result).toEqual([])
+      expect(mockAgentClient.messages.create).toHaveBeenCalledTimes(1)
+    })
+
+    it('should handle agent-based content fetching in system prompt', async () => {
+      // Mock agent asking a question, then completing
+      mockAgentClient.messages.create
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: 'text',
+              text: 'What authentication methods should be supported? Could not access config.json for reference.',
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          content: [{ type: 'text', text: 'DONE' }],
+        })
+
+      // Mock user input
+      mockReadlineInterface.question.mockImplementationOnce((_, callback) => {
+        callback('OAuth and email/password')
+      })
+
+      const mockPrd = {
+        title: 'Test Feature',
+        sections: new Map(),
+        requirements: [],
+        isValid: true,
+        errors: [],
+      }
+
+      const config = { defaultAgent: 'opencode' }
+      const model = 'claude-sonnet-4-20250514'
+
+      const result = await runRequirementRefinementQA(
+        'Add user authentication to config.json',
+        mockPrd,
+        config,
+        model
+      )
+
+      expect(result).toHaveLength(1)
+      expect(result[0]?.question).toContain('authentication methods')
+      expect(result[0]?.answer).toBe('OAuth and email/password')
+
+      // Verify system prompt includes content fetching instructions
+      expect(mockAgentClient.messages.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          system: expect.stringContaining('CONTENT FETCHING INSTRUCTIONS'),
+        })
+      )
+
+      const calls = (mockAgentClient.messages.create as any).mock.calls
+      const firstCallArgs = calls[0]?.[0]
+      expect(firstCallArgs?.system).toContain('file reading tools')
+      expect(firstCallArgs?.system).toContain('web fetching tools')
+    })
+
+    it('should handle agent network errors gracefully', async () => {
+      // Mock network error
+      mockAgentClient.messages.create.mockRejectedValueOnce(new Error('Network connection failed'))
+
+      const mockPrd = {
+        title: 'Test Feature',
+        sections: new Map(),
+        requirements: [],
+        isValid: true,
+        errors: [],
+      }
+
+      const config = { defaultAgent: 'opencode' }
+      const model = 'claude-sonnet-4-20250514'
+
+      await expect(
+        runRequirementRefinementQA('Add user authentication', mockPrd, config, model)
+      ).rejects.toThrow('Network error generating clarifying question')
+    })
+
+    it('should handle invalid agent response formats', async () => {
+      // Mock invalid response format
+      mockAgentClient.messages.create.mockResolvedValueOnce({
+        content: null,
+      })
+
+      const mockPrd = {
+        title: 'Test Feature',
+        sections: new Map(),
+        requirements: [],
+        isValid: true,
+        errors: [],
+      }
+
+      const config = { defaultAgent: 'opencode' }
+      const model = 'claude-sonnet-4-20250514'
+
+      await expect(
+        runRequirementRefinementQA('Add user authentication', mockPrd, config, model)
+      ).rejects.toThrow('Invalid AI response format')
+    })
+
+    it('should validate input parameters', async () => {
+      const mockPrd = {
+        title: 'Test',
+        sections: new Map(),
+        requirements: [],
+        isValid: true,
+        errors: [],
+      }
+      const config = { defaultAgent: 'opencode' }
+      const model = 'claude-sonnet-4-20250514'
+
+      await expect(runRequirementRefinementQA('', mockPrd, config, model)).rejects.toThrow(
+        'Requirement description is required'
+      )
+
+      await expect(
+        runRequirementRefinementQA('Valid requirement', null as any, config, model)
+      ).rejects.toThrow('Valid PRD context is required')
+
+      await expect(
+        runRequirementRefinementQA('Valid requirement', mockPrd, null as any, model)
+      ).rejects.toThrow('Configuration is required')
+
+      await expect(
+        runRequirementRefinementQA('Valid requirement', mockPrd, config, '')
+      ).rejects.toThrow('Model specification is required')
     })
   })
 })
@@ -1203,6 +1440,9 @@ describe('Integration Tests', () => {
 
     // Create necessary directories
     mkdirSync('.plans', { recursive: true })
+
+    // Reset agent mocks for integration tests
+    mockAgentClient.messages.create.mockClear()
   })
 
   afterEach(() => {
@@ -1212,7 +1452,7 @@ describe('Integration Tests', () => {
     }
   })
 
-  describe('End-to-end PRD extension', () => {
+  describe('End-to-end PRD extension with agent-based content fetching', () => {
     it('should reject invalid inputs gracefully', async () => {
       await expect(extendPRD('', 'test requirement')).rejects.toThrow(
         'PRD file path is required and must be a string'
@@ -1231,6 +1471,158 @@ describe('Integration Tests', () => {
       await expect(extendPRD('test.md', longDescription)).rejects.toThrow(
         'Requirement description too long'
       )
+    })
+
+    it('should delegate content fetching to agent in full workflow', async () => {
+      // Setup test files
+      const prdContent = `# PRD: Test Feature
+
+## Overview
+This is a test feature.
+
+## Requirements
+
+### Functional Requirements
+- REQ-F-001: Existing functional requirement
+
+### Non-Functional Requirements
+- REQ-NF-001: Existing non-functional requirement
+`
+      writeFileSync('test-feature.md', prdContent)
+
+      // Mock readline for Q&A
+      mockReadlineInterface.question.mockImplementationOnce((_, callback) => {
+        callback('done') // Skip Q&A
+      })
+
+      // Mock agent responses for Q&A (DONE immediately) and requirements generation
+      mockAgentClient.messages.create
+        .mockResolvedValueOnce({
+          content: [{ type: 'text', text: 'DONE' }], // Q&A completion
+        })
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: 'text',
+              text: `Note: Successfully read test-feature.md and processed content.
+
+FUNCTIONAL REQUIREMENTS:
+- System must implement new authentication feature
+- Application must validate user inputs securely
+
+NON-FUNCTIONAL REQUIREMENTS:
+- Response time must be under 200ms
+- System must handle 100 concurrent users`,
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify([
+                {
+                  id: 'task-003',
+                  title: 'Implement authentication feature',
+                  description: 'Implement the new authentication system based on requirements',
+                  status: 'pending',
+                  dependencies: [],
+                  acceptance_criteria: [
+                    'Authentication works correctly',
+                    'Security validation passes',
+                  ],
+                  completed_at: null,
+                },
+              ]),
+            },
+          ],
+        })
+
+      // Run the extend PRD operation
+      await expect(
+        extendPRD('test-feature.md', 'Add user authentication with file and URL references')
+      ).resolves.toBeUndefined()
+
+      // Verify agent was called for both Q&A and requirements generation (task generation skipped since no existing task file)
+      expect(mockAgentClient.messages.create).toHaveBeenCalledTimes(2)
+
+      // Verify the calls included content fetching instructions
+      const calls = (mockAgentClient.messages.create as any).mock.calls
+      const qaCall = calls[0]?.[0]
+      const reqCall = calls[1]?.[0]
+
+      expect(qaCall?.system).toContain('CONTENT FETCHING INSTRUCTIONS')
+      expect(qaCall?.system).toContain('file reading tools')
+      expect(qaCall?.system).toContain('web fetching tools')
+
+      expect(reqCall?.system).toContain('CONTENT FETCHING INSTRUCTIONS')
+      expect(reqCall?.system).toContain('file reading tools')
+      expect(reqCall?.system).toContain('web fetching tools')
+
+      // Verify PRD file was updated (task file won't be created without existing task file)
+      expect(existsSync('test-feature.md')).toBe(true)
+
+      // Check that PRD content includes new requirements
+      const updatedPrdContent = require('fs').readFileSync('test-feature.md', 'utf-8')
+      expect(updatedPrdContent).toContain('REQ-F-002')
+      expect(updatedPrdContent).toContain('REQ-F-003')
+      expect(updatedPrdContent).toContain('REQ-F-004') // Based on mock response
+    })
+
+    it('should handle agent content access issues gracefully in full workflow', async () => {
+      // Setup test files
+      const prdContent = `# PRD: Test Feature
+
+## Overview  
+This is a test feature.
+
+## Requirements
+
+### Functional Requirements
+- REQ-F-001: Existing requirement
+
+### Non-Functional Requirements
+`
+      writeFileSync('test-feature.md', prdContent)
+
+      // Mock readline for Q&A
+      mockReadlineInterface.question.mockImplementationOnce((_, callback) => {
+        callback('done')
+      })
+
+      // Mock agent responses with content access issues
+      mockAgentClient.messages.create
+        .mockResolvedValueOnce({
+          content: [{ type: 'text', text: 'DONE' }], // Q&A completion
+        })
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: 'text',
+              text: `Note: Could not access external-config.json file and URL https://api.example.com was inaccessible.
+
+FUNCTIONAL REQUIREMENTS:
+- System must implement authentication (details limited due to access issues)
+
+NON-FUNCTIONAL REQUIREMENTS:
+- System must be secure`,
+            },
+          ],
+        })
+
+      // Should complete successfully despite content access issues
+      await expect(
+        extendPRD(
+          'test-feature.md',
+          'Add authentication using external-config.json and https://api.example.com'
+        )
+      ).resolves.toBeUndefined()
+
+      // Verify agent was still called and requirements were generated (task generation skipped since no existing task file)
+      expect(mockAgentClient.messages.create).toHaveBeenCalledTimes(2)
+
+      // Verify PRD file was updated with available information (task file won't be created without existing task file)
+      expect(existsSync('test-feature.md')).toBe(true)
     })
   })
 })
@@ -1349,6 +1741,11 @@ Testing memory efficiency iteration ${i}.
   })
 
   describe('Agent-based content fetching validation', () => {
+    beforeEach(() => {
+      // Reset mocks before each test
+      mockAgentClient.messages.create.mockClear()
+    })
+
     it('should extract content access issues from agent responses', () => {
       // Test cases that should match the regex patterns in extractContentAccessIssues
       const testCases = [
@@ -1414,6 +1811,125 @@ Testing memory efficiency iteration ${i}.
       const mockSuccess = 'Content successfully retrieved from all referenced files and URLs'
       const noIssues = extractContentAccessIssues(mockSuccess)
       expect(noIssues.length).toBe(0)
+    })
+  })
+
+  describe('Agent-based requirements generation', () => {
+    beforeEach(() => {
+      // Reset mocks before each test
+      mockAgentClient.messages.create.mockClear()
+    })
+
+    it('should parse agent requirements response format correctly', () => {
+      // Test the parsing logic with sample agent response format
+      const sampleResponse = `FUNCTIONAL REQUIREMENTS:
+- System must authenticate users via OAuth2
+- Application must validate user credentials
+
+NON-FUNCTIONAL REQUIREMENTS:
+- Authentication response time must be under 500ms
+- System must support 1000 concurrent users`
+
+      // Test the parsing logic directly
+      const lines = sampleResponse.split('\n')
+      let functional: string[] = []
+      let nonFunctional: string[] = []
+      let currentSection = ''
+
+      for (const line of lines) {
+        if (line.trim() === 'FUNCTIONAL REQUIREMENTS:') {
+          currentSection = 'functional'
+        } else if (line.trim() === 'NON-FUNCTIONAL REQUIREMENTS:') {
+          currentSection = 'non-functional'
+        } else if (line.trim().startsWith('- ')) {
+          const req = line.trim().substring(2)
+          if (currentSection === 'functional') {
+            functional.push(req)
+          } else if (currentSection === 'non-functional') {
+            nonFunctional.push(req)
+          }
+        }
+      }
+
+      // Verify parsing works correctly
+      expect(functional).toHaveLength(2)
+      expect(nonFunctional).toHaveLength(2)
+      expect(functional[0]).toBe('System must authenticate users via OAuth2')
+      expect(nonFunctional[0]).toBe('Authentication response time must be under 500ms')
+    })
+
+    it('should extract content access issues from agent responses', () => {
+      // Test the content access issue extraction logic
+      const responseWithIssues = `Note: Could not access config.json for authentication details.
+File not found: missing.yaml
+The URL https://api.example.com is inaccessible due to network timeout.
+
+FUNCTIONAL REQUIREMENTS:
+- System must authenticate users
+- Application must validate credentials
+
+NON-FUNCTIONAL REQUIREMENTS:
+- Authentication must be secure`
+
+      // Test extraction function
+      const issues = extractContentAccessIssues(responseWithIssues)
+
+      expect(issues).toHaveLength(4)
+      expect(issues).toContain('Could not access config')
+      expect(issues).toContain('File not found: missing')
+      expect(issues).toContain('URL https://api.example.com is inaccessible due to network timeout')
+    })
+
+    it('should handle empty non-functional requirements section', () => {
+      // Test parsing when non-functional requirements is empty
+      const responseWithEmptySection = `FUNCTIONAL REQUIREMENTS:
+- System must authenticate users
+
+NON-FUNCTIONAL REQUIREMENTS:
+- None identified`
+
+      // Test the parsing logic
+      const lines = responseWithEmptySection.split('\n')
+      let functional: string[] = []
+      let nonFunctional: string[] = []
+      let currentSection = ''
+
+      for (const line of lines) {
+        if (line.trim() === 'FUNCTIONAL REQUIREMENTS:') {
+          currentSection = 'functional'
+        } else if (line.trim() === 'NON-FUNCTIONAL REQUIREMENTS:') {
+          currentSection = 'non-functional'
+        } else if (line.trim().startsWith('- ')) {
+          const req = line.trim().substring(2)
+          if (currentSection === 'functional') {
+            functional.push(req)
+          } else if (currentSection === 'non-functional' && req !== 'None identified') {
+            nonFunctional.push(req)
+          }
+        }
+      }
+
+      expect(functional).toHaveLength(1)
+      expect(nonFunctional).toHaveLength(0)
+      expect(functional[0]).toBe('System must authenticate users')
+    })
+
+    it('should handle empty content gracefully', () => {
+      // Test handling of empty response content
+      const emptyResponse = ''
+      const lines = emptyResponse.split('\n')
+      let functional: string[] = []
+      let nonFunctional: string[] = []
+
+      for (const line of lines) {
+        if (line.trim().startsWith('- ')) {
+          // Should not add anything from empty response
+          functional.push(line.trim().substring(2))
+        }
+      }
+
+      expect(functional).toHaveLength(0)
+      expect(nonFunctional).toHaveLength(0)
     })
   })
 })

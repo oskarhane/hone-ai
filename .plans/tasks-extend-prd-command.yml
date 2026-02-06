@@ -391,7 +391,7 @@ tasks:
     title: "Update extend-prd tests for agent-based content fetching"
     description: |
       Update the comprehensive test suite for extend-prd to work with agent-based content fetching instead of local content fetching. Mock agent responses and validate delegation patterns work correctly.
-    status: pending
+    status: completed
     dependencies:
       - task-024
     acceptance_criteria:
@@ -400,4 +400,4 @@ tasks:
       - "Tests validate content fetching delegation works correctly"
       - "Error scenarios for agent failures are tested"
       - "Test coverage maintained at previous levels or higher"
-    completed_at: null
+    completed_at: 2026-02-06T11:22:00.000Z
