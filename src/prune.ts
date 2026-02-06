@@ -2,9 +2,10 @@
  * Prune functionality for archiving completed PRDs
  */
 
-import { existsSync, mkdirSync } from 'fs'
-import { rename } from 'fs/promises'
+import { existsSync, mkdirSync, constants } from 'fs'
+import { rename, access } from 'fs/promises'
 import { join, relative, resolve, dirname, basename } from 'path'
+import { homedir } from 'os'
 import { randomUUID } from 'crypto'
 import { getPlansDir } from './config.js'
 import { HoneError, formatError } from './errors.js'
@@ -33,22 +34,88 @@ export function getArchiveDir(): string {
 
 /**
  * Ensure archive directory exists, creating it if necessary
+ * @throws HoneError for permission issues or filesystem errors
  */
 export function ensureArchiveDir(): void {
   const archiveDir = getArchiveDir()
   if (!existsSync(archiveDir)) {
-    mkdirSync(archiveDir, { recursive: true })
+    try {
+      mkdirSync(archiveDir, { recursive: true })
+    } catch (error) {
+      const nodeError = error as any
+      if (nodeError?.code === 'EACCES') {
+        throw new HoneError(
+          formatError(
+            'Permission denied creating archive directory',
+            `Cannot create archive directory: ${archiveDir}\n\nPlease ensure you have write permissions to the .plans directory.`
+          )
+        )
+      } else if (nodeError?.code === 'ENOSPC') {
+        throw new HoneError(
+          formatError(
+            'Insufficient disk space',
+            'Cannot create archive directory due to insufficient disk space.\n\nFree up some disk space and try again.'
+          )
+        )
+      } else if (nodeError?.code === 'EROFS') {
+        throw new HoneError(
+          formatError(
+            'Read-only file system',
+            'Cannot create archive directory on read-only file system.\n\nEnsure the .plans directory is on a writable file system.'
+          )
+        )
+      } else if (nodeError?.code === 'ENOTDIR') {
+        throw new HoneError(
+          formatError(
+            'Invalid directory path',
+            `Cannot create archive directory: ${archiveDir}\n\nA file exists at this path. Please remove it first.`
+          )
+        )
+      }
+
+      throw new HoneError(
+        formatError(
+          'Failed to create archive directory',
+          `Filesystem error creating ${archiveDir}: ${error instanceof Error ? error.message : String(error)}\n\nPlease check directory permissions and try again.`
+        )
+      )
+    }
   }
 }
 
 /**
+ * Expand home directory (~) in file paths manually
+ * @param filePath Path that may contain ~
+ * @returns Path with ~ expanded to home directory
+ */
+function expandHomePath(filePath: string): string {
+  if (filePath.startsWith('~/') || filePath === '~') {
+    return filePath.replace(/^~/, homedir())
+  }
+  return filePath
+}
+
+/**
  * Validate that a file path is within the .plans directory tree (including archive subdirectory) for security
- * @param filePath Path to validate
+ * @param filePath Path to validate (supports ~ expansion)
  * @returns Resolved absolute path
- * @throws HoneError if path traversal is detected
+ * @throws HoneError if path traversal is detected or path is invalid
  */
 function validateArchivePath(filePath: string): string {
-  const resolved = resolve(filePath)
+  // Input validation
+  if (!filePath || typeof filePath !== 'string') {
+    throw new HoneError(formatError('Invalid file path', 'File path must be a non-empty string.'))
+  }
+
+  if (filePath.trim() === '') {
+    throw new HoneError(
+      formatError('Empty file path', 'File path cannot be empty or contain only whitespace.')
+    )
+  }
+
+  // Expand home directory and resolve path
+  const expandedPath = expandHomePath(filePath.trim())
+  const resolved = resolve(expandedPath)
   const plansDir = resolve(getPlansDir())
 
   // Ensure path is within .plans directory tree
@@ -56,7 +123,10 @@ function validateArchivePath(filePath: string): string {
 
   if (relativeToPlans.startsWith('..')) {
     throw new HoneError(
-      formatError('Path traversal detected', `File must be within .plans directory: ${filePath}`)
+      formatError(
+        'Path traversal detected',
+        `File must be within .plans directory: ${filePath}\n\nFor security reasons, only files within the .plans directory can be archived.`
+      )
     )
   }
 
@@ -85,13 +155,41 @@ export async function archiveFile(sourcePath: string, targetName: string): Promi
   // Validate input parameters
   if (!sourcePath || typeof sourcePath !== 'string') {
     throw new HoneError(
-      formatError('Invalid source path', 'Source path is required for archive operation')
+      formatError('Invalid source path', 'Source path is required for archive operation.')
     )
   }
 
   if (!targetName || typeof targetName !== 'string') {
     throw new HoneError(
-      formatError('Invalid target name', 'Target filename is required for archive operation')
+      formatError('Invalid target name', 'Target filename is required for archive operation.')
+    )
+  }
+
+  if (targetName.trim() === '') {
+    throw new HoneError(
+      formatError(
+        'Empty target name',
+        'Target filename cannot be empty or contain only whitespace.'
+      )
+    )
+  }
+
+  // Additional filename validation
+  if (targetName.includes('/') || targetName.includes('\\')) {
+    throw new HoneError(
+      formatError(
+        'Invalid target filename',
+        `Target filename cannot contain path separators: ${targetName}\n\nUse only the filename portion without directories.`
+      )
+    )
+  }
+
+  if (targetName.startsWith('.') && targetName !== '.gitkeep') {
+    throw new HoneError(
+      formatError(
+        'Invalid target filename',
+        `Target filename cannot start with dot (hidden files): ${targetName}\n\nUse a regular filename without leading dots.`
+      )
     )
   }
 
@@ -100,7 +198,31 @@ export async function archiveFile(sourcePath: string, targetName: string): Promi
 
   if (!existsSync(validatedSourcePath)) {
     throw new HoneError(
-      formatError('Source file not found', `Cannot archive file that does not exist: ${sourcePath}`)
+      formatError(
+        'Source file not found',
+        `Cannot archive file that does not exist: ${sourcePath}\n\nPlease ensure the file exists before attempting to archive it.`
+      )
+    )
+  }
+
+  // Additional file access validation
+  try {
+    await access(validatedSourcePath, constants.R_OK)
+  } catch (error) {
+    const nodeError = error as any
+    if (nodeError?.code === 'EACCES') {
+      throw new HoneError(
+        formatError(
+          'Permission denied accessing source file',
+          `Cannot read source file: ${sourcePath}\n\nPlease check file permissions and ensure you have read access.`
+        )
+      )
+    }
+    throw new HoneError(
+      formatError(
+        'Cannot access source file',
+        `Unable to access source file: ${sourcePath}\n\nError: ${error instanceof Error ? error.message : String(error)}`
+      )
     )
   }
 
@@ -127,53 +249,70 @@ export async function archiveFile(sourcePath: string, targetName: string): Promi
       // Ignore cleanup errors during error handling
     }
 
-    // Handle specific filesystem errors
+    // Handle specific filesystem errors with detailed guidance
     const nodeError = error as any
     if (nodeError?.code === 'EACCES') {
       throw new HoneError(
         formatError(
           'Permission denied archiving file',
-          `Cannot move file to archive: ${sourcePath}. Check permissions.`
+          `Cannot move file to archive: ${sourcePath}\n\nTroubleshooting:\n• Check file and directory permissions\n• Ensure you have write access to both source and archive directories\n• Run with appropriate user permissions`
         )
       )
     } else if (nodeError?.code === 'ENOENT') {
       throw new HoneError(
         formatError(
           'File not found during archive',
-          `Source file disappeared during operation: ${sourcePath}`
+          `Source file disappeared during operation: ${sourcePath}\n\nThis may happen if:\n• Another process deleted the file\n• The file was moved by another operation\n• Network or filesystem issues occurred\n\nRe-run the command to try again.`
         )
       )
     } else if (nodeError?.code === 'EEXIST') {
       throw new HoneError(
         formatError(
           'Target file already exists in archive',
-          `Cannot archive to existing file: ${targetName}`
+          `Cannot archive to existing file: ${targetName}\n\nTo resolve:\n• Remove the existing file in .plans/archive/\n• Or choose a different filename\n• Or run 'hone prune --dry-run' to preview conflicts`
         )
       )
     } else if (nodeError?.code === 'EXDEV') {
       throw new HoneError(
         formatError(
           'Cross-device move not supported',
-          'Archive operation across different filesystems not supported'
+          'Archive operation across different filesystems not supported.\n\nThe .plans directory and archive directory must be on the same filesystem.\nConsider moving your project to a single filesystem or copying files instead of moving them.'
         )
       )
     } else if (nodeError?.code === 'ENOSPC') {
       throw new HoneError(
         formatError(
           'Insufficient disk space',
-          'Not enough disk space to complete archive operation'
+          'Not enough disk space to complete archive operation.\n\nTo resolve:\n• Free up disk space\n• Remove old files from .plans/archive/\n• Move project to a location with more space'
         )
       )
     } else if (nodeError?.code === 'EROFS') {
       throw new HoneError(
-        formatError('Read-only file system', 'Cannot write to read-only archive directory')
+        formatError(
+          'Read-only file system',
+          'Cannot write to read-only archive directory.\n\nTo resolve:\n• Remount filesystem as writable\n• Change to a writable directory\n• Check filesystem mount options'
+        )
+      )
+    } else if (nodeError?.code === 'EISDIR') {
+      throw new HoneError(
+        formatError(
+          'Target is a directory',
+          `Cannot overwrite directory with file: ${targetName}\n\nRemove the directory or choose a different filename.`
+        )
+      )
+    } else if (nodeError?.code === 'ENOTDIR') {
+      throw new HoneError(
+        formatError(
+          'Path component is not a directory',
+          `Invalid path structure for archive operation.\n\nEnsure all parent directories exist and are actual directories.`
+        )
       )
     }
 
     throw new HoneError(
       formatError(
         'Failed to archive file',
-        `Filesystem error moving ${sourcePath} to archive: ${error instanceof Error ? error.message : String(error)}`
+        `Filesystem error moving ${sourcePath} to archive: ${error instanceof Error ? error.message : String(error)}\n\nGeneral troubleshooting:\n• Check file and directory permissions\n• Ensure sufficient disk space\n• Verify filesystem is writable\n• Re-run the command to retry the operation`
       )
     )
   }
@@ -236,11 +375,36 @@ export async function identifyCompletedPrds(): Promise<PrdTriplet[]> {
  * @throws HoneError for validation, permission, or filesystem errors
  */
 export async function archivePrdTriplet(triplet: PrdTriplet): Promise<void> {
-  // Validate input
-  if (!triplet || !triplet.featureName) {
+  // Validate input triplet
+  if (!triplet) {
     throw new HoneError(
-      formatError('Invalid PRD triplet', 'Feature name is required for archive operation')
+      formatError('Missing PRD triplet', 'PRD triplet object is required for archive operation.')
     )
+  }
+
+  if (!triplet.featureName || typeof triplet.featureName !== 'string') {
+    throw new HoneError(
+      formatError(
+        'Invalid feature name',
+        'Feature name is required and must be a non-empty string.'
+      )
+    )
+  }
+
+  if (triplet.featureName.trim() === '') {
+    throw new HoneError(
+      formatError('Empty feature name', 'Feature name cannot be empty or contain only whitespace.')
+    )
+  }
+
+  // Validate file paths in triplet
+  const requiredFields = ['prdFile', 'taskFile', 'progressFile'] as const
+  for (const field of requiredFields) {
+    if (!triplet[field] || typeof triplet[field] !== 'string') {
+      throw new HoneError(
+        formatError(`Invalid ${field} path`, `${field} must be a non-empty string in PRD triplet.`)
+      )
+    }
   }
 
   // Ensure archive directory exists
@@ -272,7 +436,10 @@ export async function archivePrdTriplet(triplet: PrdTriplet): Promise<void> {
 
   if (operations.length === 0) {
     throw new HoneError(
-      formatError('No files to archive', `No files found for PRD feature '${triplet.featureName}'`)
+      formatError(
+        'No files to archive',
+        `No files found for PRD feature '${triplet.featureName}'.\n\nExpected files:\n• ${triplet.prdFile}\n• ${triplet.taskFile}\n• ${triplet.progressFile}\n\nEnsure at least one of these files exists in the .plans directory.`
+      )
     )
   }
 
@@ -309,41 +476,48 @@ export async function archivePrdTriplet(triplet: PrdTriplet): Promise<void> {
       }
     }
 
-    // Handle specific filesystem errors with user-friendly messages
+    // Handle specific filesystem errors with detailed guidance
     const nodeError = error as any
     if (nodeError?.code === 'EACCES') {
       throw new HoneError(
         formatError(
           'Permission denied archiving PRD',
-          `Cannot move files for feature '${triplet.featureName}'. Check permissions.`
+          `Cannot move files for feature '${triplet.featureName}'.\n\nTroubleshooting:\n• Check permissions on .plans/ and .plans/archive/ directories\n• Ensure you have read/write access to all PRD files\n• Run with appropriate user permissions\n• Use 'hone prune --dry-run' to preview operations before execution`
         )
       )
     } else if (nodeError?.code === 'ENOENT') {
       throw new HoneError(
         formatError(
           'File disappeared during archive operation',
-          `One of the files for feature '${triplet.featureName}' was deleted during the operation`
+          `One of the files for feature '${triplet.featureName}' was deleted during the operation.\n\nThis may happen if:\n• Another process modified the files\n• Filesystem issues occurred\n• Files were manually removed\n\nRe-run 'hone prune' to try again or use '--dry-run' to preview current state.`
         )
       )
     } else if (nodeError?.code === 'ENOSPC') {
       throw new HoneError(
         formatError(
           'Insufficient disk space',
-          `Not enough disk space to archive files for feature '${triplet.featureName}'`
+          `Not enough disk space to archive files for feature '${triplet.featureName}'.\n\nTo resolve:\n• Free up disk space\n• Clean up old files in .plans/archive/\n• Move project to a location with more available space`
         )
       )
     } else if (nodeError?.code === 'EXDEV') {
       throw new HoneError(
         formatError(
           'Cross-device move not supported',
-          `Archive operation across different filesystems not supported for '${triplet.featureName}'`
+          `Archive operation across different filesystems not supported for '${triplet.featureName}'.\n\nThe .plans directory and archive must be on the same filesystem.\nConsider moving your project to a single filesystem.`
         )
       )
     } else if (nodeError?.code === 'EROFS') {
       throw new HoneError(
         formatError(
           'Read-only file system',
-          `Cannot write to read-only archive directory for '${triplet.featureName}'`
+          `Cannot write to read-only archive directory for '${triplet.featureName}'.\n\nTo resolve:\n• Remount filesystem as writable\n• Move project to writable location\n• Check filesystem mount options`
+        )
+      )
+    } else if (nodeError?.code === 'EISDIR') {
+      throw new HoneError(
+        formatError(
+          'Target is a directory',
+          `Cannot overwrite directory in archive for '${triplet.featureName}'.\n\nRemove conflicting directories in .plans/archive/ and try again.`
         )
       )
     }
@@ -351,7 +525,7 @@ export async function archivePrdTriplet(triplet: PrdTriplet): Promise<void> {
     throw new HoneError(
       formatError(
         'Failed to archive PRD triplet',
-        `Filesystem error archiving '${triplet.featureName}': ${error instanceof Error ? error.message : String(error)}`
+        `Filesystem error archiving '${triplet.featureName}': ${error instanceof Error ? error.message : String(error)}\n\nGeneral troubleshooting:\n• Check file and directory permissions\n• Ensure sufficient disk space is available\n• Verify filesystem is writable\n• Use 'hone prune --dry-run' to preview operations\n• Re-run the command to retry the operation`
       )
     )
   }
@@ -360,9 +534,28 @@ export async function archivePrdTriplet(triplet: PrdTriplet): Promise<void> {
 /**
  * Move completed PRDs and their associated files to .plans/archive/
  * @param dryRun If true, only preview operations without executing moves
+ * @throws HoneError for validation, permission, or filesystem errors
  */
 export async function pruneCompletedPrds(dryRun: boolean): Promise<void> {
+  // Input validation
+  if (typeof dryRun !== 'boolean') {
+    throw new HoneError(
+      formatError('Invalid dry-run parameter', 'Dry-run parameter must be a boolean value.')
+    )
+  }
+
   try {
+    // Verify .plans directory exists before proceeding
+    const plansDir = getPlansDir()
+    if (!existsSync(plansDir)) {
+      throw new HoneError(
+        formatError(
+          'Plans directory not found',
+          `Cannot find .plans directory: ${plansDir}\n\nTo resolve:\n• Run 'hone init' to initialize the project\n• Ensure you're in the correct project directory\n• Check that .plans directory was not accidentally deleted`
+        )
+      )
+    }
+
     // Identify completed PRDs
     const completedPrds = await identifyCompletedPrds()
 
@@ -370,6 +563,7 @@ export async function pruneCompletedPrds(dryRun: boolean): Promise<void> {
       console.log('No completed PRDs found to archive.')
       console.log('')
       console.log('Complete some tasks with: hone run <task-file>')
+      console.log('Or check status with: hone status')
       return
     }
 
@@ -383,7 +577,6 @@ export async function pruneCompletedPrds(dryRun: boolean): Promise<void> {
         console.log(`  Feature: ${prd.featureName}`)
 
         // Show which files would be moved
-        const plansDir = getPlansDir()
         const existingFiles: string[] = []
 
         const filesToCheck = [
@@ -421,15 +614,45 @@ export async function pruneCompletedPrds(dryRun: boolean): Promise<void> {
       const archivedFeatures: string[] = []
 
       for (const prd of completedPrds) {
-        await archivePrdTriplet(prd)
-        archivedFeatures.push(prd.featureName)
-        console.log(`  [ok] Archived: ${prd.featureName}`)
+        try {
+          await archivePrdTriplet(prd)
+          archivedFeatures.push(prd.featureName)
+          console.log(`  [ok] Archived: ${prd.featureName}`)
+        } catch (error) {
+          // For individual PRD failures, log error but continue with others
+          console.error(
+            `  [error] Failed to archive ${prd.featureName}: ${error instanceof Error ? error.message : String(error)}`
+          )
+
+          // If it's a critical error (like permissions), stop processing
+          if (error instanceof HoneError) {
+            const errorMessage = error.message
+            if (
+              errorMessage.includes('Permission denied') ||
+              errorMessage.includes('Read-only file system')
+            ) {
+              throw error // Re-throw critical errors
+            }
+          }
+        }
       }
 
       console.log('')
-      console.log(
-        `Moved ${completedPrds.length} finished PRD${completedPrds.length === 1 ? '' : 's'} to archive: ${archivedFeatures.join(', ')}`
-      )
+      if (archivedFeatures.length > 0) {
+        console.log(
+          `Moved ${archivedFeatures.length} finished PRD${archivedFeatures.length === 1 ? '' : 's'} to archive: ${archivedFeatures.join(', ')}`
+        )
+
+        if (archivedFeatures.length < completedPrds.length) {
+          const failedCount = completedPrds.length - archivedFeatures.length
+          console.log(
+            `${failedCount} PRD${failedCount === 1 ? '' : 's'} failed to archive (see errors above)`
+          )
+        }
+      } else {
+        console.log('No PRDs were successfully archived due to errors.')
+        console.log('Use --dry-run to preview operations and troubleshoot issues.')
+      }
     }
   } catch (error) {
     if (error instanceof HoneError) {

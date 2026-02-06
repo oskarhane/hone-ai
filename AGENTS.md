@@ -182,3 +182,10 @@ _Detailed information is available in the .agents-docs/ directory._
 - Remove explicit type annotations on filter/map callbacks when TypeScript can infer types from context
 - Reuse existing functions like `listPrds()` and `calculateStatus()` for consistency rather than reimplementing logic
 - Create interface types (e.g., `PrdTriplet`) to encapsulate related data structures for better type safety
+
+## Error Output Consistency
+
+- Use consistent error prefixes across CLI commands (e.g., ✗ symbol for all error types)
+- HoneError messages should use same formatting as other error types for unified UX
+- Avoid variable shadowing in scoped blocks - remove redundant declarations that re-declare outer scope variables
+- Use explicit permission flags with fs.access() for clarity: `access(path, constants.R_OK)` instead of default existence check

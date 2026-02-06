@@ -278,7 +278,12 @@ program
       const { pruneCompletedPrds } = await import('./prune')
       await pruneCompletedPrds(options.dryRun || false)
     } catch (error) {
-      console.error('\n✗ Error pruning PRDs:', error instanceof Error ? error.message : error)
+      // If it's a HoneError, it's already formatted nicely
+      if (error instanceof Error && error.name === 'HoneError') {
+        console.error(`\n✗ ${error.message}`)
+      } else {
+        console.error('\n✗ Error pruning PRDs:', error instanceof Error ? error.message : error)
+      }
       process.exit(1)
     }
   })
