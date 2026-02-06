@@ -51,6 +51,16 @@ Add a new CLI command `hone extend-prd <prd-file> <requirement-description>` tha
 - REQ-F-026: Refactoring must preserve all existing extend-prd functionality while simplifying the codebase
 - REQ-F-027: Implementation should follow the same delegation pattern established in the prd command
 
+- REQ-F-028: Implement comprehensive unit tests for all extend-prd command functions including validation, Q&A generation, requirements parsing, and task generation
+- REQ-F-029: Create integration tests that verify end-to-end extend-prd workflow from command invocation to file output
+- REQ-F-030: Add tests for error handling scenarios including invalid PRD files, network failures, and file system errors
+- REQ-F-031: Implement regression tests that verify existing PRD and task generation functionality remains unchanged after extend-prd implementation
+- REQ-F-032: Create test cases for edge cases including empty requirements, malformed input, and concurrent file access scenarios
+- REQ-F-033: Test coverage for extend-prd module must achieve minimum 90% code coverage across all functions and branches
+- REQ-F-034: All existing tests in the test suite must continue to pass without modification after extend-prd implementation
+- REQ-F-035: New test execution time must not increase total test suite runtime by more than 30%
+- REQ-F-036: Test cases must be maintainable and follow established testing patterns used in the existing codebase
+
 ### Non-Functional Requirements
 - REQ-NF-001: Command execution time should not exceed 60 seconds for typical requirements
 - REQ-NF-002: Generated content must maintain consistency with existing PRD tone and structure

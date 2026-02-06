@@ -1,14 +1,14 @@
 feature: extend-prd-command
 prd: ./prd-extend-prd-command.md
 created_at: Thu Feb 05 2026 18:24:03 GMT+0100 (Central European Standard Time)
-updated_at: 2026-02-05T23:45:00.000Z
+updated_at: 2026-02-06T10:52:12.683Z
 
 tasks:
   - id: task-001
     title: "Add extend-prd command structure to CLI"
     description: |
       Implement the basic command structure in src/index.ts using Commander.js. Add argument parsing for PRD file path and requirement description. Set up command validation and help text.
-
+      
     status: completed
     dependencies: []
     acceptance_criteria:
@@ -23,7 +23,7 @@ tasks:
     title: "Create PRD file parser and validator"
     description: |
       Implement utilities to parse existing PRD markdown files and validate their structure. Create functions to identify sections (Functional Requirements, Non-Functional Requirements, etc.) and extract existing requirement IDs.
-
+      
     status: completed
     dependencies:
       - task-001
@@ -39,7 +39,7 @@ tasks:
     title: "Create task file parser and ID management"
     description: |
       Implement utilities to parse existing task YAML files and extract task IDs. Create collision-free ID generation that continues from the highest existing task ID. Preserve existing task structure and metadata.
-
+      
     status: completed
     dependencies:
       - task-001
@@ -55,7 +55,7 @@ tasks:
     title: "Implement model configuration for extend-prd phase"
     description: |
       Extend the existing model resolution system to support 'extendPrd' phase-specific configuration. Follow the existing pattern in resolveModelForPhase() and integrate with the config validation system.
-
+      
     status: completed
     dependencies:
       - task-001
@@ -71,7 +71,7 @@ tasks:
     title: "Create interactive Q&A refinement system"
     description: |
       Implement the clarifying question flow for new requirements using the existing PRD generation patterns. Reuse Q&A logic from prd-generator.ts and adapt it for requirement refinement rather than full PRD creation.
-
+      
     status: completed
     dependencies:
       - task-002
@@ -88,7 +88,7 @@ tasks:
     title: "Implement file and URL content fetching"
     description: |
       Add support for processing file paths and URLs mentioned in requirement descriptions. Implement automatic content fetching and integration into the requirement context for better AI understanding.
-
+      
     status: completed
     dependencies:
       - task-005
@@ -104,7 +104,7 @@ tasks:
     title: "Create PRD content appending system"
     description: |
       Implement logic to append new requirements to appropriate PRD sections while maintaining existing structure. Handle requirement numbering, section identification, and content formatting consistency.
-
+      
     status: completed
     dependencies:
       - task-002
@@ -121,7 +121,7 @@ tasks:
     title: "Implement incremental task generation"
     description: |
       Adapt the existing task generation logic to create tasks only for new requirements. Analyze dependencies between new and existing tasks. Reuse patterns from task-generator.ts while ensuring only incremental tasks are created.
-
+      
     status: completed
     dependencies:
       - task-003
@@ -138,7 +138,7 @@ tasks:
     title: "Create atomic file operation system"
     description: |
       Implement atomic file operations to prevent corruption during PRD and task file updates. Use temporary files and atomic moves to ensure data integrity even if the process is interrupted.
-
+      
     status: completed
     dependencies:
       - task-007
@@ -155,7 +155,7 @@ tasks:
     title: "Implement task file metadata updates"
     description: |
       Update task file metadata (updated_at timestamp, task count, etc.) when new tasks are added. Ensure metadata accuracy and consistency with the existing task file structure.
-
+      
     status: completed
     dependencies:
       - task-008
@@ -172,7 +172,7 @@ tasks:
     title: "Add comprehensive error handling and validation"
     description: |
       Implement robust error handling for all failure scenarios including missing files, invalid formats, network errors, and file access issues. Provide clear, actionable error messages.
-
+      
     status: completed
     dependencies:
       - task-009
@@ -189,7 +189,7 @@ tasks:
     title: "Create comprehensive test suite"
     description: |
       Write unit and integration tests covering all extend-prd functionality including file parsing, task generation, error scenarios, and atomic operations. Follow existing test patterns using Bun's test runner.
-
+      
     status: completed
     dependencies:
       - task-011
@@ -205,7 +205,7 @@ tasks:
     title: "Add documentation and usage examples"
     description: |
       Create comprehensive documentation for the extend-prd command including usage examples, configuration options, and troubleshooting guide. Update CLI help text and project documentation.
-
+      
     status: completed
     dependencies:
       - task-012
@@ -221,7 +221,7 @@ tasks:
     title: "Implement task count tracking for newly added tasks"
     description: |
       Add functionality to accurately count and track the number of new tasks generated during the PRD extension process. This involves capturing the initial task count before generation and calculating the difference after new tasks are added to ensure only incremental additions are counted.
-
+      
     status: completed
     dependencies:
       - task-008
@@ -231,13 +231,13 @@ tasks:
       - "Count calculation handles edge cases (empty task files, parsing errors)"
       - "Task count is accessible for display in completion message"
       - "Count calculation is accurate across different task file formats"
-    completed_at: 2026-02-05T22:00:00.000Z
+    completed_at: Thu Feb 05 2026 23:00:00 GMT+0100 (Central European Standard Time)
 
   - id: task-015
     title: "Create task filename derivation from PRD filename"
     description: |
       Implement logic to derive the correct task filename from the original PRD filename following the established naming convention. This ensures the completion message displays the correct file path that users can reference for running tasks.
-
+      
     status: completed
     dependencies:
       - task-002
@@ -247,13 +247,13 @@ tasks:
       - "Generated task filename follows established naming patterns"
       - "Function handles edge cases like missing extensions or special characters"
       - "Derived filename matches actual generated task file name"
-    completed_at: 2026-02-05T17:30:00.000Z
+    completed_at: Thu Feb 05 2026 18:30:00 GMT+0100 (Central European Standard Time)
 
   - id: task-016
     title: "Design completion message format matching prd-to-tasks pattern"
     description: |
       Analyze the existing prd-to-tasks command output format and design a consistent completion message structure. The message should follow the same pattern and style while displaying the specific command format for running newly added tasks.
-
+      
     status: completed
     dependencies:
       - task-001
@@ -263,13 +263,13 @@ tasks:
       - "Output maintains consistency with other hone-ai command patterns"
       - "Message format is user-friendly and actionable"
       - "Design accounts for different terminal widths and display scenarios"
-    completed_at: 2026-02-05T23:45:00.000Z
+    completed_at: Fri Feb 06 2026 00:45:00 GMT+0100 (Central European Standard Time)
 
   - id: task-017
     title: "Implement completion message generation and display"
     description: |
       Create the system to generate and display the completion message with the exact command format. The message should include the derived task filename and accurate new task count, formatted as 'hone run .plans/{tasks-filename} -i {new-task-count}' to guide users on next steps.
-
+      
     status: completed
     dependencies:
       - task-014
@@ -281,12 +281,13 @@ tasks:
       - "Command format exactly matches specified pattern requirements"
       - "Message appears after successful PRD extension completion"
       - "Output integrates smoothly with existing command flow"
-    completed_at: 2026-02-06T04:30:00.000Z
+    completed_at: Fri Feb 06 2026 05:30:00 GMT+0100 (Central European Standard Time)
 
   - id: task-018
     title: "Remove local content fetching functions from extend-prd module"
     description: |
       Remove fetchUrlContent, fetchFileContent, and fetchContentReferences functions from the extend-prd command implementation. Clean up related imports and references to these functions throughout the module.
+      
     status: completed
     dependencies: []
     acceptance_criteria:
@@ -295,12 +296,13 @@ tasks:
       - "fetchContentReferences function completely removed from extend-prd module"
       - "All imports and references to removed functions are cleaned up"
       - "Module compiles without errors after function removal"
-    completed_at: 2026-02-05T23:58:00.000Z
+    completed_at: Fri Feb 06 2026 00:58:00 GMT+0100 (Central European Standard Time)
 
   - id: task-019
     title: "Remove ContentReference and ContentContext interfaces"
     description: |
       Remove the ContentReference and ContentContext interfaces and all related content processing logic from the extend-prd module. Clean up any type references and data structures that depend on these interfaces.
+      
     status: completed
     dependencies:
       - task-018
@@ -310,12 +312,13 @@ tasks:
       - "All related content processing logic is removed"
       - "All type references to removed interfaces are cleaned up"
       - "Module compiles without TypeScript errors"
-    completed_at: 2026-02-06T05:15:00.000Z
+    completed_at: Fri Feb 06 2026 06:15:00 GMT+0100 (Central European Standard Time)
 
   - id: task-020
     title: "Update extend-prd system prompts for agent-based content fetching"
     description: |
       Modify the system prompts used in extend-prd to instruct the underlying agent to automatically read file paths and fetch URLs using its built-in tools. Update prompt templates to delegate content fetching responsibility to the agent.
+      
     status: completed
     dependencies:
       - task-019
@@ -325,12 +328,13 @@ tasks:
       - "Prompts clearly delegate content fetching responsibility to agent"
       - "Prompt templates updated to remove local content fetching references"
       - "Agent receives clear instructions for handling inaccessible content"
-    completed_at: 2026-02-06T06:00:00.000Z
+    completed_at: Fri Feb 06 2026 07:00:00 GMT+0100 (Central European Standard Time)
 
   - id: task-021
     title: "Refactor Q&A generation to use agent-based content fetching"
     description: |
       Modify the Q&A generation function to rely on agent-based content fetching instead of local content fetching. Update the function to pass content references directly to the agent and let it handle fetching operations.
+      
     status: completed
     dependencies:
       - task-020
@@ -340,12 +344,13 @@ tasks:
       - "Function maintains same output quality as before refactoring"
       - "Error handling updated for agent-based fetching failures"
       - "Function tests pass with agent-based content fetching"
-    completed_at: 2026-02-06T07:30:00.000Z
+    completed_at: Fri Feb 06 2026 08:30:00 GMT+0100 (Central European Standard Time)
 
   - id: task-022
     title: "Refactor requirements generation to use agent-based content fetching"
     description: |
       Modify the requirements generation function to rely on agent-based content fetching instead of local content fetching. Update the function to delegate all URL and file content fetching to the underlying agent via system prompts.
+      
     status: completed
     dependencies:
       - task-021
@@ -355,12 +360,13 @@ tasks:
       - "Function maintains same requirement generation quality"
       - "Agent handles content fetching errors appropriately"
       - "Function tests updated and passing"
-    completed_at: 2026-02-06T15:00:00.000Z
+    completed_at: Fri Feb 06 2026 16:00:00 GMT+0100 (Central European Standard Time)
 
   - id: task-023
     title: "Update error handling for agent-based content fetching"
     description: |
       Update error handling throughout the extend-prd module to account for agent-based content fetching failures instead of local network and file errors. Ensure equivalent error reporting for inaccessible files and URLs.
+      
     status: completed
     dependencies:
       - task-022
@@ -370,12 +376,13 @@ tasks:
       - "Error messages provide equivalent user guidance as before"
       - "Inaccessible files and URLs report clear error messages"
       - "Error handling maintains same user experience quality"
-    completed_at: 2026-02-06T16:30:00.000Z
+    completed_at: Fri Feb 06 2026 17:30:00 GMT+0100 (Central European Standard Time)
 
   - id: task-024
     title: "Validate content fetching delegation maintains user experience"
     description: |
       Test and validate that the agent-based content fetching delegation maintains the same user experience as the previous local implementation. Ensure functionality preservation and error reporting equivalency.
+      
     status: completed
     dependencies:
       - task-023
@@ -385,12 +392,13 @@ tasks:
       - "Error messages are clear and actionable for users"
       - "Performance is equivalent or better than local fetching"
       - "All existing extend-prd functionality is preserved"
-    completed_at: 2026-02-06T09:00:00.000Z
+    completed_at: Fri Feb 06 2026 10:00:00 GMT+0100 (Central European Standard Time)
 
   - id: task-025
     title: "Update extend-prd tests for agent-based content fetching"
     description: |
       Update the comprehensive test suite for extend-prd to work with agent-based content fetching instead of local content fetching. Mock agent responses and validate delegation patterns work correctly.
+      
     status: completed
     dependencies:
       - task-024
@@ -400,4 +408,168 @@ tasks:
       - "Tests validate content fetching delegation works correctly"
       - "Error scenarios for agent failures are tested"
       - "Test coverage maintained at previous levels or higher"
-    completed_at: 2026-02-06T11:22:00.000Z
+    completed_at: Fri Feb 06 2026 12:22:00 GMT+0100 (Central European Standard Time)
+
+  - id: task-026
+    title: "Create unit tests for extend-prd validation functions"
+    description: |
+      Implement comprehensive unit tests for PRD file validation, task file validation, and input parameter validation functions. Cover all validation scenarios including valid inputs, invalid file formats, missing files, and malformed data structures. Test edge cases like empty files, corrupted YAML, and invalid file extensions.
+    status: pending
+    dependencies:
+      - task-002
+      - task-003
+    acceptance_criteria:
+      - "All validation functions have individual unit tests"
+      - "Test cases cover both valid and invalid input scenarios"
+      - "Edge cases like empty files and corrupted YAML are tested"
+      - "Validation error messages are tested for clarity and consistency"
+      - "Mock file system operations for isolated testing"
+    completed_at: null
+
+  - id: task-027
+    title: "Create unit tests for Q&A generation and requirements parsing"
+    description: |
+      Implement unit tests for the interactive Q&A system and requirements parsing logic. Test Q&A question generation, user input handling, requirements extraction from PRD content, and requirement categorization into functional/non-functional sections. Mock agent interactions to isolate testing.
+    status: pending
+    dependencies:
+      - task-005
+      - task-021
+      - task-022
+    acceptance_criteria:
+      - "Q&A generation functions have comprehensive unit tests"
+      - "Requirements parsing logic is thoroughly tested"
+      - "Agent interactions are properly mocked for isolated testing"
+      - "Different requirement types and formats are tested"
+      - "Error handling in parsing functions is validated"
+    completed_at: null
+
+  - id: task-028
+    title: "Create unit tests for task generation and file operations"
+    description: |
+      Implement unit tests for incremental task generation, task ID management, and atomic file operations. Test task creation logic, dependency resolution, ID collision prevention, and file write/rollback scenarios. Mock file system operations and test concurrent access handling.
+    status: pending
+    dependencies:
+      - task-008
+      - task-009
+    acceptance_criteria:
+      - "Task generation logic has comprehensive unit tests"
+      - "Task ID management and collision prevention is tested"
+      - "Atomic file operations are tested including rollback scenarios"
+      - "Concurrent access handling is validated"
+      - "File system operations are properly mocked"
+    completed_at: null
+
+  - id: task-029
+    title: "Create end-to-end integration tests for extend-prd workflow"
+    description: |
+      Implement integration tests that verify the complete extend-prd command workflow from CLI invocation to final file output. Test the full pipeline including argument parsing, PRD validation, Q&A interaction, requirements generation, task creation, and file updates. Use CLI-based tests to avoid mock state conflicts.
+    status: pending
+    dependencies:
+      - task-001
+      - task-017
+    acceptance_criteria:
+      - "Complete workflow from CLI command to file output is tested"
+      - "CLI-based integration tests avoid in-process mock conflicts"
+      - "Multiple scenarios with different PRD formats are tested"
+      - "File output validation ensures correct structure and content"
+      - "Command completion messages are verified for accuracy"
+    completed_at: null
+
+  - id: task-030
+    title: "Implement error handling scenario tests"
+    description: |
+      Create comprehensive tests for error scenarios including invalid PRD files, agent content fetching failures, file system errors, and network timeouts. Test error message clarity, recovery mechanisms, and graceful degradation. Verify that error handling maintains consistent user experience.
+    status: pending
+    dependencies:
+      - task-011
+      - task-023
+    acceptance_criteria:
+      - "All error scenarios have dedicated test cases"
+      - "Agent-based content fetching failures are tested"
+      - "File system permission and access errors are covered"
+      - "Error messages are validated for clarity and consistency"
+      - "Recovery and cleanup mechanisms are tested"
+    completed_at: null
+
+  - id: task-031
+    title: "Create regression tests for existing functionality"
+    description: |
+      Implement regression tests to ensure existing PRD generation and task generation functionality remains unchanged after extend-prd implementation. Test original prd and prd-to-tasks commands to verify no behavioral changes or performance degradation occurred.
+    status: pending
+    dependencies:
+      - task-025
+    acceptance_criteria:
+      - "Original prd command functionality is regression tested"
+      - "Original prd-to-tasks command functionality is regression tested"
+      - "Performance benchmarks verify no significant degradation"
+      - "Existing file formats and outputs remain unchanged"
+      - "All original test cases continue to pass"
+    completed_at: null
+
+  - id: task-032
+    title: "Create edge case and boundary condition tests"
+    description: |
+      Implement test cases for edge cases including empty requirements, malformed input data, concurrent file access, memory constraints, and boundary conditions. Test system behavior under stress and unusual input conditions to ensure robustness.
+    status: pending
+    dependencies:
+      - task-026
+      - task-027
+      - task-028
+    acceptance_criteria:
+      - "Empty and minimal input scenarios are tested"
+      - "Malformed and corrupted input handling is validated"
+      - "Concurrent file access scenarios are tested"
+      - "Memory and performance boundary conditions are covered"
+      - "System behavior under stress is validated"
+    completed_at: null
+
+  - id: task-033
+    title: "Achieve 90% code coverage for extend-prd module"
+    description: |
+      Implement additional test cases as needed to achieve minimum 90% code coverage across all extend-prd functions and branches. Use coverage tools to identify untested code paths and create targeted tests. Ensure both statement and branch coverage requirements are met.
+    status: pending
+    dependencies:
+      - task-026
+      - task-027
+      - task-028
+      - task-030
+      - task-032
+    acceptance_criteria:
+      - "Code coverage reports show minimum 90% coverage"
+      - "All functions in extend-prd module meet coverage requirements"
+      - "Branch coverage targets are achieved for conditional logic"
+      - "Coverage gaps are identified and addressed with targeted tests"
+      - "Coverage reporting is integrated into CI pipeline"
+    completed_at: null
+
+  - id: task-034
+    title: "Validate test suite compatibility and performance"
+    description: |
+      Ensure all existing tests continue to pass without modification and new test execution doesn't increase total runtime by more than 30%. Optimize test performance, parallelize where possible, and identify any test conflicts or dependencies that need resolution.
+    status: pending
+    dependencies:
+      - task-029
+      - task-031
+      - task-033
+    acceptance_criteria:
+      - "All existing tests pass without any modifications"
+      - "New test execution time is within 30% increase limit"
+      - "Test conflicts and mock state leakage are resolved"
+      - "Test performance is optimized through parallelization"
+      - "Test suite reliability is maintained across environments"
+    completed_at: null
+
+  - id: task-035
+    title: "Establish maintainable testing patterns and documentation"
+    description: |
+      Create testing documentation, establish consistent patterns following existing codebase conventions, and ensure new tests are maintainable. Document testing approaches, mock strategies, and provide guidelines for future test development on extend-prd functionality.
+    status: pending
+    dependencies:
+      - task-034
+    acceptance_criteria:
+      - "Testing patterns follow established codebase conventions"
+      - "Test documentation provides clear guidelines for maintenance"
+      - "Mock strategies are documented and consistently applied"
+      - "Test organization follows logical structure and naming conventions"
+      - "Future test development guidelines are established"
+    completed_at: null
