@@ -203,6 +203,14 @@ _Detailed information is available in the .agents-docs/ directory._
 - Review feedback on documentation should address naming consistency and clarity
 - Integration tests can have mock conflicts with unit tests - use CLI-based integration tests to avoid in-process mock state
 
+## Test Type Safety and Consistency
+
+- Use type-only imports for interfaces when `verbatimModuleSyntax` is enabled: `import type { Type } from './module.js'`
+- Replace `any[]` with proper typed arrays (e.g., `PrdRequirement[]`, `Task[]`) for better type safety in tests
+- Export functions for testing with `@internal` JSDoc annotation to document testing-only purpose
+- Test titles must match test behavior - check assertion expectations align with test descriptions
+- Comprehensive test cleanup: tests using temp files should use proper cleanup patterns like `rollbackAtomicWrite()`
+
 ## Agent Response Parsing for Error Handling
 
 - When delegating content fetching to agents, parse agent responses for access issues instead of catching local errors

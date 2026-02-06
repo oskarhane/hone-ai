@@ -457,8 +457,9 @@ export function parsePrdContent(content: string): ParsedPrd {
  * @param requirements Array of parsed requirements
  * @param errors Array to collect validation errors
  * @returns boolean indicating if PRD is valid
+ * @internal Exported for testing purposes
  */
-function validatePrdStructure(
+export function validatePrdStructure(
   sections: Map<string, PrdSection>,
   requirements: PrdRequirement[],
   errors: string[]
@@ -993,8 +994,9 @@ interface QAResponse {
  * Ask user a question interactively via command line
  * @param prompt Question to ask the user
  * @returns User's response
+ * @internal Exported for testing purposes
  */
-async function askQuestion(prompt: string): Promise<string> {
+export async function askQuestion(prompt: string): Promise<string> {
   if (!prompt || typeof prompt !== 'string') {
     throw new HoneError('Prompt is required for interactive question')
   }
