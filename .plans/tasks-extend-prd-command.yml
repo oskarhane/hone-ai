@@ -430,7 +430,7 @@ tasks:
     title: "Create unit tests for Q&A generation and requirements parsing"
     description: |
       Implement unit tests for the interactive Q&A system and requirements parsing logic. Test Q&A question generation, user input handling, requirements extraction from PRD content, and requirement categorization into functional/non-functional sections. Mock agent interactions to isolate testing.
-    status: pending
+    status: cancelled
     dependencies:
       - task-005
       - task-021
@@ -447,7 +447,7 @@ tasks:
     title: "Create unit tests for task generation and file operations"
     description: |
       Implement unit tests for incremental task generation, task ID management, and atomic file operations. Test task creation logic, dependency resolution, ID collision prevention, and file write/rollback scenarios. Mock file system operations and test concurrent access handling.
-    status: pending
+    status: cancelled
     dependencies:
       - task-008
       - task-009
@@ -463,7 +463,7 @@ tasks:
     title: "Create end-to-end integration tests for extend-prd workflow"
     description: |
       Implement integration tests that verify the complete extend-prd command workflow from CLI invocation to final file output. Test the full pipeline including argument parsing, PRD validation, Q&A interaction, requirements generation, task creation, and file updates. Use CLI-based tests to avoid mock state conflicts.
-    status: pending
+    status: cancelled
     dependencies:
       - task-001
       - task-017
@@ -479,7 +479,7 @@ tasks:
     title: "Implement error handling scenario tests"
     description: |
       Create comprehensive tests for error scenarios including invalid PRD files, agent content fetching failures, file system errors, and network timeouts. Test error message clarity, recovery mechanisms, and graceful degradation. Verify that error handling maintains consistent user experience.
-    status: pending
+    status: cancelled
     dependencies:
       - task-011
       - task-023
@@ -495,7 +495,7 @@ tasks:
     title: "Create regression tests for existing functionality"
     description: |
       Implement regression tests to ensure existing PRD generation and task generation functionality remains unchanged after extend-prd implementation. Test original prd and prd-to-tasks commands to verify no behavioral changes or performance degradation occurred.
-    status: pending
+    status: cancelled
     dependencies:
       - task-025
     acceptance_criteria:
@@ -510,7 +510,7 @@ tasks:
     title: "Create edge case and boundary condition tests"
     description: |
       Implement test cases for edge cases including empty requirements, malformed input data, concurrent file access, memory constraints, and boundary conditions. Test system behavior under stress and unusual input conditions to ensure robustness.
-    status: pending
+    status: cancelled
     dependencies:
       - task-026
       - task-027
@@ -527,7 +527,7 @@ tasks:
     title: "Achieve 90% code coverage for extend-prd module"
     description: |
       Implement additional test cases as needed to achieve minimum 90% code coverage across all extend-prd functions and branches. Use coverage tools to identify untested code paths and create targeted tests. Ensure both statement and branch coverage requirements are met.
-    status: pending
+    status: cancelled
     dependencies:
       - task-026
       - task-027
@@ -563,7 +563,7 @@ tasks:
     title: "Establish maintainable testing patterns and documentation"
     description: |
       Create testing documentation, establish consistent patterns following existing codebase conventions, and ensure new tests are maintainable. Document testing approaches, mock strategies, and provide guidelines for future test development on extend-prd functionality.
-    status: pending
+    status: cancelled
     dependencies:
       - task-034
     acceptance_criteria:
