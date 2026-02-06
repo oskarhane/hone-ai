@@ -135,6 +135,8 @@ _Detailed information is available in the .agents-docs/ directory._
 - Remove unused rollback tracking arrays if individual functions handle atomicity internally
 - AtomicTransaction class provides coordination for multiple file operations
 - Cleanup temp files properly in error conditions - avoid using fs.unlink, prefer fs.rm with recursive option
+- Two-phase atomic rename: source→temp, then temp→target for safe file moves
+- Error recovery should attempt to restore original file if temp file exists after failed operation
 
 ## Error Handling and Validation
 

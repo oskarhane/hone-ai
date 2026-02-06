@@ -17,3 +17,23 @@ Key Decisions:
 - Used established error handling pattern wrapping async code
 
 Next Task: task-002
+
+================================================================================
+TASK-002: Create archive directory utility functions
+Date: 2026-02-06T08:57:15.000Z
+================================================================================
+
+Summary:
+Implemented archive directory utility functions with path validation, atomic operations, and comprehensive error handling. Added functions to manage .plans/archive/ directory with security protections.
+
+Files Changed:
+- src/prune.ts (modified - added getArchiveDir, ensureArchiveDir, validateArchivePath, createTempFilePath, and archiveFile functions)
+
+Key Decisions:
+- Implemented path traversal protection using relative path validation
+- Used atomic two-phase rename pattern for safe file moves
+- Added comprehensive filesystem error code handling (EACCES, ENOENT, EEXIST, EXDEV, ENOSPC, EROFS)
+- Integrated with existing getPlansDir() architecture per requirements
+- Applied review feedback to simplify validation logic and improve comments
+
+Next Task: task-003
