@@ -85,6 +85,9 @@ _Detailed information is available in the .agents-docs/ directory._
 - Comprehensive mocking of external dependencies isolates unit tests effectively
 - Integration tests that change `process.cwd()` acceptable for sequential tests but note potential race conditions
 - Network-dependent integration tests (e.g. `example.com` requests) may cause flaky tests - consider mocking
+- **Mock State Leakage**: `mock.module()` calls persist across test files in same process - causes conflicts between unit and integration tests
+- **Integration Test Solution**: Convert integration tests to use CLI commands instead of direct function calls to avoid mock conflicts
+- CLI-based integration tests spawn fresh processes unaffected by in-process mocks and provide true end-to-end validation
 
 ## YAML File Parsing
 

@@ -140,3 +140,24 @@ Key Decisions:
 - Review feedback about unused mock import was incorrect - mock.module is actually used in tests
 
 Next Task: task-009
+
+================================================================================
+TASK-009: Add integration tests with filesystem operations
+Date: 2026-02-06T18:45:00.000Z
+================================================================================
+
+Summary:
+Fixed integration test mock conflicts with unit tests and created working end-to-end integration tests. Applied review feedback to resolve mock state leakage between test files by converting integration tests to use CLI commands instead of direct function calls.
+
+Files Changed:
+- src/prune.integration.test.ts (modified - fixed mock conflicts by converting tests to use CLI commands only)
+
+Key Decisions:
+- Converted integration tests from direct function calls to CLI subprocess execution to avoid mock conflicts
+- CLI-based tests spawn fresh processes unaffected by in-process mocks from unit tests
+- Removed console mocking and complex mock.module setup since CLI tests capture stdout/stderr directly
+- Integration tests now validate complete workflow including real PRD parsing with YAML files
+- This approach provides true integration testing while avoiding the complex mock state management issue
+- All 14 integration tests now pass consistently when run with or without unit tests
+
+Next Task: task-010
