@@ -21,6 +21,7 @@ import {
   extractTaskIds,
   taskIdExists,
   derivePrdToTaskFilename,
+  extractContentAccessIssues,
   extendPRD,
 } from './extend-prd.js'
 
@@ -1344,6 +1345,75 @@ Testing memory efficiency iteration ${i}.
           rmSync(concurrentTestDir, { recursive: true })
         }
       }
+    })
+  })
+
+  describe('Agent-based content fetching validation', () => {
+    it('should extract content access issues from agent responses', () => {
+      // Test cases that should match the regex patterns in extractContentAccessIssues
+      const testCases = [
+        {
+          response: 'Could not access file.txt',
+          expectIssue: true,
+          description: 'File access failure with could not pattern',
+        },
+        {
+          response: 'Unable to fetch content from https://example.com',
+          expectIssue: true,
+          description: 'URL fetch failure',
+        },
+        {
+          response: 'The file config/settings.json is inaccessible',
+          expectIssue: true,
+          description: 'File inaccessible pattern',
+        },
+        {
+          response: 'url https://api.test.com not found',
+          expectIssue: true,
+          description: 'URL not found pattern',
+        },
+        {
+          response: 'Access denied to document.pdf',
+          expectIssue: true,
+          description: 'Access denied pattern',
+        },
+        {
+          response: 'Successfully read the content from both files and the URL',
+          expectIssue: false,
+          description: 'Successful content access',
+        },
+      ]
+
+      testCases.forEach(testCase => {
+        const issues = extractContentAccessIssues(testCase.response)
+        if (testCase.expectIssue) {
+          expect(issues.length).toBeGreaterThan(0)
+        } else {
+          expect(issues.length).toBe(0)
+        }
+      })
+    })
+
+    it('should deduplicate access issues', () => {
+      // Test deduplication works properly (requirement from task-023)
+      const duplicateResponse = 'Could not access file.txt and Could not access file.txt'
+      const issues = extractContentAccessIssues(duplicateResponse)
+      expect(issues.length).toBe(1) // Duplicates should be removed via Set deduplication
+    })
+
+    it('should maintain equivalent user experience to previous local implementation', () => {
+      // Validate that the key components are in place for agent-based content fetching
+      expect(typeof extractContentAccessIssues).toBe('function')
+
+      // Test that content access failures are properly detected
+      const mockFailure = 'Unable to read file example.txt due to access restrictions'
+      const issues = extractContentAccessIssues(mockFailure)
+      expect(issues.length).toBeGreaterThan(0)
+
+      // Test successful content access doesn't generate false positives
+      const mockSuccess = 'Content successfully retrieved from all referenced files and URLs'
+      const noIssues = extractContentAccessIssues(mockSuccess)
+      expect(noIssues.length).toBe(0)
     })
   })
 })

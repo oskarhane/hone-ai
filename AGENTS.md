@@ -88,6 +88,7 @@ _Detailed information is available in the .agents-docs/ directory._
 - **Mock State Leakage**: `mock.module()` calls persist across test files in same process - causes conflicts between unit and integration tests
 - **Integration Test Solution**: Convert integration tests to use CLI commands instead of direct function calls to avoid mock conflicts
 - CLI-based integration tests spawn fresh processes unaffected by in-process mocks and provide true end-to-end validation
+- **Test Description Visibility**: Include test case descriptions in assertion messages using `expect(value, description)` pattern for better debugging when parameterized tests fail
 
 ## YAML File Parsing
 
