@@ -193,3 +193,9 @@ _Detailed information is available in the .agents-docs/ directory._
 - HoneError messages should use same formatting as other error types for unified UX
 - Avoid variable shadowing in scoped blocks - remove redundant declarations that re-declare outer scope variables
 - Use explicit permission flags with fs.access() for clarity: `access(path, constants.R_OK)` instead of default existence check
+
+## Documentation Consistency Patterns
+
+- Use consistent placeholder naming across file structure examples (`<feature>` not mix of `<feature>` and `<completed>`)
+- Review feedback on documentation should address naming consistency and clarity
+- Integration tests can have mock conflicts with unit tests - use CLI-based integration tests to avoid in-process mock state

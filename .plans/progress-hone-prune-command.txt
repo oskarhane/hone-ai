@@ -161,3 +161,23 @@ Key Decisions:
 - All 14 integration tests now pass consistently when run with or without unit tests
 
 Next Task: task-010
+
+================================================================================
+TASK-010: Update documentation and help text
+Date: 2026-02-06T19:15:00.000Z
+================================================================================
+
+Summary:
+Updated README.md with comprehensive prune command documentation following existing patterns. Added help text, usage examples, workflow integration, and troubleshooting section addressing common error scenarios.
+
+Files Changed:
+- README.md (modified - added prune command section at lines 278-345, troubleshooting at 401-423, workflow integration at 57-59 and 157-161, file structure documentation consistency fix)
+
+Key Decisions:
+- Followed existing documentation patterns for consistency with other commands
+- Added prune to quick reference section and main workflow example
+- Included both normal and dry-run usage scenarios with output examples
+- Created comprehensive troubleshooting section with 5 common error scenarios
+- Applied review feedback to fix file structure placeholder naming consistency
+
+Next Task: All tasks complete

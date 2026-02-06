@@ -54,6 +54,9 @@ hone extend-prd .plans/prd-user-login.md "Add two-factor authentication"
 
 # 6. Implement the feature
 hone run .plans/tasks-user-login.yml -i 10
+
+# 7. Archive completed features (optional)
+hone prune
 ```
 
 hone will implement the feature, run tests, and commit changes automatically.
@@ -148,6 +151,13 @@ hone automatically reads referenced files and fetches URL content to inform PRD 
 ```bash
 hone status                                 # See incomplete tasks
 hone prds                                  # List all features
+```
+
+### Clean up completed features
+
+```bash
+hone prune                                 # Archive completed PRDs to .plans/archive/
+hone prune --dry-run                       # Preview what would be archived
 ```
 
 ### Advanced options
@@ -265,6 +275,75 @@ The command runs an interactive session to refine requirements:
 - New tasks added to existing task file (if it exists)
 - Atomic file operations ensure data integrity
 
+### Cleaning Up Completed Features
+
+Use `hone prune` to archive completed PRDs and their associated files:
+
+```bash
+hone prune               # Archive completed PRDs to .plans/archive/
+hone prune --dry-run     # Preview what would be archived without moving files
+```
+
+**What gets archived:**
+
+The prune command moves completed PRD triplets to `.plans/archive/`:
+
+- `prd-<feature>.md` - PRD document
+- `tasks-<feature>.yml` - Task breakdown
+- `progress-<feature>.txt` - Development log
+
+**When PRDs are considered complete:**
+
+PRDs are eligible for archiving when all tasks have status `completed` or `cancelled`.
+
+**Features:**
+
+- **Safe operations** - Atomic file moves prevent partial archiving during interruption
+- **Dry-run preview** - See exactly what would be moved before executing
+- **Individual error handling** - Failed archives don't stop processing of other PRDs
+- **Detailed output** - Clear success messages and operation summaries
+
+**Examples:**
+
+```bash
+# Preview what would be archived
+hone prune --dry-run
+
+# Archive completed features
+hone prune
+```
+
+**Output:**
+
+```bash
+# Dry-run example
+$ hone prune --dry-run
+Dry-run mode: Preview of 2 PRDs that would be archived
+
+  Feature: user-auth
+    PRD: .plans/prd-user-auth.md
+    Tasks: .plans/tasks-user-auth.yml
+    Progress: .plans/progress-user-auth.txt
+
+  Feature: dashboard
+    PRD: .plans/prd-dashboard.md
+    Tasks: .plans/tasks-dashboard.yml
+    Progress: .plans/progress-dashboard.txt
+
+Summary: Would move 2 finished PRDs to archive: user-auth, dashboard
+
+Run without --dry-run to execute the archive operation.
+
+# Actual execution
+$ hone prune
+Archiving 2 completed PRDs...
+
+  [ok] Archived: user-auth
+  [ok] Archived: dashboard
+
+Moved 2 finished PRDs to archive: user-auth, dashboard
+```
+
 ## File Structure
 
 ```
@@ -273,7 +352,11 @@ project-root/
 │   ├── hone.config.yml            # Configuration
 │   ├── prd-<feature>.md           # Requirements
 │   ├── tasks-<feature>.yml        # Task breakdown
-│   └── progress-<feature>.txt     # Development log
+│   ├── progress-<feature>.txt     # Development log
+│   └── archive/                   # Archived completed features
+│       ├── prd-<feature>.md
+│       ├── tasks-<feature>.yml
+│       └── progress-<feature>.txt
 └── AGENTS.md                      # AI learning notes
 ```
 
@@ -313,6 +396,30 @@ npm install -g @opencode/cli
 # Requirement description too short
 ✗ Error: Requirement description too short
 # Solution: Provide detailed description (at least 10 characters)
+```
+
+**prune command issues**
+
+```bash
+# No completed PRDs to archive
+No completed PRDs found to archive.
+# Solution: Complete some tasks first with 'hone run' or check status with 'hone status'
+
+# Plans directory not found
+✗ Error: Plans directory not found: /path/to/.plans
+# Solution: Run 'hone init' to initialize the project or ensure you're in correct directory
+
+# Permission denied creating archive directory
+✗ Error: Permission denied creating archive directory
+# Solution: Ensure write permissions to .plans directory
+
+# Individual PRD archiving failures
+[error] Failed to archive feature-name: Read-only file system
+# Solution: Check file permissions and disk space; use --dry-run to troubleshoot
+
+# File system errors during atomic operations
+✗ Error: Cross-device link not permitted
+# Solution: Ensure .plans directory is on the same filesystem as temp directory
 ```
 
 ## Contributing

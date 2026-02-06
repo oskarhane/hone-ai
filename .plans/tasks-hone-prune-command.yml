@@ -142,7 +142,7 @@ tasks:
     title: "Update documentation and help text"
     description: |
       Update README.md with prune command documentation following existing patterns. Add comprehensive help text, usage examples, and integration into existing workflow documentation. Include troubleshooting section for common scenarios.
-    status: pending
+    status: completed
     dependencies:
       - task-009
     acceptance_criteria:
@@ -151,4 +151,4 @@ tasks:
       - "Documentation covers both normal and dry-run usage scenarios"
       - "Troubleshooting section addresses common error conditions"
       - "Integration with existing workflow documentation is seamless"
-    completed_at: null
+    completed_at: "2026-02-06T19:15:00.000Z"
