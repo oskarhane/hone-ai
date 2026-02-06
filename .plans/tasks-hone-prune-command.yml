@@ -37,7 +37,7 @@ tasks:
     title: "Implement completed PRD identification logic"
     description: |
       Create functions to identify completed PRDs by parsing associated task YAML files using existing calculateStatus() logic from prds.ts. Reuse listPrds() and extend functionality to filter only completed PRDs with proper error handling.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
@@ -46,7 +46,7 @@ tasks:
       - "Handles missing or malformed task files gracefully"
       - "Returns PRD triplet information (prd, tasks, progress files)"
       - "Performance optimized for large numbers of PRD files"
-    completed_at: null
+    completed_at: 2026-02-06T12:15:00.000Z
 
   - id: task-004
     title: "Create atomic file moving operations"

@@ -8,6 +8,7 @@ import { join, relative, resolve, dirname, basename } from 'path'
 import { randomUUID } from 'crypto'
 import { getPlansDir } from './config.js'
 import { HoneError, formatError } from './errors.js'
+import { listPrds, extractFeatureName, type PrdInfo } from './prds.js'
 
 /**
  * Get the archive directory path (.plans/archive/)
@@ -159,6 +160,56 @@ export async function archiveFile(sourcePath: string, targetName: string): Promi
       formatError(
         'Failed to archive file',
         `Filesystem error moving ${sourcePath} to archive: ${error instanceof Error ? error.message : String(error)}`
+      )
+    )
+  }
+}
+
+/**
+ * PRD triplet containing all files associated with a PRD
+ */
+export interface PrdTriplet {
+  /** The feature name (extracted from prd filename) */
+  featureName: string
+  /** PRD file path relative to plans directory */
+  prdFile: string
+  /** Task YAML file path relative to plans directory (may not exist) */
+  taskFile: string
+  /** Progress text file path relative to plans directory (may not exist) */
+  progressFile: string
+}
+
+/**
+ * Identify completed PRDs by parsing associated task YAML files
+ * Reuses existing calculateStatus() logic from prds.ts for consistency
+ * @returns Array of PrdTriplet objects for completed PRDs
+ */
+export async function identifyCompletedPrds(): Promise<PrdTriplet[]> {
+  try {
+    // Use existing listPrds() to get all PRDs with status information
+    const allPrds = await listPrds()
+
+    // Filter to only completed PRDs
+    const completedPrds = allPrds.filter(prd => prd.status === 'completed')
+
+    // Convert to PrdTriplet format with all associated files
+    const prdTriplets: PrdTriplet[] = completedPrds.map(prd => {
+      const featureName = extractFeatureName(prd.filename)
+
+      return {
+        featureName,
+        prdFile: prd.filename,
+        taskFile: `tasks-${featureName}.yml`,
+        progressFile: `progress-${featureName}.txt`,
+      }
+    })
+
+    return prdTriplets
+  } catch (error) {
+    throw new HoneError(
+      formatError(
+        'Failed to identify completed PRDs',
+        `Error parsing PRD or task files: ${error instanceof Error ? error.message : String(error)}`
       )
     )
   }
