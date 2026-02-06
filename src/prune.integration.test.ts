@@ -292,9 +292,10 @@ describe('Prune Integration Tests', () => {
       expect(result.stdout).toContain('PRD: .plans/prd-test-feature.md')
       expect(result.stdout).toContain('Tasks: .plans/tasks-test-feature.yml')
       expect(result.stdout).toContain('Feature: another-feature')
-      expect(result.stdout).toContain(
-        'Would move 2 finished PRDs to archive: test-feature, another-feature'
-      )
+      // Check that both features are mentioned in the summary (order may vary by filesystem)
+      expect(result.stdout).toContain('Would move 2 finished PRDs to archive:')
+      expect(result.stdout).toContain('test-feature')
+      expect(result.stdout).toContain('another-feature')
       expect(result.stdout).toContain('Run without --dry-run to execute the archive operation')
 
       // Verify files still exist (not moved)

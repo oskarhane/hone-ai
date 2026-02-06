@@ -598,7 +598,10 @@ export async function pruneCompletedPrds(dryRun: boolean): Promise<void> {
         console.log('')
       }
 
-      const featureNames = completedPrds.map(prd => prd.featureName).join(', ')
+      const featureNames = completedPrds
+        .map(prd => prd.featureName)
+        .sort()
+        .join(', ')
       console.log(
         `Summary: Would move ${completedPrds.length} finished PRD${completedPrds.length === 1 ? '' : 's'} to archive: ${featureNames}`
       )
@@ -639,8 +642,9 @@ export async function pruneCompletedPrds(dryRun: boolean): Promise<void> {
 
       console.log('')
       if (archivedFeatures.length > 0) {
+        const sortedFeatures = archivedFeatures.sort()
         console.log(
-          `Moved ${archivedFeatures.length} finished PRD${archivedFeatures.length === 1 ? '' : 's'} to archive: ${archivedFeatures.join(', ')}`
+          `Moved ${archivedFeatures.length} finished PRD${archivedFeatures.length === 1 ? '' : 's'} to archive: ${sortedFeatures.join(', ')}`
         )
 
         if (archivedFeatures.length < completedPrds.length) {
