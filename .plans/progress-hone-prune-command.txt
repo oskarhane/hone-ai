@@ -77,3 +77,24 @@ Key Decisions:
 - Uses temporary staging to prevent partial moves during interruption
 
 Next Task: task-005
+
+================================================================================
+TASK-005 & TASK-007: Dry-run preview and command output functionality
+Date: 2026-02-06T15:30:00.000Z
+================================================================================
+
+Summary:
+Implemented pruneCompletedPrds() function with dry-run preview mode and comprehensive command output. Added detailed file listing for dry-run mode and clear success messages for actual archive operations. Applied review feedback for error handling and output formatting.
+
+Files Changed:
+- src/prune.ts (modified - implemented pruneCompletedPrds function with dry-run and output functionality)
+
+Key Decisions:
+- Implemented dry-run mode that previews operations without executing file moves
+- Added detailed file listing showing which files exist and would be archived
+- Created clear distinction between dry-run preview output and actual operation output
+- Applied review feedback: fixed double error wrapping issue in catch block, replaced emoji with [ok] text marker for consistency with project style
+- Used descriptive output format that matches existing CLI command patterns
+- Handles edge case of no completed PRDs found gracefully with helpful guidance
+
+Next Task: task-008

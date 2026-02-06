@@ -148,6 +148,7 @@ _Detailed information is available in the .agents-docs/ directory._
 - File system error codes (ENOENT, EACCES, EISDIR, etc.) handled with specific user-friendly messages
 - Graceful degradation for non-critical errors (warnings don't fail operations)
 - Multi-file atomic operations: files that complete stage 2 (temp→target) before error are intentionally left in final location as they're in valid state
+- Avoid double error wrapping: check `error instanceof HoneError` before wrapping to prevent nested error messages
 
 ## Documentation Patterns
 

@@ -166,17 +166,7 @@ export async function archiveFile(sourcePath: string, targetName: string): Promi
       )
     } else if (nodeError?.code === 'EROFS') {
       throw new HoneError(
-        formatError(
-          'Read-only file system',
-          `Cannot write to read-only archive directory for '${triplet.featureName}'`
-        )
-      )
-    } else if (nodeError?.code === 'EEXIST') {
-      throw new HoneError(
-        formatError(
-          'File already exists in archive',
-          `A file from feature '${triplet.featureName}' already exists in archive`
-        )
+        formatError('Read-only file system', 'Cannot write to read-only archive directory')
       )
     }
 
@@ -369,12 +359,87 @@ export async function archivePrdTriplet(triplet: PrdTriplet): Promise<void> {
 
 /**
  * Move completed PRDs and their associated files to .plans/archive/
+ * @param dryRun If true, only preview operations without executing moves
  */
 export async function pruneCompletedPrds(dryRun: boolean): Promise<void> {
-  // TODO: Implement full prune functionality
-  if (dryRun) {
-    console.log('Dry-run mode: Would preview operations without executing moves')
-  } else {
-    console.log('Would archive completed PRDs')
+  try {
+    // Identify completed PRDs
+    const completedPrds = await identifyCompletedPrds()
+
+    if (completedPrds.length === 0) {
+      console.log('No completed PRDs found to archive.')
+      console.log('')
+      console.log('Complete some tasks with: hone run <task-file>')
+      return
+    }
+
+    if (dryRun) {
+      console.log(
+        `Dry-run mode: Preview of ${completedPrds.length} PRD${completedPrds.length === 1 ? '' : 's'} that would be archived`
+      )
+      console.log('')
+
+      for (const prd of completedPrds) {
+        console.log(`  Feature: ${prd.featureName}`)
+
+        // Show which files would be moved
+        const plansDir = getPlansDir()
+        const existingFiles: string[] = []
+
+        const filesToCheck = [
+          { path: prd.prdFile, label: 'PRD' },
+          { path: prd.taskFile, label: 'Tasks' },
+          { path: prd.progressFile, label: 'Progress' },
+        ]
+
+        for (const file of filesToCheck) {
+          const fullPath = join(plansDir, file.path)
+          if (existsSync(fullPath)) {
+            existingFiles.push(`${file.label}: .plans/${file.path}`)
+          }
+        }
+
+        for (const fileInfo of existingFiles) {
+          console.log(`    ${fileInfo}`)
+        }
+        console.log('')
+      }
+
+      const featureNames = completedPrds.map(prd => prd.featureName).join(', ')
+      console.log(
+        `Summary: Would move ${completedPrds.length} finished PRD${completedPrds.length === 1 ? '' : 's'} to archive: ${featureNames}`
+      )
+      console.log('')
+      console.log('Run without --dry-run to execute the archive operation.')
+    } else {
+      // Execute actual archiving
+      console.log(
+        `Archiving ${completedPrds.length} completed PRD${completedPrds.length === 1 ? '' : 's'}...`
+      )
+      console.log('')
+
+      const archivedFeatures: string[] = []
+
+      for (const prd of completedPrds) {
+        await archivePrdTriplet(prd)
+        archivedFeatures.push(prd.featureName)
+        console.log(`  [ok] Archived: ${prd.featureName}`)
+      }
+
+      console.log('')
+      console.log(
+        `Moved ${completedPrds.length} finished PRD${completedPrds.length === 1 ? '' : 's'} to archive: ${archivedFeatures.join(', ')}`
+      )
+    }
+  } catch (error) {
+    if (error instanceof HoneError) {
+      throw error
+    }
+    throw new HoneError(
+      formatError(
+        'Failed to prune completed PRDs',
+        `Error during prune operation: ${error instanceof Error ? error.message : String(error)}`
+      )
+    )
   }
 }

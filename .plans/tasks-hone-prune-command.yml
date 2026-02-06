@@ -1,7 +1,7 @@
 feature: hone-prune-command
 prd: ./prd-hone-prune-command.md
 created_at: 2026-02-06T08:38:38.519Z
-updated_at: 2026-02-06T08:38:38.519Z
+updated_at: 2026-02-06T15:30:00.000Z
 
 tasks:
   - id: task-001
@@ -67,7 +67,7 @@ tasks:
     title: "Implement dry-run preview functionality"
     description: |
       Add dry-run mode that previews operations without executing file moves. Display detailed information about which files would be moved, including feature names and file paths, following existing CLI output patterns.
-    status: pending
+    status: completed
     dependencies:
       - task-004
     acceptance_criteria:
@@ -76,7 +76,7 @@ tasks:
       - "Shows specific files that would be moved with feature names"
       - "Output format matches existing CLI command patterns"
       - "Summary includes count of PRDs that would be archived"
-    completed_at: null
+    completed_at: 2026-02-06T15:30:00.000Z
 
   - id: task-006
     title: "Add comprehensive error handling and validation"
@@ -97,7 +97,7 @@ tasks:
     title: "Create command output and summary display"
     description: |
       Implement summary output showing count and feature names of moved PRDs. Format output consistently with existing CLI commands, showing clear success messages and operation details for both normal and dry-run modes.
-    status: pending
+    status: completed
     dependencies:
       - task-006
     acceptance_criteria:
@@ -106,7 +106,7 @@ tasks:
       - "Clear distinction between dry-run and actual operation output"
       - "Handles edge cases like no completed PRDs found gracefully"
       - "Success messages provide useful feedback to users"
-    completed_at: null
+    completed_at: 2026-02-06T15:30:00.000Z
 
   - id: task-008
     title: "Write comprehensive unit tests"
