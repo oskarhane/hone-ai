@@ -1,0 +1,154 @@
+feature: hone-prune-command
+prd: ./prd-hone-prune-command.md
+created_at: 2026-02-06T08:38:38.519Z
+updated_at: 2026-02-06T08:38:38.519Z
+
+tasks:
+  - id: task-001
+    title: "Add prune command structure to CLI"
+    description: |
+      Implement the basic 'hone prune' command structure in src/index.ts using Commander.js patterns. Add --dry-run flag support, help text, and integrate with existing CLI architecture following established patterns from other commands.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "Command 'hone prune' is recognized by CLI with proper help text"
+      - "--dry-run flag is properly parsed and available to handler"
+      - "Command follows existing CLI patterns and error handling"
+      - "Help text explains command purpose and dry-run functionality"
+      - "Command integrates seamlessly with existing CLI structure"
+    completed_at: null
+
+  - id: task-002
+    title: "Create archive directory utility functions"
+    description: |
+      Implement utility functions to create and manage the .plans/archive/ directory. Include path validation, atomic directory creation, and proper error handling for filesystem operations following existing config.ts patterns.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Archive directory created automatically when needed"
+      - "Path traversal protection prevents security issues"
+      - "Atomic operations ensure directory creation consistency"
+      - "Error handling for permission issues implemented"
+      - "Function integrates with existing getPlansDir() architecture"
+    completed_at: null
+
+  - id: task-003
+    title: "Implement completed PRD identification logic"
+    description: |
+      Create functions to identify completed PRDs by parsing associated task YAML files using existing calculateStatus() logic from prds.ts. Reuse listPrds() and extend functionality to filter only completed PRDs with proper error handling.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "Correctly identifies PRDs with all tasks completed or cancelled"
+      - "Reuses existing calculateStatus() logic for consistency"
+      - "Handles missing or malformed task files gracefully"
+      - "Returns PRD triplet information (prd, tasks, progress files)"
+      - "Performance optimized for large numbers of PRD files"
+    completed_at: null
+
+  - id: task-004
+    title: "Create atomic file moving operations"
+    description: |
+      Implement atomic file operations to move PRD triplets (prd-*.md, tasks-*.yml, progress-*.txt) to archive folder. Use temporary staging and atomic rename operations to prevent partial moves during interruption, following existing atomic patterns.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "All three file types moved together atomically"
+      - "Temporary staging prevents partial moves during interruption"
+      - "File operations handle concurrent access safely"
+      - "Error recovery cleans up temporary files properly"
+      - "Preserves file permissions and metadata during move"
+    completed_at: null
+
+  - id: task-005
+    title: "Implement dry-run preview functionality"
+    description: |
+      Add dry-run mode that previews operations without executing file moves. Display detailed information about which files would be moved, including feature names and file paths, following existing CLI output patterns.
+    status: pending
+    dependencies:
+      - task-004
+    acceptance_criteria:
+      - "Dry-run mode previews all operations without executing moves"
+      - "Output clearly indicates this is a preview with no changes made"
+      - "Shows specific files that would be moved with feature names"
+      - "Output format matches existing CLI command patterns"
+      - "Summary includes count of PRDs that would be archived"
+    completed_at: null
+
+  - id: task-006
+    title: "Add comprehensive error handling and validation"
+    description: |
+      Implement comprehensive error handling using HoneError class and existing error patterns. Handle missing files, permission issues, filesystem errors, and edge cases like partially complete archive operations following established error patterns.
+    status: pending
+    dependencies:
+      - task-005
+    acceptance_criteria:
+      - "Uses HoneError class and formatError utility for consistency"
+      - "Specific error messages for file access and permission issues"
+      - "Graceful handling of missing task or progress files"
+      - "Path validation prevents security vulnerabilities"
+      - "Error messages provide clear guidance for resolution"
+    completed_at: null
+
+  - id: task-007
+    title: "Create command output and summary display"
+    description: |
+      Implement summary output showing count and feature names of moved PRDs. Format output consistently with existing CLI commands, showing clear success messages and operation details for both normal and dry-run modes.
+    status: pending
+    dependencies:
+      - task-006
+    acceptance_criteria:
+      - "Summary shows 'Moved X finished PRDs to archive: feature-a, feature-b'"
+      - "Output format consistent with existing CLI command patterns"
+      - "Clear distinction between dry-run and actual operation output"
+      - "Handles edge cases like no completed PRDs found gracefully"
+      - "Success messages provide useful feedback to users"
+    completed_at: null
+
+  - id: task-008
+    title: "Write comprehensive unit tests"
+    description: |
+      Create comprehensive unit tests covering all functionality including PRD identification, atomic file operations, dry-run mode, error handling, and edge cases. Follow existing test patterns using Bun test framework and .js import extensions.
+    status: pending
+    dependencies:
+      - task-007
+    acceptance_criteria:
+      - "Tests cover all core functionality with high coverage"
+      - "Unit tests use .js import extensions for Bun compatibility"
+      - "Error scenarios and edge cases thoroughly tested"
+      - "Atomic operations tested with proper cleanup"
+      - "Tests follow existing project testing patterns and structure"
+    completed_at: null
+
+  - id: task-009
+    title: "Add integration tests with filesystem operations"
+    description: |
+      Create integration tests that validate end-to-end prune functionality with actual filesystem operations. Test concurrent access safety, atomic operations, and integration with existing PRD/task workflow using temporary test environments.
+    status: pending
+    dependencies:
+      - task-008
+    acceptance_criteria:
+      - "Integration tests validate complete prune workflow"
+      - "Tests use temporary directories to avoid affecting real files"
+      - "Concurrent access scenarios tested for race conditions"
+      - "Integration with existing listPrds() and calculateStatus() validated"
+      - "Tests clean up temporary files properly after execution"
+    completed_at: null
+
+  - id: task-010
+    title: "Update documentation and help text"
+    description: |
+      Update README.md with prune command documentation following existing patterns. Add comprehensive help text, usage examples, and integration into existing workflow documentation. Include troubleshooting section for common scenarios.
+    status: pending
+    dependencies:
+      - task-009
+    acceptance_criteria:
+      - "README.md updated with prune command section using established patterns"
+      - "Help text includes clear usage examples and workflow integration"
+      - "Documentation covers both normal and dry-run usage scenarios"
+      - "Troubleshooting section addresses common error conditions"
+      - "Integration with existing workflow documentation is seamless"
+    completed_at: null
