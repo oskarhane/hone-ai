@@ -63,7 +63,7 @@ tasks:
     title: "Test agent-specific OpenAI model configurations"
     description: |
       Verify that OpenAI models can be configured for both opencode and claude agents in the models section of hone.config.yml. Test that validation accepts these configurations and they pass through correctly.
-    status: pending
+    status: completed
     dependencies:
       - task-004
     acceptance_criteria:
@@ -71,7 +71,7 @@ tasks:
       - "Config with claude: openai/gpt-4 passes validation"
       - "Mixed configurations (opencode: openai/gpt-4o, claude: claude-sonnet-4) work"
       - "resolveModelForPhase() returns OpenAI models unchanged"
-    completed_at: null
+    completed_at: 2026-02-16T15:45:00.000Z
 
   - id: task-006
     title: "Test phase-specific OpenAI model overrides"

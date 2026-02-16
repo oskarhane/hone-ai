@@ -157,3 +157,72 @@ Review Feedback Applied:
 ✓ Low priority: Fixed progress file test count documentation
 
 Next Task: task-005 - Test agent-specific OpenAI model configurations
+================================================================================
+TASK-005: Test agent-specific OpenAI model configurations
+Date: 2026-02-16T15:30:00.000Z
+================================================================================
+
+Summary:
+Added 7 comprehensive integration tests to verify that OpenAI models work correctly with agent-specific configurations and resolveModelForPhase() function. Tests verify OpenAI models pass through unchanged and mixed OpenAI/Claude configurations work.
+
+Files Changed:
+- src/config.test.ts (modified - added 7 tests for OpenAI model resolution with agents)
+- .plans/tasks-fix-openai-model-provider-resolution-bug.yml (modified - marked task-005 as completed)
+- .plans/progress-fix-openai-model-provider-resolution-bug.txt (modified - added task-005 completion notes)
+
+Test Coverage Added:
+1. OpenAI model resolution for opencode agent (openai/gpt-4o)
+2. OpenAI model resolution for claude agent (openai/gpt-4)
+3. Mixed OpenAI/Claude agent models with explicit agent parameter
+4. Mixed configurations with defaultAgent fallback behavior
+5. OpenAI models returned unchanged (no transformation)
+6. OpenAI agent model used when phase not configured
+7. OpenAI fallback to agent model when no phase-specific model
+
+Key Decisions:
+- Tests focus on resolveModelForPhase() integration, not just validation
+- Verify OpenAI models pass through unchanged (acceptance criteria #4)
+- Mixed configuration tests ensure both agents work independently
+- Tests verify defaultAgent behavior with OpenAI models
+- All phase fallback logic works correctly with OpenAI models
+
+Test Results:
+- Total tests increased from 374 to 381 (7 new tests)
+- All 381 tests pass
+- No regressions in existing functionality
+- Comprehensive coverage of agent-specific OpenAI model scenarios
+
+Acceptance Criteria Met:
+✓ Config with opencode: openai/gpt-4o passes validation
+✓ Config with claude: openai/gpt-4 passes validation
+✓ Mixed configurations (opencode: openai/gpt-4o, claude: claude-sonnet-4) work
+✓ resolveModelForPhase() returns OpenAI models unchanged
+
+Next Task: task-006 - Test phase-specific OpenAI model overrides
+================================================================================
+TASK-005: Test agent-specific OpenAI model configurations (FINALIZED)
+Date: 2026-02-16T15:45:00.000Z
+================================================================================
+
+Summary:
+Finalized task-005 after review approval. Review found implementation correct and comprehensive with all 381 tests passing. No feedback to apply - proceeding to commit.
+
+Review Feedback:
+✓ LGTM - Implementation is correct and comprehensive
+✓ All 381 tests pass
+✓ New tests cover all acceptance criteria from task-005
+✓ Code quality: Well-structured tests following existing patterns
+✓ Edge cases handled: Both agents, mixed configs, explicit agent vs defaultAgent fallback
+✓ Minor observation: Two tests at lines 390 and 406 test similar behavior from different angles - not a problem
+
+Files Committed:
+- .plans/tasks-fix-openai-model-provider-resolution-bug.yml (modified - updated completed_at timestamp)
+- .plans/progress-fix-openai-model-provider-resolution-bug.txt (modified - added finalization notes)
+- src/config.test.ts (no changes - tests already passing)
+
+Key Decisions:
+- No feedback to apply - review approved as-is
+- Tests comprehensively verify OpenAI model resolution with agent-specific configs
+- Ready to proceed to task-006
+
+Next Task: task-006 - Test phase-specific OpenAI model overrides
