@@ -56,3 +56,30 @@ Invalid:
 - openai/gpt 4o (spaces not allowed)
 
 Next Task: task-003 - Update validateConfig function with new regex
+================================================================================
+TASK-003: Update validateConfig function with new regex
+Date: 2026-02-16T13:30:00.000Z
+================================================================================
+
+Summary:
+Updated validateConfig() function in src/config.ts with multi-provider model validation regex. Applied review feedback to improve error message accuracy regarding legacy Claude model format.
+
+Files Changed:
+- src/config.ts (modified - updated modelRegex at line 222 and error messages at lines 227, 233, 251)
+- .plans/tasks-fix-openai-model-provider-resolution-bug.yml (modified - marked task-003 as completed)
+
+Key Decisions:
+- Replaced modelRegex with: /^(?:(?:openai|anthropic|google)\/[\w.-]+|claude-(?:sonnet|opus)-\d+-\d{8})$/
+- Updated error messages to use "claude-(sonnet|opus)-N-YYYYMMDD" for better accuracy vs "claude-sonnet-4-YYYYMMDD"
+- No changes to validation logic flow or function signature
+- Applied low-priority review feedback for error message consistency
+
+Review Feedback Applied:
+- Changed error message from "claude-sonnet-4-YYYYMMDD" to "claude-(sonnet|opus)-N-YYYYMMDD" to accurately reflect regex pattern that accepts any digit for version number
+
+Test Results:
+- All 355 tests pass
+- No TypeScript compilation errors
+- Backward compatibility maintained
+
+Next Task: task-004 - Add comprehensive unit tests for OpenAI model validation

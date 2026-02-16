@@ -218,15 +218,20 @@ export function resolveModelForPhase(
  */
 export function validateConfig(config: HoneConfig): { valid: boolean; errors: string[] } {
   const errors: string[] = []
-  const modelRegex = /^claude-(sonnet|opus)-\d+-\d{8}$/
+  // Multi-provider model validation: supports OpenAI, Anthropic, Google formats + legacy Claude format
+  const modelRegex = /^(?:(?:openai|anthropic|google)\/[\w.-]+|claude-(?:sonnet|opus)-\d+-\d{8})$/
 
   // Validate agent-specific models
   if (config.models.opencode && !modelRegex.test(config.models.opencode)) {
-    errors.push(`Invalid model format for opencode: ${config.models.opencode}`)
+    errors.push(
+      `Invalid model format for opencode: ${config.models.opencode}. Expected format: provider/model-name (e.g., openai/gpt-4o, anthropic/claude-sonnet-4) or legacy claude-(sonnet|opus)-N-YYYYMMDD`
+    )
   }
 
   if (config.models.claude && !modelRegex.test(config.models.claude)) {
-    errors.push(`Invalid model format for claude: ${config.models.claude}`)
+    errors.push(
+      `Invalid model format for claude: ${config.models.claude}. Expected format: provider/model-name (e.g., openai/gpt-4o, anthropic/claude-sonnet-4) or legacy claude-(sonnet|opus)-N-YYYYMMDD`
+    )
   }
 
   // Validate phase-specific models if present
@@ -242,7 +247,9 @@ export function validateConfig(config: HoneConfig): { valid: boolean; errors: st
   for (const phase of phases) {
     const model = config.models[phase]
     if (model && !modelRegex.test(model)) {
-      errors.push(`Invalid model format for phase ${phase}: ${model}`)
+      errors.push(
+        `Invalid model format for phase ${phase}: ${model}. Expected format: provider/model-name (e.g., openai/gpt-4o, anthropic/claude-sonnet-4) or legacy claude-(sonnet|opus)-N-YYYYMMDD`
+      )
     }
   }
 

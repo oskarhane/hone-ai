@@ -227,3 +227,10 @@ _Detailed information is available in the .agents-docs/ directory._
 - Use regex patterns to detect agent content access failures: `/(?:could not access|not found|inaccessible)[^\n.]*/gi`
 - Apply deduplication with `[...new Set(issues)]` to prevent duplicate error reporting from overlapping patterns
 - Agent-based error handling maintains same UX while delegating content access responsibility
+
+## Multi-Provider Model Validation
+
+- Error messages should accurately reflect regex patterns - if regex accepts variable digits (\d+), message should say "N" not specific version like "4"
+- Multi-provider regex pattern: /^(?:(?:provider)\/[\w.-]+|claude-(sonnet|opus)-\d+-\d{8})$/ supports both provider-prefixed and legacy formats
+- Review feedback on error message consistency improves user experience even if low priority
+- Test suite validation after feedback application ensures no regressions from minor wording changes
