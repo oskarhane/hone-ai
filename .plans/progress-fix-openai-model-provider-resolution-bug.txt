@@ -226,3 +226,72 @@ Key Decisions:
 - Ready to proceed to task-006
 
 Next Task: task-006 - Test phase-specific OpenAI model overrides
+================================================================================
+TASK-006: Test phase-specific OpenAI model overrides
+Date: 2026-02-16T16:30:00.000Z
+================================================================================
+
+Summary:
+Added 7 comprehensive tests to verify phase-specific OpenAI model overrides work correctly with resolveModelForPhase(). Tests confirm all 7 phases accept OpenAI models, phase-specific models override agent models, and mixed configurations work as expected.
+
+Files Changed:
+- src/config.test.ts (modified - added 7 tests for phase-specific OpenAI model resolution)
+- .plans/tasks-fix-openai-model-provider-resolution-bug.yml (modified - marked task-006 as completed)
+
+Test Coverage Added:
+1. Phase-specific OpenAI model prioritization over agent model
+2. All 7 phases with OpenAI models (prd, prdToTasks, implement, review, finalize, agentsMd, extendPrd)
+3. Mixed OpenAI and Claude in phase-specific configs
+4. Phase-specific OpenAI model overrides OpenAI agent model
+5. Fallback to OpenAI agent model when phase not configured
+6. Explicit agent parameter with phase-specific OpenAI model
+7. Mixed providers (OpenAI, Anthropic, Google) with phase overrides
+
+Key Decisions:
+- Tests focus on resolveModelForPhase() integration with phase-specific models
+- Comprehensive coverage of all 7 phases with OpenAI models
+- Tests verify priority: phase-specific > agent-specific > default
+- Mixed configuration tests ensure independent phase/agent behavior
+- Multi-provider tests (anthropic/, google/) verify extensibility
+
+Test Results:
+- Total tests increased from 381 to 388 (7 new tests)
+- All 388 tests pass
+- No regressions in existing functionality
+- Comprehensive coverage of phase-specific OpenAI model scenarios
+
+Acceptance Criteria Met:
+✓ All phases accept OpenAI models: prd, prdToTasks, implement, review, finalize, agentsMd, extendPrd
+✓ Phase-specific OpenAI models override agent-specific models correctly
+✓ resolveModelForPhase() prioritizes phase-specific OpenAI models
+✓ Mixed phase configurations work (some OpenAI, some Claude)
+
+Next Task: task-007 - Verify backward compatibility with existing configurations
+================================================================================
+TASK-006: Test phase-specific OpenAI model overrides (FINALIZED)
+Date: 2026-02-16T16:45:00.000Z
+================================================================================
+
+Summary:
+Finalized task-006 after review approval. Review found implementation correct and comprehensive with all 388 tests passing. All acceptance criteria met with no critical issues.
+
+Review Feedback:
+✓ LGTM - Implementation is correct and comprehensive
+✓ All 388 tests pass
+✓ All 7 phases tested with OpenAI models
+✓ Phase-specific models correctly override agent-specific models
+✓ Mixed configurations (OpenAI + Claude) work as expected
+✓ Code quality: Tests follow existing patterns with clear naming
+✓ Edge cases covered: Mixed providers, fallback behavior, explicit agent parameter
+✓ Minor observation: Similar test names at lines 406 and 514 acceptable (different contexts)
+
+Files Changed:
+- .plans/tasks-fix-openai-model-provider-resolution-bug.yml (modified - updated completed_at timestamp)
+- .plans/progress-fix-openai-model-provider-resolution-bug.txt (modified - added finalization notes)
+
+Key Decisions:
+- No feedback to apply - review approved as-is
+- Tests comprehensively verify phase-specific OpenAI model overrides
+- All acceptance criteria for task-006 met
+
+Next Task: task-007 - Verify backward compatibility with existing configurations

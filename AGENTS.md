@@ -235,3 +235,5 @@ _Detailed information is available in the .agents-docs/ directory._
 - Multi-provider regex pattern: /^(?:(?:provider)\/[\w.-]+|claude-(sonnet|opus)-\d+-\d{8})$/ supports both provider-prefixed and legacy formats
 - Review feedback on error message consistency improves user experience even if low priority
 - Test suite validation after feedback application ensures no regressions from minor wording changes
+- Phase-specific OpenAI model tests: verify all 7 phases (prd, prdToTasks, implement, review, finalize, agentsMd, extendPrd) accept provider-prefixed models
+- Test both agent-specific and phase-specific OpenAI model overrides to ensure proper priority resolution

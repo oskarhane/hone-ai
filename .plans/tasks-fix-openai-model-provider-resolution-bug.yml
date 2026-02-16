@@ -77,7 +77,7 @@ tasks:
     title: "Test phase-specific OpenAI model overrides"
     description: |
       Validate that all phase-specific model configurations (prd, implement, review, finalize, etc.) accept OpenAI model formats and pass validation correctly.
-    status: pending
+    status: completed
     dependencies:
       - task-005
     acceptance_criteria:
@@ -85,7 +85,7 @@ tasks:
       - "Phase-specific OpenAI models override agent-specific models correctly"
       - "resolveModelForPhase() prioritizes phase-specific OpenAI models"
       - "Mixed phase configurations work (some OpenAI, some Claude)"
-    completed_at: null
+    completed_at: 2026-02-16T16:45:00.000Z
 
   - id: task-007
     title: "Verify backward compatibility with existing configurations"
