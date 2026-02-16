@@ -437,4 +437,293 @@ describe('Config Validation', () => {
     expect(result.valid).toBe(true)
     expect(result.errors.length).toBe(0)
   })
+
+  // OpenAI model validation tests
+  test('validateConfig accepts valid OpenAI model for opencode agent', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'openai/gpt-4o',
+        claude: 'claude-sonnet-4-20250514',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts valid OpenAI model for claude agent', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'openai/gpt-4',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts OpenAI models with version numbers', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'openai/gpt-5.3-codex',
+        claude: 'openai/gpt-4o-mini',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts mixed OpenAI and Claude agent models', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'openai/gpt-4o',
+        claude: 'claude-sonnet-4-20250514',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts OpenAI models in phase-specific config - prd', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        prd: 'openai/gpt-4o',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts OpenAI models in phase-specific config - implement', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        implement: 'openai/gpt-4o',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts OpenAI models in phase-specific config - review', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        review: 'openai/gpt-4-turbo',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts OpenAI models in phase-specific config - finalize', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        finalize: 'openai/gpt-5.3-codex',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts OpenAI models in phase-specific config - prdToTasks', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        prdToTasks: 'openai/gpt-4o',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts OpenAI models in phase-specific config - agentsMd', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        agentsMd: 'openai/gpt-4o',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts OpenAI models in phase-specific config - extendPrd', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        extendPrd: 'openai/gpt-4o',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts mixed OpenAI and Claude in phase-specific configs', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        prd: 'openai/gpt-4o',
+        implement: 'claude-opus-4-20250514',
+        review: 'openai/gpt-4-turbo',
+        finalize: 'claude-sonnet-4-20250514',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig rejects invalid OpenAI model format - missing model name', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'openai/',
+        claude: 'claude-sonnet-4-20250514',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(false)
+    expect(result.errors.length).toBe(1)
+    expect(result.errors[0]).toContain('opencode')
+    expect(result.errors[0]).toContain('openai/')
+  })
+
+  test('validateConfig rejects invalid OpenAI model format - missing provider', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: '/gpt-4o',
+        claude: 'claude-sonnet-4-20250514',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(false)
+    expect(result.errors.length).toBe(1)
+    expect(result.errors[0]).toContain('opencode')
+    expect(result.errors[0]).toContain('/gpt-4o')
+  })
+
+  test('validateConfig rejects invalid OpenAI model format - spaces in model name', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'openai/gpt 4o',
+        claude: 'claude-sonnet-4-20250514',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(false)
+    expect(result.errors.length).toBe(1)
+    expect(result.errors[0]).toContain('opencode')
+    expect(result.errors[0]).toContain('openai/gpt 4o')
+  })
+
+  test('validateConfig rejects unknown provider prefix', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'mistral/mixtral-8x7b',
+        claude: 'claude-sonnet-4-20250514',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(false)
+    expect(result.errors.length).toBe(1)
+    expect(result.errors[0]).toContain('opencode')
+    expect(result.errors[0]).toContain('mistral/mixtral-8x7b')
+  })
+
+  test('validateConfig rejects invalid OpenAI model in phase-specific config', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'claude',
+      models: {
+        opencode: 'claude-sonnet-4-20250514',
+        claude: 'claude-sonnet-4-20250514',
+        implement: 'openai/invalid model name',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(false)
+    expect(result.errors.length).toBe(1)
+    expect(result.errors[0]).toContain('implement')
+    expect(result.errors[0]).toContain('openai/invalid model name')
+  })
+
+  test('validateConfig accepts other provider formats - anthropic', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'anthropic/claude-sonnet-4',
+        claude: 'anthropic/claude-opus-4',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
+
+  test('validateConfig accepts other provider formats - google', () => {
+    const config: HoneConfig = {
+      defaultAgent: 'opencode',
+      models: {
+        opencode: 'google/gemini-pro',
+        claude: 'google/gemini-1.5-flash',
+      },
+    }
+
+    const result = validateConfig(config)
+    expect(result.valid).toBe(true)
+    expect(result.errors.length).toBe(0)
+  })
 })
