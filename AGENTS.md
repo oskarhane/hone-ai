@@ -239,3 +239,12 @@ _Detailed information is available in the .agents-docs/ directory._
 - Test suite validation after feedback application ensures no regressions from minor wording changes
 - Phase-specific OpenAI model tests: verify all 7 phases (prd, prdToTasks, implement, review, finalize, agentsMd, extendPrd) accept provider-prefixed models
 - Test both agent-specific and phase-specific OpenAI model overrides to ensure proper priority resolution
+
+## Agent Model Argument Construction
+
+- When passing models to agents (opencode/claude), conditionally prepend provider prefix based on model format
+- Provider-prefixed models (openai/gpt-4o, anthropic/claude-sonnet) pass through unchanged to agent
+- Legacy Claude models (claude-sonnet-4-20250514) need 'anthropic/' prepended for opencode agent
+- Use `model.includes('/')` to detect provider-prefixed models
+- Extract model arg construction into testable function with @internal annotation
+- Only opencode agent needs provider prefix transformation, claude agent passes model as-is

@@ -19,6 +19,23 @@ export interface SpawnAgentResult {
 }
 
 /**
+ * Helper function to construct model argument for agents.
+ * @internal
+ */
+export function buildModelArg(agent: AgentType, model: string | undefined): string | undefined {
+  if (!model) return undefined
+
+  if (agent === 'opencode') {
+    // If model already has provider prefix (e.g., openai/gpt-4o), use as-is
+    // Otherwise, prepend anthropic/ for backward compatibility (e.g., claude-sonnet-4)
+    return model.includes('/') ? model : `anthropic/${model}`
+  }
+
+  // Claude agent passes model unchanged
+  return model
+}
+
+/**
  * Spawn an agent subprocess (opencode or claude) and stream output in real-time.
  * @param options - Configuration for spawning the agent
  * @returns Promise resolving to exit code and captured output
@@ -31,21 +48,22 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
   logVerbose(`[Agent] Working directory: ${workingDir}`)
 
   // Build command and args based on agent type
-  // opencode: opencode run [--model anthropic/<model>] "prompt text"
+  // opencode: opencode run [--model <provider>/<model>] "prompt text"
   // claude: claude -p "prompt text" [--model <model>]
   const command = agent === 'opencode' ? 'opencode' : 'claude'
   const args: string[] = []
+  const modelArg = buildModelArg(agent, model)
 
   if (agent === 'opencode') {
     args.push('run')
-    if (model) {
-      args.push('--model', `anthropic/${model}`)
+    if (modelArg) {
+      args.push('--model', modelArg)
     }
     args.push(prompt)
   } else {
     args.push('-p', prompt)
-    if (model) {
-      args.push('--model', model)
+    if (modelArg) {
+      args.push('--model', modelArg)
     }
   }
 

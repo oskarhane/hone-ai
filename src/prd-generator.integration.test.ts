@@ -83,9 +83,11 @@ describe('PRD Generator Integration', () => {
       const { loadConfig } = await import('./config')
       const config = await loadConfig()
 
-      // Model name should match Anthropic API format
-      expect(config.models.claude).toMatch(/^claude-sonnet-4-\d{8}$/)
-      expect(config.models.opencode).toMatch(/^claude-sonnet-4-\d{8}$/)
+      // Model names should match either legacy Claude format or provider-prefixed format
+      const modelRegex =
+        /^(?:(?:openai|anthropic|google)\/[\w.-]+|claude-(?:sonnet|opus)-\d+-\d{8})$/
+      expect(config.models.claude).toMatch(modelRegex)
+      expect(config.models.opencode).toMatch(modelRegex)
     })
   })
 })

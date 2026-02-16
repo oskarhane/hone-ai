@@ -115,3 +115,25 @@ tasks:
       - "npm run build succeeds for all target platforms"
       - "No TypeScript compilation errors"
     completed_at: 2026-02-16T11:43:00.000Z
+
+  - id: task-009
+    title: "still error"
+    description: |
+      I'm getting this error when trying to choose a model provider when using opencode agent.
+      The error is from opencode, not this codebase. So we're not passing in the provider/model in the rihgt way.
+      ProviderModelNotFoundError: ProviderModelNotFoundError
+       data: {
+        providerID: "anthropic",
+        modelID: "openai/gpt-5.2-codex",
+        suggestions: [],
+      },
+
+            at getModel (src/provider/provider.ts:1107:13)
+
+      Error: Model not found: anthropic/openai/gpt-5.2-codex.
+    status: completed
+    dependencies:
+    acceptance_criteria:
+      - "can chose openai/gpt-5.2-codex as the provider/model for opencode"
+      - "verified that it works"
+    completed_at: 2026-02-16T18:15:00.000Z
