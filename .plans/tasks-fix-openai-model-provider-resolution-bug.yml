@@ -11,7 +11,7 @@ tasks:
     status: completed
     dependencies: []
     acceptance_criteria:
-      - "Current regex pattern /^claude-(sonnet|opus)-\d+-\d{8}$/ identified and understood"
+      - 'Current regex pattern /^claude-(sonnet|opus)-\d+-\d{8}$/ identified and understood'
       - "All validation checkpoints in validateConfig() function mapped"
       - "Impact scope documented for agent-specific and phase-specific models"
     completed_at: 2026-02-16T11:25:00.000Z
@@ -24,7 +24,7 @@ tasks:
     dependencies:
       - task-001
     acceptance_criteria:
-      - "Regex accepts Claude models: claude-(sonnet|opus)-\d+-\d{8}"
+      - 'Regex accepts Claude models: claude-(sonnet|opus)-\d+-\d{8}'
       - "Regex accepts OpenAI models: openai/[model-name]"
       - "Pattern rejects invalid formats like malformed-model-123"
       - "Regex documented with examples of valid/invalid patterns"
