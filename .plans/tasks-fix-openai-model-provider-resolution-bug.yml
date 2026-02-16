@@ -1,0 +1,117 @@
+feature: fix-openai-model-provider-resolution-bug
+prd: ./prd-fix-openai-model-provider-resolution-bug.md
+created_at: 2026-02-16T11:19:28.426Z
+updated_at: 2026-02-16T11:19:28.426Z
+
+tasks:
+  - id: task-001
+    title: "Analyze current model validation implementation"
+    description: |
+      Examine the existing modelRegex in validateConfig() function at src/config.ts:221 and understand its current Claude-only pattern. Document the validation scope including agent-specific and phase-specific model validation.
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "Current regex pattern /^claude-(sonnet|opus)-\d+-\d{8}$/ identified and understood"
+      - "All validation checkpoints in validateConfig() function mapped"
+      - "Impact scope documented for agent-specific and phase-specific models"
+    completed_at: 2026-02-16T11:25:00.000Z
+
+  - id: task-002
+    title: "Design multi-provider model validation regex"
+    description: |
+      Create a new regex pattern that accepts both Claude models (claude-sonnet-4-20250514) and OpenAI models (openai/gpt-4o) while maintaining validation strength. The pattern should support provider prefixes and various model naming conventions.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Regex accepts Claude models: claude-(sonnet|opus)-\d+-\d{8}"
+      - "Regex accepts OpenAI models: openai/[model-name]"
+      - "Pattern rejects invalid formats like malformed-model-123"
+      - "Regex documented with examples of valid/invalid patterns"
+    completed_at: null
+
+  - id: task-003
+    title: "Update validateConfig function with new regex"
+    description: |
+      Replace the existing modelRegex in src/config.ts with the new multi-provider pattern. Update error messages to reflect supported model formats for better user guidance.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "modelRegex variable updated with new pattern"
+      - "Error messages updated to mention supported provider formats"
+      - "No changes to validation logic flow or function signature"
+      - "Code compiles without TypeScript errors"
+    completed_at: null
+
+  - id: task-004
+    title: "Add comprehensive unit tests for OpenAI model validation"
+    description: |
+      Extend existing test cases in src/config.test.ts to cover OpenAI model formats for both agent-specific and phase-specific configurations. Ensure backward compatibility with existing Claude model tests.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "Test cases added for valid OpenAI models: openai/gpt-4o, openai/gpt-5.3-codex"
+      - "Test cases added for OpenAI models in phase-specific overrides"
+      - "Test cases added for invalid OpenAI model formats"
+      - "All existing Claude model tests continue to pass"
+      - "Test coverage maintained at current levels"
+    completed_at: null
+
+  - id: task-005
+    title: "Test agent-specific OpenAI model configurations"
+    description: |
+      Verify that OpenAI models can be configured for both opencode and claude agents in the models section of hone.config.yml. Test that validation accepts these configurations and they pass through correctly.
+    status: pending
+    dependencies:
+      - task-004
+    acceptance_criteria:
+      - "Config with opencode: openai/gpt-4o passes validation"
+      - "Config with claude: openai/gpt-4 passes validation"
+      - "Mixed configurations (opencode: openai/gpt-4o, claude: claude-sonnet-4) work"
+      - "resolveModelForPhase() returns OpenAI models unchanged"
+    completed_at: null
+
+  - id: task-006
+    title: "Test phase-specific OpenAI model overrides"
+    description: |
+      Validate that all phase-specific model configurations (prd, implement, review, finalize, etc.) accept OpenAI model formats and pass validation correctly.
+    status: pending
+    dependencies:
+      - task-005
+    acceptance_criteria:
+      - "All phases accept OpenAI models: prd, prdToTasks, implement, review, finalize, agentsMd, extendPrd"
+      - "Phase-specific OpenAI models override agent-specific models correctly"
+      - "resolveModelForPhase() prioritizes phase-specific OpenAI models"
+      - "Mixed phase configurations work (some OpenAI, some Claude)"
+    completed_at: null
+
+  - id: task-007
+    title: "Verify backward compatibility with existing configurations"
+    description: |
+      Test that all existing hone.config.yml files with Claude models continue to work without any changes. Ensure no regression in existing functionality.
+    status: pending
+    dependencies:
+      - task-006
+    acceptance_criteria:
+      - "Existing Claude model configs (claude-sonnet-4-20250514) pass validation"
+      - "Existing phase-specific Claude models work unchanged"
+      - "No changes required to existing hone.config.yml files"
+      - "All existing config test cases pass without modification"
+    completed_at: null
+
+  - id: task-008
+    title: "Run comprehensive validation and build checks"
+    description: |
+      Execute full test suite, linting, formatting, and build commands to ensure all changes integrate correctly with the existing codebase. Fix any issues that arise.
+    status: pending
+    dependencies:
+      - task-007
+    acceptance_criteria:
+      - "npm run test passes with all unit tests green"
+      - "npm run format completes without changes needed"
+      - "eslint . --fix runs clean with no errors"
+      - "npm run build succeeds for all target platforms"
+      - "No TypeScript compilation errors"
+    completed_at: null
