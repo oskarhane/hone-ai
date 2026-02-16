@@ -962,4 +962,132 @@ describe('Config Validation', () => {
     expect(result.valid).toBe(true)
     expect(result.errors.length).toBe(0)
   })
+
+  // Backward compatibility tests for existing Claude model configurations
+  describe('Backward Compatibility with Existing Claude Configurations', () => {
+    test('validateConfig accepts existing Claude sonnet model format', () => {
+      const config: HoneConfig = {
+        defaultAgent: 'claude',
+        models: {
+          opencode: 'claude-sonnet-4-20250514',
+          claude: 'claude-sonnet-4-20250514',
+        },
+      }
+
+      const result = validateConfig(config)
+      expect(result.valid).toBe(true)
+      expect(result.errors.length).toBe(0)
+    })
+
+    test('validateConfig accepts existing Claude opus model format', () => {
+      const config: HoneConfig = {
+        defaultAgent: 'claude',
+        models: {
+          opencode: 'claude-opus-4-20251231',
+          claude: 'claude-opus-4-20251231',
+        },
+      }
+
+      const result = validateConfig(config)
+      expect(result.valid).toBe(true)
+      expect(result.errors.length).toBe(0)
+    })
+
+    test('validateConfig accepts existing phase-specific Claude models unchanged', () => {
+      const config: HoneConfig = {
+        defaultAgent: 'claude',
+        models: {
+          opencode: 'claude-sonnet-4-20250514',
+          claude: 'claude-sonnet-4-20250514',
+          prd: 'claude-opus-4-20250601',
+          prdToTasks: 'claude-sonnet-4-20250701',
+          implement: 'claude-opus-4-20250801',
+          review: 'claude-sonnet-4-20250901',
+          finalize: 'claude-opus-4-20251001',
+          agentsMd: 'claude-sonnet-4-20251101',
+          extendPrd: 'claude-opus-4-20251201',
+        },
+      }
+
+      const result = validateConfig(config)
+      expect(result.valid).toBe(true)
+      expect(result.errors.length).toBe(0)
+    })
+
+    test('resolveModelForPhase works with existing Claude model configs', () => {
+      const config: HoneConfig = {
+        defaultAgent: 'claude',
+        models: {
+          opencode: 'claude-sonnet-4-20250514',
+          claude: 'claude-sonnet-4-20250514',
+          implement: 'claude-opus-4-20250601',
+        },
+      }
+
+      expect(resolveModelForPhase(config)).toBe('claude-sonnet-4-20250514')
+      expect(resolveModelForPhase(config, 'implement')).toBe('claude-opus-4-20250601')
+      expect(resolveModelForPhase(config, 'review')).toBe('claude-sonnet-4-20250514')
+      expect(resolveModelForPhase(config, 'prd', 'opencode')).toBe('claude-sonnet-4-20250514')
+    })
+
+    test('DEFAULT_CONFIG uses valid Claude model format', () => {
+      const config: HoneConfig = {
+        defaultAgent: 'claude',
+        models: {
+          opencode: 'claude-sonnet-4-20250514',
+          claude: 'claude-sonnet-4-20250514',
+        },
+      }
+
+      const result = validateConfig(config)
+      expect(result.valid).toBe(true)
+      expect(result.errors.length).toBe(0)
+    })
+
+    test('Mixed Claude and OpenAI models maintain Claude model compatibility', () => {
+      const config: HoneConfig = {
+        defaultAgent: 'opencode',
+        models: {
+          opencode: 'openai/gpt-4o',
+          claude: 'claude-sonnet-4-20250514',
+          implement: 'claude-opus-4-20250601',
+          review: 'openai/gpt-4',
+        },
+      }
+
+      const result = validateConfig(config)
+      expect(result.valid).toBe(true)
+      expect(result.errors.length).toBe(0)
+
+      // Verify Claude models resolve correctly
+      expect(resolveModelForPhase(config, 'implement')).toBe('claude-opus-4-20250601')
+      expect(resolveModelForPhase(config, 'prd', 'claude')).toBe('claude-sonnet-4-20250514')
+    })
+
+    test('All existing Claude model formats remain valid without changes', () => {
+      // Test various existing Claude model date formats that users might have
+      const validClaudeModels = [
+        'claude-sonnet-4-20250514',
+        'claude-opus-4-20250514',
+        'claude-sonnet-5-20260101',
+        'claude-opus-5-20260101',
+        'claude-sonnet-4-20251231',
+        'claude-opus-4-20251231',
+      ]
+
+      for (const model of validClaudeModels) {
+        const config: HoneConfig = {
+          defaultAgent: 'claude',
+          models: {
+            opencode: model,
+            claude: model,
+          },
+        }
+
+        const result = validateConfig(config)
+        expect(result.valid, `Model ${model} should be valid`).toBe(true)
+        expect(result.errors.length, `Model ${model} should have no errors`).toBe(0)
+      }
+    })
+  })
 })
