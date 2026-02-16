@@ -92,6 +92,7 @@ _Detailed information is available in the .agents-docs/ directory._
 - **Parsing Logic Testing**: Use exact equality matching (`line.trim() === 'FUNCTIONAL REQUIREMENTS:'`) instead of substring matching for reliable section header detection
 - **Test Description Visibility**: Include test case descriptions in assertion messages using `expect(value, description)` pattern for better debugging when parameterized tests fail
 - **Unknown Provider Testing**: When adding multi-provider regex validation, include test for unknown/unsupported provider prefixes to verify rejection (e.g., `mistral/mixtral-8x7b` when only `openai|anthropic|google` supported)
+- **Backward Compatibility Testing**: When extending validation patterns, add dedicated test suite verifying existing configs remain valid - prevents breaking changes
 
 ## YAML File Parsing
 
@@ -121,6 +122,7 @@ _Detailed information is available in the .agents-docs/ directory._
 - Multi-provider model validation: use alternation pattern with provider prefix (`provider/model`) OR legacy format (`claude-opus-\d+-\d{8}`)
 - Character class `[\w.-]+` covers standard model naming (letters, numbers, dots, hyphens, underscores)
 - Full string anchors (`^...$`) prevent partial matches in validation regex
+- Error messages must accurately reflect regex patterns - use generic placeholders (e.g., "N") for variable components (\d+) rather than specific versions
 
 ## AI Response Parsing
 
