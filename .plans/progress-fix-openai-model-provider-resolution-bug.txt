@@ -16,3 +16,43 @@ Key Decisions:
 - resolveModelForPhase() function follows priority: phase-specific > agent-specific > default model
 
 Next Task: task-002 - Design multi-provider model validation regex
+
+================================================================================
+TASK-002: Design multi-provider model validation regex
+Date: 2026-02-16T12:00:00.000Z
+================================================================================
+
+Summary:
+Designed a comprehensive multi-provider model validation regex pattern that supports OpenAI, Anthropic, Google models while maintaining backward compatibility with legacy Claude model formats.
+
+Files Changed:
+- .plans/model-validation-regex-design.md (created - comprehensive documentation)
+- .plans/tasks-fix-openai-model-provider-resolution-bug.yml (to be updated - mark task-002 as completed)
+
+Key Decisions:
+- New regex: /^(?:(?:openai|anthropic|google)\/[\w.-]+|claude-(?:sonnet|opus)-\d+-\d{8})$/
+- Pattern supports provider-prefixed models: openai/, anthropic/, google/
+- Model names allow: letters, numbers, dots, hyphens, underscores ([\w.-]+)
+- Maintains backward compatibility with legacy Claude format: claude-(sonnet|opus)-\d+-\d{8}
+- Provider list (openai|anthropic|google) can be extended for future providers
+
+Design Rationale:
+- Provider prefix pattern flexible enough for current and future AI providers
+- Character class [\w.-]+ covers all common model naming conventions seen in wild
+- Legacy Claude pattern preserved exactly to ensure zero breaking changes
+- Full string anchors (^...$) prevent partial matches and maintain validation strength
+
+Validation Examples:
+Valid:
+- openai/gpt-4o, openai/gpt-5.3-codex (OpenAI models)
+- anthropic/claude-sonnet-4 (Anthropic provider prefix)
+- claude-sonnet-4-20250514 (Legacy format)
+- google/gemini-pro, google/gemini-1.5-flash (Google models)
+
+Invalid:
+- malformed-model-123 (wrong format, no provider)
+- openai/ (missing model name)
+- /gpt-4o (missing provider)
+- openai/gpt 4o (spaces not allowed)
+
+Next Task: task-003 - Update validateConfig function with new regex

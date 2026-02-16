@@ -117,6 +117,9 @@ _Detailed information is available in the .agents-docs/ directory._
 - Test all regex edge cases including file extensions, relative paths, and spurious absolute path detection
 - Filename derivation regex: use capturing groups like `/^prd-(.+)\.md$/` for extracting feature names
 - Validate regex patterns against edge cases: empty captures, missing extensions, special characters
+- Multi-provider model validation: use alternation pattern with provider prefix (`provider/model`) OR legacy format (`claude-opus-\d+-\d{8}`)
+- Character class `[\w.-]+` covers standard model naming (letters, numbers, dots, hyphens, underscores)
+- Full string anchors (`^...$`) prevent partial matches in validation regex
 
 ## AI Response Parsing
 

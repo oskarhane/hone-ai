@@ -20,7 +20,7 @@ tasks:
     title: "Design multi-provider model validation regex"
     description: |
       Create a new regex pattern that accepts both Claude models (claude-sonnet-4-20250514) and OpenAI models (openai/gpt-4o) while maintaining validation strength. The pattern should support provider prefixes and various model naming conventions.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -28,7 +28,7 @@ tasks:
       - "Regex accepts OpenAI models: openai/[model-name]"
       - "Pattern rejects invalid formats like malformed-model-123"
       - "Regex documented with examples of valid/invalid patterns"
-    completed_at: null
+    completed_at: 2026-02-16T12:00:00.000Z
 
   - id: task-003
     title: "Update validateConfig function with new regex"
