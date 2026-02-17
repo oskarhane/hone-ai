@@ -1,7 +1,7 @@
 feature: detection-based-language-agnostic-agentsmd
 prd: ./prd-detection-based-language-agnostic-agentsmd.md
 created_at: 2026-02-17T10:21:03.393Z
-updated_at: 2026-02-17T10:46:34Z
+updated_at: 2026-02-17T12:00:00Z
 
 tasks:
   - id: task-001
@@ -49,7 +49,7 @@ tasks:
     title: "Implement detection for languages and systems"
     description: |
       Replace hardcoded assumptions with detection of primary languages, build system, testing framework, architecture, and deployment. Use repo signals like file extensions, config files, and docs. Preserve existing section names and outputs while switching to detected values.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
@@ -57,7 +57,7 @@ tasks:
       - "Values derived from signals with tags when multiple"
       - "Sections remain present and backward compatible"
       - "Detection covers languages, build, test, arch, deploy"
-    completed_at: null
+    completed_at: 2026-02-17T12:00:00Z
 
   - id: task-005
     title: "Add conflict aggregation formatting"

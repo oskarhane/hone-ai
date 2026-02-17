@@ -99,3 +99,24 @@ Key Decisions:
 - Export command parsing helpers with `@internal` to enable focused unit tests.
 
 Next Task: task-004 - Implement detection for languages and systems
+
+================================================================================
+TASK-004: Implement detection for languages and systems
+Date: 2026-02-17T12:00:00Z
+================================================================================
+
+Summary:
+Added unit coverage for metadata signal collection across config files, workflows, docs, and .agents-docs, plus deterministic dedupe behavior. Exported metadata helpers for tests and documented the testing note.
+
+Files Changed:
+- src/agents-md-generator.ts (modified - exported metadata helpers for unit tests)
+- src/agents-md-generator.test.ts (modified - added metadata detection unit tests)
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - task-004 completion)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (updated - task-004 completion entry)
+- AGENTS.md (modified - testing note for metadata helpers)
+
+Key Decisions:
+- Export metadata signal helpers with `@internal` for focused tests
+- Test config, workflow, docs, and agents-docs detection paths explicitly
+
+Next Task: task-005 - Add conflict aggregation formatting

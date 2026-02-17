@@ -11,7 +11,7 @@ import {
   type AgentType,
 } from './config'
 import { readFile, writeFile, mkdir } from 'fs/promises'
-import { join, relative } from 'path'
+import { extname, join, relative } from 'path'
 import { existsSync, readFileSync, readdirSync } from 'fs'
 import { AgentClient } from './agent-client'
 import { log, logError, logVerbose, logVerboseError } from './logger'
@@ -34,6 +34,7 @@ export interface ProjectAnalysis {
   testingFrameworks: string[]
   dependencies: string[]
   architecture: string[]
+  deployment: string[]
 }
 
 export interface GenerationResult {
@@ -49,6 +50,80 @@ interface TemplateSection {
   content: string
   priority: number
   detailFile?: string
+}
+
+type MetadataSection =
+  | 'languages'
+  | 'buildSystems'
+  | 'testingFrameworks'
+  | 'architecture'
+  | 'deployment'
+
+type MetadataSourceType = 'package.json' | 'workflow' | 'doc' | 'config' | 'agents-docs'
+
+/** @internal */
+export interface MetadataSignal {
+  section: MetadataSection
+  value: string
+  sourceType: MetadataSourceType
+  sourceTag: string
+}
+
+const METADATA_SOURCE_PRIORITY: Record<MetadataSourceType, number> = {
+  'package.json': 0,
+  workflow: 1,
+  doc: 2,
+  config: 3,
+  'agents-docs': 4,
+}
+
+function addMetadataSignal(
+  signals: MetadataSignal[],
+  section: MetadataSection,
+  value: string,
+  sourceType: MetadataSourceType,
+  sourceTag: string
+): void {
+  const normalized = value.trim()
+  if (!normalized) return
+  signals.push({
+    section,
+    value: normalized,
+    sourceType,
+    sourceTag,
+  })
+}
+
+/** @internal */
+export function dedupeMetadataSignals(signals: MetadataSignal[]): MetadataSignal[] {
+  const sorted = [...signals].sort((a, b) => {
+    const sourceCompare =
+      METADATA_SOURCE_PRIORITY[a.sourceType] - METADATA_SOURCE_PRIORITY[b.sourceType]
+    if (sourceCompare !== 0) return sourceCompare
+    const tagCompare = a.sourceTag.localeCompare(b.sourceTag)
+    if (tagCompare !== 0) return tagCompare
+    return a.value.localeCompare(b.value)
+  })
+
+  const seen = new Set<string>()
+  const deduped: MetadataSignal[] = []
+  for (const signal of sorted) {
+    const key = `${signal.section}::${signal.value.toLowerCase()}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    deduped.push(signal)
+  }
+
+  return deduped
+}
+
+function formatMetadataSection(signals: MetadataSignal[], section: MetadataSection): string[] {
+  const sectionSignals = signals.filter(signal => signal.section === section)
+  if (sectionSignals.length === 0) return []
+  const includeTags = sectionSignals.length > 1
+  return sectionSignals.map(signal =>
+    includeTags ? `${signal.value} (${signal.sourceTag})` : signal.value
+  )
 }
 
 /**
@@ -109,107 +184,24 @@ async function analyzeProject(projectPath: string): Promise<ProjectAnalysis> {
     testingFrameworks: [],
     dependencies: [],
     architecture: [],
+    deployment: [],
   }
 
   try {
-    // Package.json analysis for Node.js projects
-    const pkgPath = join(projectPath, 'package.json')
-    if (existsSync(pkgPath)) {
-      try {
-        const pkg = JSON.parse(await readFile(pkgPath, 'utf-8'))
+    const metadataSignals: MetadataSignal[] = []
+    collectPackageJsonMetadataSignals(projectPath, metadataSignals)
+    collectConfigMetadataSignals(projectPath, metadataSignals)
+    collectWorkflowMetadataSignals(projectPath, metadataSignals)
+    collectDocsMetadataSignals(projectPath, metadataSignals)
+    collectAgentsDocsMetadataSignals(projectPath, metadataSignals)
 
-        // Detect languages based on dependencies
-        const allDeps = { ...pkg.dependencies, ...pkg.devDependencies }
-        if (allDeps.typescript || existsSync(join(projectPath, 'tsconfig.json'))) {
-          analysis.languages.push('TypeScript')
-        } else {
-          analysis.languages.push('JavaScript')
-        }
-
-        // Detect frameworks and build systems
-        if (allDeps.react) analysis.dependencies.push('React')
-        if (allDeps.next) analysis.dependencies.push('Next.js')
-        if (allDeps.vue) analysis.dependencies.push('Vue.js')
-        if (allDeps.express) analysis.dependencies.push('Express')
-        if (allDeps.fastify) analysis.dependencies.push('Fastify')
-        if (allDeps['commander'] || allDeps['commander.js'])
-          analysis.dependencies.push('Commander.js')
-
-        // Build systems
-        if (pkg.scripts?.build) analysis.buildSystems.push('npm scripts')
-        if (existsSync(join(projectPath, 'webpack.config.js')))
-          analysis.buildSystems.push('Webpack')
-        if (
-          existsSync(join(projectPath, 'vite.config.ts')) ||
-          existsSync(join(projectPath, 'vite.config.js'))
-        ) {
-          analysis.buildSystems.push('Vite')
-        }
-
-        // Testing frameworks
-        if (allDeps.jest) analysis.testingFrameworks.push('Jest')
-        if (allDeps.vitest) analysis.testingFrameworks.push('Vitest')
-        if (allDeps.mocha) analysis.testingFrameworks.push('Mocha')
-        if (allDeps.bun) {
-          analysis.testingFrameworks.push('Bun Test')
-          analysis.buildSystems.push('Bun')
-        }
-      } catch (error) {
-        logVerbose(`Could not parse package.json: ${error}`)
-      }
-    }
-
-    // Python project detection
-    if (
-      existsSync(join(projectPath, 'requirements.txt')) ||
-      existsSync(join(projectPath, 'pyproject.toml')) ||
-      existsSync(join(projectPath, 'setup.py'))
-    ) {
-      analysis.languages.push('Python')
-
-      if (existsSync(join(projectPath, 'pyproject.toml'))) {
-        analysis.buildSystems.push('Poetry/setuptools')
-      }
-    }
-
-    // Java project detection
-    if (existsSync(join(projectPath, 'pom.xml'))) {
-      analysis.languages.push('Java')
-      analysis.buildSystems.push('Maven')
-    }
-    if (
-      existsSync(join(projectPath, 'build.gradle')) ||
-      existsSync(join(projectPath, 'build.gradle.kts'))
-    ) {
-      analysis.languages.push('Java/Kotlin')
-      analysis.buildSystems.push('Gradle')
-    }
-
-    // Go project detection
-    if (existsSync(join(projectPath, 'go.mod'))) {
-      analysis.languages.push('Go')
-      analysis.buildSystems.push('Go modules')
-    }
-
-    // Rust project detection
-    if (existsSync(join(projectPath, 'Cargo.toml'))) {
-      analysis.languages.push('Rust')
-      analysis.buildSystems.push('Cargo')
-    }
-
-    // Architecture patterns
-    if (existsSync(join(projectPath, 'src'))) {
-      analysis.architecture.push('src/ directory structure')
-    }
-    if (existsSync(join(projectPath, 'docker-compose.yml'))) {
-      analysis.architecture.push('Docker Compose')
-    }
-    if (existsSync(join(projectPath, 'Dockerfile'))) {
-      analysis.architecture.push('Docker containerization')
-    }
-    if (existsSync(join(projectPath, '.github/workflows'))) {
-      analysis.architecture.push('GitHub Actions CI/CD')
-    }
+    const deduped = dedupeMetadataSignals(metadataSignals)
+    analysis.languages = formatMetadataSection(deduped, 'languages')
+    analysis.buildSystems = formatMetadataSection(deduped, 'buildSystems')
+    analysis.testingFrameworks = formatMetadataSection(deduped, 'testingFrameworks')
+    analysis.architecture = formatMetadataSection(deduped, 'architecture')
+    analysis.deployment = formatMetadataSection(deduped, 'deployment')
+    analysis.dependencies = collectPackageJsonDependencies(projectPath)
 
     logVerbose(`[AgentsMd] Project analysis complete: ${JSON.stringify(analysis, null, 2)}`)
     return analysis
@@ -218,6 +210,475 @@ async function analyzeProject(projectPath: string): Promise<ProjectAnalysis> {
       `[AgentsMd] Error analyzing project: ${error instanceof Error ? error.message : error}`
     )
     return analysis // Return partial analysis on error
+  }
+}
+
+function readPackageJson(projectPath: string): Record<string, unknown> | null {
+  const pkgPath = join(projectPath, 'package.json')
+  if (!existsSync(pkgPath)) return null
+  try {
+    return JSON.parse(readFileSync(pkgPath, 'utf-8')) as Record<string, unknown>
+  } catch (error) {
+    logVerbose(`Could not parse package.json: ${error}`)
+    return null
+  }
+}
+
+function collectPackageJsonDependencies(projectPath: string): string[] {
+  const pkg = readPackageJson(projectPath)
+  if (!pkg) return []
+  const deps = {
+    ...(pkg.dependencies as Record<string, string> | undefined),
+    ...(pkg.devDependencies as Record<string, string> | undefined),
+  }
+  const detected: string[] = []
+
+  if (deps.react) detected.push('React')
+  if (deps.next) detected.push('Next.js')
+  if (deps.vue) detected.push('Vue.js')
+  if (deps.express) detected.push('Express')
+  if (deps.fastify) detected.push('Fastify')
+  if (deps['commander'] || deps['commander.js']) detected.push('Commander.js')
+
+  return detected
+}
+
+function collectPackageJsonMetadataSignals(projectPath: string, signals: MetadataSignal[]): void {
+  const pkg = readPackageJson(projectPath)
+  if (!pkg) return
+  const sourceTag = 'package.json'
+  const deps = {
+    ...(pkg.dependencies as Record<string, string> | undefined),
+    ...(pkg.devDependencies as Record<string, string> | undefined),
+  }
+
+  const scripts = pkg.scripts as Record<string, string> | undefined
+  if (scripts && Object.keys(scripts).length > 0) {
+    addMetadataSignal(signals, 'buildSystems', 'npm scripts', 'package.json', sourceTag)
+  }
+
+  const packageManager = typeof pkg.packageManager === 'string' ? pkg.packageManager : ''
+  if (packageManager.startsWith('bun')) {
+    addMetadataSignal(signals, 'buildSystems', 'Bun', 'package.json', sourceTag)
+  }
+  if (packageManager.startsWith('pnpm')) {
+    addMetadataSignal(signals, 'buildSystems', 'pnpm', 'package.json', sourceTag)
+  }
+  if (packageManager.startsWith('yarn')) {
+    addMetadataSignal(signals, 'buildSystems', 'Yarn', 'package.json', sourceTag)
+  }
+  if (packageManager.startsWith('npm')) {
+    addMetadataSignal(signals, 'buildSystems', 'npm', 'package.json', sourceTag)
+  }
+
+  if (deps.typescript || deps['ts-node'] || deps.tsx) {
+    addMetadataSignal(signals, 'languages', 'TypeScript', 'package.json', sourceTag)
+  }
+
+  if (deps.jest) addMetadataSignal(signals, 'testingFrameworks', 'Jest', 'package.json', sourceTag)
+  if (deps.vitest)
+    addMetadataSignal(signals, 'testingFrameworks', 'Vitest', 'package.json', sourceTag)
+  if (deps.mocha)
+    addMetadataSignal(signals, 'testingFrameworks', 'Mocha', 'package.json', sourceTag)
+  if (deps.bun)
+    addMetadataSignal(signals, 'testingFrameworks', 'Bun Test', 'package.json', sourceTag)
+  if (deps['@playwright/test'] || deps.playwright) {
+    addMetadataSignal(signals, 'testingFrameworks', 'Playwright', 'package.json', sourceTag)
+  }
+  if (deps.cypress)
+    addMetadataSignal(signals, 'testingFrameworks', 'Cypress', 'package.json', sourceTag)
+
+  if (deps.vite) addMetadataSignal(signals, 'buildSystems', 'Vite', 'package.json', sourceTag)
+  if (deps.webpack) addMetadataSignal(signals, 'buildSystems', 'Webpack', 'package.json', sourceTag)
+  if (deps.parcel) addMetadataSignal(signals, 'buildSystems', 'Parcel', 'package.json', sourceTag)
+  if (deps.rollup) addMetadataSignal(signals, 'buildSystems', 'Rollup', 'package.json', sourceTag)
+  if (deps.esbuild) addMetadataSignal(signals, 'buildSystems', 'esbuild', 'package.json', sourceTag)
+}
+
+function listFilesByExtensions(
+  root: string,
+  extensions: Set<string>,
+  ignoreDirs: Set<string>
+): string[] {
+  const files: string[] = []
+  try {
+    const entries = readdirSync(root, { withFileTypes: true })
+    for (const entry of entries) {
+      const entryPath = join(root, entry.name)
+      if (entry.isDirectory()) {
+        if (ignoreDirs.has(entry.name)) continue
+        files.push(...listFilesByExtensions(entryPath, extensions, ignoreDirs))
+      } else if (entry.isFile()) {
+        const ext = extname(entry.name).toLowerCase()
+        if (extensions.has(ext)) {
+          files.push(entryPath)
+        }
+      }
+    }
+  } catch (error) {
+    logVerbose('[AgentsMd] Could not read directory during metadata discovery')
+  }
+
+  return files.sort()
+}
+
+/** @internal */
+export function collectConfigMetadataSignals(projectPath: string, signals: MetadataSignal[]): void {
+  const ignoreDirs = new Set([
+    '.git',
+    'node_modules',
+    'dist',
+    'build',
+    'coverage',
+    '.next',
+    'out',
+    '.agents',
+    AGENTS_DOCS_DIR,
+    '.plans',
+  ])
+
+  const extensionMap: Record<string, string> = {
+    '.ts': 'TypeScript',
+    '.tsx': 'TypeScript',
+    '.js': 'JavaScript',
+    '.jsx': 'JavaScript',
+    '.mjs': 'JavaScript',
+    '.cjs': 'JavaScript',
+    '.py': 'Python',
+    '.go': 'Go',
+    '.rs': 'Rust',
+    '.java': 'Java',
+    '.kt': 'Kotlin',
+    '.kts': 'Kotlin',
+    '.rb': 'Ruby',
+    '.php': 'PHP',
+    '.cs': 'C#',
+  }
+
+  const extensions = new Set(Object.keys(extensionMap))
+  const files = listFilesByExtensions(projectPath, extensions, ignoreDirs)
+  const seenExtensions = new Set<string>()
+  for (const filePath of files) {
+    const ext = extname(filePath).toLowerCase()
+    if (seenExtensions.has(ext)) continue
+    const language = extensionMap[ext]
+    if (!language) continue
+    seenExtensions.add(ext)
+    addMetadataSignal(signals, 'languages', language, 'config', `config:ext:${ext.slice(1)}`)
+  }
+
+  if (existsSync(join(projectPath, 'tsconfig.json'))) {
+    addMetadataSignal(signals, 'languages', 'TypeScript', 'config', 'config:tsconfig')
+  }
+  if (existsSync(join(projectPath, 'jsconfig.json'))) {
+    addMetadataSignal(signals, 'languages', 'JavaScript', 'config', 'config:jsconfig')
+  }
+
+  if (existsSync(join(projectPath, 'go.mod'))) {
+    addMetadataSignal(signals, 'languages', 'Go', 'config', 'config:go.mod')
+    addMetadataSignal(signals, 'buildSystems', 'Go modules', 'config', 'config:go.mod')
+  }
+  if (existsSync(join(projectPath, 'Cargo.toml'))) {
+    addMetadataSignal(signals, 'languages', 'Rust', 'config', 'config:cargo.toml')
+    addMetadataSignal(signals, 'buildSystems', 'Cargo', 'config', 'config:cargo.toml')
+  }
+  if (existsSync(join(projectPath, 'pom.xml'))) {
+    addMetadataSignal(signals, 'languages', 'Java', 'config', 'config:pom.xml')
+    addMetadataSignal(signals, 'buildSystems', 'Maven', 'config', 'config:pom.xml')
+  }
+  if (
+    existsSync(join(projectPath, 'build.gradle')) ||
+    existsSync(join(projectPath, 'build.gradle.kts'))
+  ) {
+    addMetadataSignal(signals, 'languages', 'Java/Kotlin', 'config', 'config:gradle')
+    addMetadataSignal(signals, 'buildSystems', 'Gradle', 'config', 'config:gradle')
+  }
+
+  if (
+    existsSync(join(projectPath, 'requirements.txt')) ||
+    existsSync(join(projectPath, 'pyproject.toml')) ||
+    existsSync(join(projectPath, 'setup.py'))
+  ) {
+    addMetadataSignal(signals, 'languages', 'Python', 'config', 'config:python')
+  }
+
+  const pyprojectPath = join(projectPath, 'pyproject.toml')
+  if (existsSync(pyprojectPath)) {
+    try {
+      const pyproject = readFileSync(pyprojectPath, 'utf-8').toLowerCase()
+      if (pyproject.includes('[tool.poetry]')) {
+        addMetadataSignal(signals, 'buildSystems', 'Poetry', 'config', 'config:pyproject')
+      } else if (pyproject.includes('[tool.hatch]')) {
+        addMetadataSignal(signals, 'buildSystems', 'Hatch', 'config', 'config:pyproject')
+      } else if (pyproject.includes('[tool.flit]')) {
+        addMetadataSignal(signals, 'buildSystems', 'Flit', 'config', 'config:pyproject')
+      } else if (pyproject.includes('[build-system]')) {
+        addMetadataSignal(
+          signals,
+          'buildSystems',
+          'PEP 517 build backend',
+          'config',
+          'config:pyproject'
+        )
+      }
+    } catch (error) {
+      logVerbose('[AgentsMd] Could not read pyproject.toml for build detection')
+    }
+  }
+
+  if (existsSync(join(projectPath, 'bun.lock')) || existsSync(join(projectPath, 'bun.lockb'))) {
+    addMetadataSignal(signals, 'buildSystems', 'Bun', 'config', 'config:bun.lock')
+  }
+  if (existsSync(join(projectPath, 'package-lock.json'))) {
+    addMetadataSignal(signals, 'buildSystems', 'npm', 'config', 'config:package-lock')
+  }
+  if (existsSync(join(projectPath, 'yarn.lock'))) {
+    addMetadataSignal(signals, 'buildSystems', 'Yarn', 'config', 'config:yarn.lock')
+  }
+  if (existsSync(join(projectPath, 'pnpm-lock.yaml'))) {
+    addMetadataSignal(signals, 'buildSystems', 'pnpm', 'config', 'config:pnpm-lock')
+  }
+  if (existsSync(join(projectPath, 'Makefile'))) {
+    addMetadataSignal(signals, 'buildSystems', 'Make', 'config', 'config:makefile')
+  }
+  if (
+    existsSync(join(projectPath, 'vite.config.ts')) ||
+    existsSync(join(projectPath, 'vite.config.js'))
+  ) {
+    addMetadataSignal(signals, 'buildSystems', 'Vite', 'config', 'config:vite')
+  }
+  if (
+    existsSync(join(projectPath, 'webpack.config.js')) ||
+    existsSync(join(projectPath, 'webpack.config.ts'))
+  )
+    addMetadataSignal(signals, 'buildSystems', 'Webpack', 'config', 'config:webpack')
+  if (existsSync(join(projectPath, '.parcelrc'))) {
+    addMetadataSignal(signals, 'buildSystems', 'Parcel', 'config', 'config:parcel')
+  }
+  if (
+    existsSync(join(projectPath, 'rollup.config.js')) ||
+    existsSync(join(projectPath, 'rollup.config.ts'))
+  ) {
+    addMetadataSignal(signals, 'buildSystems', 'Rollup', 'config', 'config:rollup')
+  }
+
+  if (
+    existsSync(join(projectPath, 'jest.config.js')) ||
+    existsSync(join(projectPath, 'jest.config.ts'))
+  )
+    addMetadataSignal(signals, 'testingFrameworks', 'Jest', 'config', 'config:jest')
+  if (
+    existsSync(join(projectPath, 'vitest.config.js')) ||
+    existsSync(join(projectPath, 'vitest.config.ts'))
+  ) {
+    addMetadataSignal(signals, 'testingFrameworks', 'Vitest', 'config', 'config:vitest')
+  }
+  if (
+    existsSync(join(projectPath, 'playwright.config.ts')) ||
+    existsSync(join(projectPath, 'playwright.config.js'))
+  ) {
+    addMetadataSignal(signals, 'testingFrameworks', 'Playwright', 'config', 'config:playwright')
+  }
+  if (
+    existsSync(join(projectPath, 'cypress.config.ts')) ||
+    existsSync(join(projectPath, 'cypress.config.js'))
+  ) {
+    addMetadataSignal(signals, 'testingFrameworks', 'Cypress', 'config', 'config:cypress')
+  }
+  if (existsSync(join(projectPath, 'pytest.ini')))
+    addMetadataSignal(signals, 'testingFrameworks', 'pytest', 'config', 'config:pytest')
+  if (existsSync(join(projectPath, 'tox.ini')))
+    addMetadataSignal(signals, 'testingFrameworks', 'tox', 'config', 'config:tox')
+
+  if (existsSync(join(projectPath, 'src'))) {
+    addMetadataSignal(signals, 'architecture', 'src/ directory structure', 'config', 'config:src')
+  }
+  if (existsSync(join(projectPath, 'apps')) || existsSync(join(projectPath, 'packages'))) {
+    addMetadataSignal(
+      signals,
+      'architecture',
+      'monorepo workspace layout',
+      'config',
+      'config:workspaces'
+    )
+  }
+  if (existsSync(join(projectPath, 'docker-compose.yml'))) {
+    addMetadataSignal(signals, 'architecture', 'Docker Compose', 'config', 'config:docker-compose')
+    addMetadataSignal(signals, 'deployment', 'Docker Compose', 'config', 'config:docker-compose')
+  }
+  if (existsSync(join(projectPath, 'Dockerfile'))) {
+    addMetadataSignal(
+      signals,
+      'architecture',
+      'Docker containerization',
+      'config',
+      'config:dockerfile'
+    )
+    addMetadataSignal(
+      signals,
+      'deployment',
+      'Docker containerization',
+      'config',
+      'config:dockerfile'
+    )
+  }
+
+  if (existsSync(join(projectPath, 'vercel.json'))) {
+    addMetadataSignal(signals, 'deployment', 'Vercel', 'config', 'config:vercel')
+  }
+  if (existsSync(join(projectPath, 'netlify.toml'))) {
+    addMetadataSignal(signals, 'deployment', 'Netlify', 'config', 'config:netlify')
+  }
+  if (existsSync(join(projectPath, 'fly.toml'))) {
+    addMetadataSignal(signals, 'deployment', 'Fly.io', 'config', 'config:fly')
+  }
+  if (existsSync(join(projectPath, 'render.yaml')) || existsSync(join(projectPath, 'render.yml'))) {
+    addMetadataSignal(signals, 'deployment', 'Render', 'config', 'config:render')
+  }
+  if (existsSync(join(projectPath, 'railway.json'))) {
+    addMetadataSignal(signals, 'deployment', 'Railway', 'config', 'config:railway')
+  }
+}
+
+/** @internal */
+export function collectWorkflowMetadataSignals(
+  projectPath: string,
+  signals: MetadataSignal[]
+): void {
+  const workflowsPath = join(projectPath, WORKFLOW_DIR)
+  if (!existsSync(workflowsPath)) return
+  try {
+    const workflowFiles = readdirSync(workflowsPath)
+      .filter(file => file.endsWith('.yml') || file.endsWith('.yaml'))
+      .sort()
+    if (workflowFiles.length === 0) return
+    const sourceTag = `workflow:${workflowFiles[0]}`
+    addMetadataSignal(signals, 'architecture', 'GitHub Actions CI/CD', 'workflow', sourceTag)
+    addMetadataSignal(signals, 'deployment', 'GitHub Actions CI/CD', 'workflow', sourceTag)
+  } catch (error) {
+    logVerbose('[AgentsMd] Could not read workflow metadata')
+  }
+}
+
+function extractBracketedList(content: string, label: string): string[] {
+  const regex = new RegExp(`^\\s*${label}\\s*:\\s*\\[([^\\]]*)\\]`, 'im')
+  const match = content.match(regex)
+  if (!match) return []
+  const list = match[1] ?? ''
+  return list
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean)
+}
+
+function extractLabeledValue(content: string, label: string): string {
+  const regex = new RegExp(`^\\s*${label}\\s*:\\s*(.+)$`, 'im')
+  const match = content.match(regex)
+  return match?.[1]?.trim() ?? ''
+}
+
+/** @internal */
+export function collectDocsMetadataSignals(projectPath: string, signals: MetadataSignal[]): void {
+  const files = listMarkdownFiles(projectPath)
+  for (const filePath of files) {
+    let content = ''
+    try {
+      content = readFileSync(filePath, 'utf-8')
+    } catch (error) {
+      logVerbose('[AgentsMd] Could not read markdown for metadata discovery')
+      continue
+    }
+    const relativePath = relative(projectPath, filePath)
+    const sourceTag = `doc:${relativePath}`
+
+    for (const language of extractBracketedList(content, 'PRIMARY LANGUAGES')) {
+      addMetadataSignal(signals, 'languages', language, 'doc', sourceTag)
+    }
+    for (const system of extractBracketedList(content, 'BUILD SYSTEMS')) {
+      addMetadataSignal(signals, 'buildSystems', system, 'doc', sourceTag)
+    }
+    for (const framework of extractBracketedList(content, 'TESTING FRAMEWORKS')) {
+      addMetadataSignal(signals, 'testingFrameworks', framework, 'doc', sourceTag)
+    }
+
+    const architectureLabels = [
+      'ARCHITECTURE PATTERN',
+      'DIRECTORY STRUCTURE',
+      'DESIGN PATTERNS',
+      'DATABASE',
+      'API DESIGN',
+    ]
+    for (const label of architectureLabels) {
+      const value = extractLabeledValue(content, label)
+      if (value) addMetadataSignal(signals, 'architecture', value, 'doc', sourceTag)
+    }
+
+    const deploymentLabels = [
+      'DEPLOYMENT STRATEGY',
+      'CONTAINERIZATION',
+      'CI/CD',
+      'HOSTING',
+      'ENVIRONMENT MANAGEMENT',
+    ]
+    for (const label of deploymentLabels) {
+      const value = extractLabeledValue(content, label)
+      if (value) addMetadataSignal(signals, 'deployment', value, 'doc', sourceTag)
+    }
+  }
+}
+
+/** @internal */
+export function collectAgentsDocsMetadataSignals(
+  projectPath: string,
+  signals: MetadataSignal[]
+): void {
+  const agentsDocsPath = join(projectPath, AGENTS_DOCS_DIR)
+  if (!existsSync(agentsDocsPath)) return
+  const files = listFilesRecursive(agentsDocsPath, filePath => filePath.endsWith('.md'))
+  for (const filePath of files) {
+    let content = ''
+    try {
+      content = readFileSync(filePath, 'utf-8')
+    } catch (error) {
+      logVerbose('[AgentsMd] Could not read agents-docs metadata file')
+      continue
+    }
+    const relativePath = relative(agentsDocsPath, filePath)
+    const sourceTag = `agents-docs:${relativePath}`
+
+    for (const language of extractBracketedList(content, 'PRIMARY LANGUAGES')) {
+      addMetadataSignal(signals, 'languages', language, 'agents-docs', sourceTag)
+    }
+    for (const system of extractBracketedList(content, 'BUILD SYSTEMS')) {
+      addMetadataSignal(signals, 'buildSystems', system, 'agents-docs', sourceTag)
+    }
+    for (const framework of extractBracketedList(content, 'TESTING FRAMEWORKS')) {
+      addMetadataSignal(signals, 'testingFrameworks', framework, 'agents-docs', sourceTag)
+    }
+
+    const architectureLabels = [
+      'ARCHITECTURE PATTERN',
+      'DIRECTORY STRUCTURE',
+      'DESIGN PATTERNS',
+      'DATABASE',
+      'API DESIGN',
+    ]
+    for (const label of architectureLabels) {
+      const value = extractLabeledValue(content, label)
+      if (value) addMetadataSignal(signals, 'architecture', value, 'agents-docs', sourceTag)
+    }
+
+    const deploymentLabels = [
+      'DEPLOYMENT STRATEGY',
+      'CONTAINERIZATION',
+      'CI/CD',
+      'HOSTING',
+      'ENVIRONMENT MANAGEMENT',
+    ]
+    for (const label of deploymentLabels) {
+      const value = extractLabeledValue(content, label)
+      if (value) addMetadataSignal(signals, 'deployment', value, 'agents-docs', sourceTag)
+    }
   }
 }
 
@@ -1048,7 +1509,10 @@ function createTemplateSections(
   }
 
   // Lower priority sections (include if space allows)
-  const deploymentContent = scanResults.deployment || ''
+  const deploymentContent = getContentWithFallback(
+    scanResults.deployment || '',
+    analysis.deployment
+  )
   if (deploymentContent && !deploymentContent.includes('not available')) {
     sections.push({
       title: 'Deployment',

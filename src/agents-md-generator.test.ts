@@ -1,6 +1,18 @@
 import { describe, expect, test, beforeEach, afterEach, mock } from 'bun:test'
-import { generateAgentsMd, AGENTS_DOCS_DIR } from './agents-md-generator'
-import type { AgentsMdGeneratorOptions, GenerationResult } from './agents-md-generator'
+import {
+  generateAgentsMd,
+  AGENTS_DOCS_DIR,
+  collectConfigMetadataSignals,
+  collectWorkflowMetadataSignals,
+  collectDocsMetadataSignals,
+  collectAgentsDocsMetadataSignals,
+  dedupeMetadataSignals,
+} from './agents-md-generator'
+import type {
+  AgentsMdGeneratorOptions,
+  GenerationResult,
+  MetadataSignal,
+} from './agents-md-generator'
 import { existsSync, mkdirSync, rmSync } from 'fs'
 import { join } from 'path'
 import * as fs from 'fs/promises'
@@ -356,5 +368,147 @@ describe('agents-md-generator', () => {
       expect(content).toMatch(/## Project Overview/)
       expect(content).toMatch(/## Build System/)
     }
+  })
+
+  test('collectConfigMetadataSignals detects metadata from config files', async () => {
+    await fs.mkdir('src', { recursive: true })
+    await fs.writeFile('src/index.ts', 'export const value = 1', 'utf-8')
+    await fs.writeFile('tsconfig.json', '{}', 'utf-8')
+    await fs.writeFile('Dockerfile', 'FROM node:18', 'utf-8')
+    await fs.writeFile('docker-compose.yml', 'version: "3"', 'utf-8')
+    await fs.writeFile('jest.config.js', 'module.exports = {}', 'utf-8')
+    await fs.writeFile('vite.config.ts', 'export default {}', 'utf-8')
+
+    const signals: MetadataSignal[] = []
+    collectConfigMetadataSignals(process.cwd(), signals)
+
+    const signalKeys = new Set(
+      signals.map(
+        signal => `${signal.section}|${signal.value}|${signal.sourceType}|${signal.sourceTag}`
+      )
+    )
+
+    expect(signalKeys).toContain('languages|TypeScript|config|config:ext:ts')
+    expect(signalKeys).toContain('languages|TypeScript|config|config:tsconfig')
+    expect(signalKeys).toContain('buildSystems|Vite|config|config:vite')
+    expect(signalKeys).toContain('testingFrameworks|Jest|config|config:jest')
+    expect(signalKeys).toContain('architecture|src/ directory structure|config|config:src')
+    expect(signalKeys).toContain('deployment|Docker containerization|config|config:dockerfile')
+    expect(signalKeys).toContain('deployment|Docker Compose|config|config:docker-compose')
+  })
+
+  test('collectWorkflowMetadataSignals detects workflow metadata', async () => {
+    const workflowsPath = join('.github', 'workflows')
+    await fs.mkdir(workflowsPath, { recursive: true })
+    await fs.writeFile(join(workflowsPath, 'ci.yml'), 'name: ci', 'utf-8')
+
+    const signals: MetadataSignal[] = []
+    collectWorkflowMetadataSignals(process.cwd(), signals)
+
+    const signalKeys = new Set(
+      signals.map(
+        signal => `${signal.section}|${signal.value}|${signal.sourceType}|${signal.sourceTag}`
+      )
+    )
+
+    expect(signalKeys).toContain('architecture|GitHub Actions CI/CD|workflow|workflow:ci.yml')
+    expect(signalKeys).toContain('deployment|GitHub Actions CI/CD|workflow|workflow:ci.yml')
+  })
+
+  test('collectDocsMetadataSignals reads metadata from docs', async () => {
+    await fs.writeFile(
+      'README.md',
+      [
+        'PRIMARY LANGUAGES: [TypeScript, Go]',
+        'BUILD SYSTEMS: [Bun]',
+        'TESTING FRAMEWORKS: [Vitest]',
+        'ARCHITECTURE PATTERN: CLI orchestration',
+        'DEPLOYMENT STRATEGY: Vercel',
+      ].join('\n'),
+      'utf-8'
+    )
+
+    const signals: MetadataSignal[] = []
+    collectDocsMetadataSignals(process.cwd(), signals)
+
+    const signalKeys = new Set(
+      signals.map(
+        signal => `${signal.section}|${signal.value}|${signal.sourceType}|${signal.sourceTag}`
+      )
+    )
+
+    expect(signalKeys).toContain('languages|TypeScript|doc|doc:README.md')
+    expect(signalKeys).toContain('languages|Go|doc|doc:README.md')
+    expect(signalKeys).toContain('buildSystems|Bun|doc|doc:README.md')
+    expect(signalKeys).toContain('testingFrameworks|Vitest|doc|doc:README.md')
+    expect(signalKeys).toContain('architecture|CLI orchestration|doc|doc:README.md')
+    expect(signalKeys).toContain('deployment|Vercel|doc|doc:README.md')
+  })
+
+  test('collectAgentsDocsMetadataSignals reads metadata from agents-docs', async () => {
+    const agentsDocsPath = join(process.cwd(), AGENTS_DOCS_DIR)
+    await fs.mkdir(agentsDocsPath, { recursive: true })
+    await fs.writeFile(
+      join(agentsDocsPath, 'metadata.md'),
+      [
+        'PRIMARY LANGUAGES: [Rust]',
+        'BUILD SYSTEMS: [Cargo]',
+        'TESTING FRAMEWORKS: [pytest]',
+        'ARCHITECTURE PATTERN: event-driven',
+        'DEPLOYMENT STRATEGY: Fly.io',
+      ].join('\n'),
+      'utf-8'
+    )
+
+    const signals: MetadataSignal[] = []
+    collectAgentsDocsMetadataSignals(process.cwd(), signals)
+
+    const signalKeys = new Set(
+      signals.map(
+        signal => `${signal.section}|${signal.value}|${signal.sourceType}|${signal.sourceTag}`
+      )
+    )
+
+    expect(signalKeys).toContain('languages|Rust|agents-docs|agents-docs:metadata.md')
+    expect(signalKeys).toContain('buildSystems|Cargo|agents-docs|agents-docs:metadata.md')
+    expect(signalKeys).toContain('testingFrameworks|pytest|agents-docs|agents-docs:metadata.md')
+    expect(signalKeys).toContain('architecture|event-driven|agents-docs|agents-docs:metadata.md')
+    expect(signalKeys).toContain('deployment|Fly.io|agents-docs|agents-docs:metadata.md')
+  })
+
+  test('dedupeMetadataSignals removes duplicates deterministically', () => {
+    const signals: MetadataSignal[] = [
+      {
+        section: 'languages',
+        value: 'TypeScript',
+        sourceType: 'doc',
+        sourceTag: 'doc:README.md',
+      },
+      {
+        section: 'languages',
+        value: 'typescript',
+        sourceType: 'config',
+        sourceTag: 'config:tsconfig',
+      },
+      {
+        section: 'buildSystems',
+        value: 'Bun',
+        sourceType: 'config',
+        sourceTag: 'config:bun.lock',
+      },
+    ]
+
+    const deduped = dedupeMetadataSignals(signals)
+
+    expect(deduped).toHaveLength(2)
+    expect(deduped[0]).toMatchObject({
+      section: 'languages',
+      value: 'TypeScript',
+      sourceType: 'doc',
+    })
+    expect(deduped[1]).toMatchObject({
+      section: 'buildSystems',
+      value: 'Bun',
+    })
   })
 })
