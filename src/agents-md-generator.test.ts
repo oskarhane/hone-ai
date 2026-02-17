@@ -6,6 +6,7 @@ import {
   collectWorkflowMetadataSignals,
   collectDocsMetadataSignals,
   collectAgentsDocsMetadataSignals,
+  collectCommandSignals,
   dedupeMetadataSignals,
   isUnavailableAgentResult,
   extractPreservableContent,
@@ -15,6 +16,7 @@ import type {
   AgentsMdGeneratorOptions,
   GenerationResult,
   MetadataSignal,
+  ProjectAnalysis,
 } from './agents-md-generator'
 import { existsSync, mkdirSync, rmSync } from 'fs'
 import { join } from 'path'
@@ -600,5 +602,132 @@ describe('agents-md-generator', () => {
     expect(preserved).not.toContain('Generated Subsection')
     expect(preserved).not.toContain('## Testing Framework')
     expect(preserved).not.toContain('Nested Generated')
+  })
+
+  test('collectCommandSignals aggregates multi-source commands with tags and deterministic order', async () => {
+    await fs.writeFile(
+      'package.json',
+      JSON.stringify({
+        name: 'command-test',
+        scripts: {
+          test: 'bun test',
+          lint: 'eslint . --fix',
+          build: 'bun run build',
+        },
+      }),
+      'utf-8'
+    )
+
+    await fs.mkdir(join('.github', 'workflows'), { recursive: true })
+    await fs.writeFile(
+      join('.github', 'workflows', 'ci.yml'),
+      ['run: bun test', 'run: prettier --write "**/*.ts"'].join('\n'),
+      'utf-8'
+    )
+
+    await fs.writeFile('README.md', 'Run `bun test` and `npm run build`.\n', 'utf-8')
+    await fs.writeFile('.eslintrc', '{}', 'utf-8')
+    await fs.writeFile('.prettierrc', '{}', 'utf-8')
+
+    const agentsDocsPath = join(process.cwd(), AGENTS_DOCS_DIR)
+    await fs.mkdir(agentsDocsPath, { recursive: true })
+    await fs.writeFile(
+      join(agentsDocsPath, 'commands.md'),
+      ['```sh', 'yamllint -c .yamllint.yml **/*.yml **/*.yaml', '```'].join('\n'),
+      'utf-8'
+    )
+
+    const analysis: ProjectAnalysis = {
+      languages: [],
+      buildSystems: ['Bun'],
+      testingFrameworks: ['Bun Test'],
+      dependencies: [],
+      architecture: [],
+      deployment: [],
+    }
+
+    const signals = collectCommandSignals(process.cwd(), analysis)
+    const signalKeys = new Set(
+      signals.map(
+        signal => `${signal.category}|${signal.command}|${signal.sourceType}|${signal.sourceTag}`
+      )
+    )
+
+    expect(signalKeys).toContain('tests|npm run test|package.json|package.json')
+    expect(signalKeys).toContain('tests|bun test|workflow|workflow:ci.yml')
+    expect(signalKeys).toContain('format|prettier --write "**/*.ts"|workflow|workflow:ci.yml')
+    expect(signalKeys).toContain('tests|bun test|doc|doc:README.md')
+    expect(signalKeys).toContain('build|npm run build|doc|doc:README.md')
+    expect(signalKeys).toContain('lint|eslint . --fix|config|config:eslint')
+    expect(signalKeys).toContain(
+      'format|prettier --write "**/*.{ts,tsx,js,jsx}"|config|config:prettier'
+    )
+    expect(signalKeys).toContain(
+      'yamlLint|yamllint -c .yamllint.yml **/*.yml **/*.yaml|agents-docs|agents-docs:commands.md'
+    )
+    expect(signalKeys).toContain('tests|bun test|analysis|analysis:bun')
+    expect(signalKeys).toContain('build|bun run build|analysis|analysis:bun')
+
+    const sourceTypes = new Set(signals.map(signal => signal.sourceType))
+    expect(sourceTypes.has('package.json')).toBe(true)
+    expect(sourceTypes.has('workflow')).toBe(true)
+    expect(sourceTypes.has('doc')).toBe(true)
+    expect(sourceTypes.has('config')).toBe(true)
+    expect(sourceTypes.has('agents-docs')).toBe(true)
+    expect(sourceTypes.has('analysis')).toBe(true)
+
+    const sourcePriority: Record<string, number> = {
+      'package.json': 0,
+      workflow: 1,
+      doc: 2,
+      config: 3,
+      'agents-docs': 4,
+      analysis: 5,
+    }
+
+    const sorted = [...signals].sort((a, b) => {
+      const aPriority = sourcePriority[a.sourceType] ?? 999
+      const bPriority = sourcePriority[b.sourceType] ?? 999
+      const sourceCompare = aPriority - bPriority
+      if (sourceCompare !== 0) return sourceCompare
+      const tagCompare = a.sourceTag.localeCompare(b.sourceTag)
+      if (tagCompare !== 0) return tagCompare
+      return a.command.localeCompare(b.command)
+    })
+
+    expect(signals).toEqual(sorted)
+  })
+
+  test('generateAgentsMd falls back to tagged metadata with deterministic ordering', async () => {
+    const unavailableMockResponse = {
+      content: [{ type: 'text' as const, text: 'Not available.' }],
+    }
+    const originalMock = mockAgentClient.messages.create
+    mockAgentClient.messages.create = mock(async () => unavailableMockResponse)
+
+    await fs.mkdir('src', { recursive: true })
+    await fs.writeFile('src/index.ts', 'export const value = 1', 'utf-8')
+    await fs.writeFile('tsconfig.json', '{}', 'utf-8')
+    await fs.writeFile('README.md', ['PRIMARY LANGUAGES: [Go]'].join('\n'), 'utf-8')
+
+    const agentsDocsPath = join(process.cwd(), AGENTS_DOCS_DIR)
+    await fs.mkdir(agentsDocsPath, { recursive: true })
+    await fs.writeFile(
+      join(agentsDocsPath, 'metadata.md'),
+      ['PRIMARY LANGUAGES: [Rust]'].join('\n'),
+      'utf-8'
+    )
+
+    const result = await generateAgentsMd({ overwrite: true })
+    expect(result.success).toBe(true)
+
+    if (result.mainFilePath) {
+      const content = await fs.readFile(result.mainFilePath, 'utf-8')
+      expect(content).toContain(
+        'Static analysis detected: Go (doc:README.md), TypeScript (config:ext:ts), Rust (agents-docs:metadata.md)'
+      )
+    }
+
+    mockAgentClient.messages.create = originalMock
   })
 })

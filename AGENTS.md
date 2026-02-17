@@ -92,6 +92,7 @@ _Detailed information is available in the .agents-docs/ directory._
 - **Parsing Logic Testing**: Use exact equality matching (`line.trim() === 'FUNCTIONAL REQUIREMENTS:'`) instead of substring matching for reliable section header detection
 - **Test Description Visibility**: Include test case descriptions in assertion messages using `expect(value, description)` pattern for better debugging when parameterized tests fail
 - Export metadata signal helpers with `@internal` when adding focused unit tests
+- Multi-source aggregation tests should assert tagged outputs and deterministic source-priority ordering
 - **Unknown Provider Testing**: When adding multi-provider regex validation, include test for unknown/unsupported provider prefixes to verify rejection (e.g., `mistral/mixtral-8x7b` when only `openai|anthropic|google` supported)
 - **Backward Compatibility Testing**: When extending validation patterns, add dedicated test suite verifying existing configs remain valid - prevents breaking changes
 

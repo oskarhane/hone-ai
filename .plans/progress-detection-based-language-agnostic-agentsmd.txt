@@ -162,3 +162,23 @@ Key Decisions:
 - Keep generated block markers exact but use non-greedy replacement for safety.
 
 Next Task: task-007 - Add unit tests for aggregation and tagging
+
+================================================================================
+TASK-007: Add unit tests for aggregation and tagging
+Date: 2026-02-17T12:34:00Z
+================================================================================
+
+Summary:
+Added unit coverage for multi-source command aggregation, tagging, and deterministic ordering. Added a fallback test to verify tagged metadata output when the agent response is unavailable. Ran bun test.
+
+Files Changed:
+- src/agents-md-generator.test.ts (modified - add aggregation and fallback tests)
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - mark task-007 complete)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (modified - add task-007 completion entry)
+- AGENTS.md (modified - add aggregation test guidance)
+
+Key Decisions:
+- Assert source-priority ordering by sorting signals against the expected priority map
+- Verify tagged outputs include sourceType + sourceTag for multi-source coverage
+
+Next Task: task-009 - Make the sections in AGENTS.md more concise

@@ -1,7 +1,7 @@
 feature: detection-based-language-agnostic-agentsmd
 prd: ./prd-detection-based-language-agnostic-agentsmd.md
 created_at: 2026-02-17T10:21:03.393Z
-updated_at: 2026-02-17T11:10:37Z
+updated_at: 2026-02-17T12:34:00Z
 
 tasks:
   - id: task-001
@@ -94,7 +94,7 @@ tasks:
     title: "Add unit tests for aggregation and tagging"
     description: |
       Create unit tests that cover multi-source aggregation, conflict formatting, and deterministic output. Include cases for multiple commands per section and multiple metadata signals. Ensure tests assert tagged outputs and stable ordering.
-    status: pending
+    status: completed
     dependencies:
       - task-003
       - task-004
@@ -104,7 +104,7 @@ tasks:
       - "Tests cover metadata conflicts and tagging"
       - "Deterministic ordering verified"
       - "All new tests pass"
-    completed_at: null
+    completed_at: 2026-02-17T12:34:00Z
 
   - id: task-008
     title: "Apply review feedback to planning docs"
