@@ -1,0 +1,105 @@
+feature: detection-based-language-agnostic-agentsmd
+prd: ./prd-detection-based-language-agnostic-agentsmd.md
+created_at: 2026-02-17T10:21:03.393Z
+updated_at: 2026-02-17T10:21:03.393Z
+
+tasks:
+  - id: task-001
+    title: "Audit current agents-md generation sections"
+    description: |
+      Review existing AGENTS.md generation logic to list all sections currently emitted and their data sources. Document which sections use hardcoded defaults versus detected signals. This establishes the baseline to keep sections intact while changing data sourcing.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "All current AGENTS.md sections enumerated"
+      - "Each section mapped to current data source(s)"
+      - "Hardcoded assumptions identified"
+      - "Baseline documented for backward compatibility"
+    completed_at: null
+
+  - id: task-002
+    title: "Define detection sources and tagging scheme"
+    description: |
+      Specify supported repo signal sources and the short, consistent source tag format. Ensure tags are deterministic and concise for commands and metadata values. Document aggregation rules to include all signals without overriding.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Source list includes package.json, workflows, docs, configs, .agents-docs"
+      - "Tag format defined and consistent (e.g., "npm test (package.json)")"
+      - "Aggregation rule states collect-not-override"
+      - "Determinism constraints documented"
+    completed_at: null
+
+  - id: task-003
+    title: "Implement multi-source command detection"
+    description: |
+      Update command detection to collect build/test/lint/format/YAML commands from all repo signals. Ensure duplicates are deduped deterministically while preserving multiple distinct commands with tags. Avoid omission when any signal exists by falling back across sources.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "Commands aggregated from all configured sources"
+      - "Distinct commands include short source tags"
+      - "Deterministic ordering and dedupe implemented"
+      - "No section omitted when any signal exists"
+    completed_at: null
+
+  - id: task-004
+    title: "Implement detection for languages and systems"
+    description: |
+      Replace hardcoded assumptions with detection of primary languages, build system, testing framework, architecture, and deployment. Use repo signals like file extensions, config files, and docs. Preserve existing section names and outputs while switching to detected values.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "No hardcoded language/framework defaults remain"
+      - "Values derived from signals with tags when multiple"
+      - "Sections remain present and backward compatible"
+      - "Detection covers languages, build, test, arch, deploy"
+    completed_at: null
+
+  - id: task-005
+    title: "Add conflict aggregation formatting"
+    description: |
+      Ensure sections list multiple values when signals conflict, each with a short source tag. Apply consistent formatting across commands and metadata sections. Maintain deterministic ordering and avoid "unknown" when at least one signal exists.
+    status: pending
+    dependencies:
+      - task-003
+      - task-004
+    acceptance_criteria:
+      - "Multiple entries shown for conflicting signals"
+      - "All entries include short, consistent source tags"
+      - "Ordering deterministic across runs"
+      - "No "unknown/omitted" when signals exist"
+    completed_at: null
+
+  - id: task-006
+    title: "Protect user content outside generated sections"
+    description: |
+      Verify generation only updates the intended sections and preserves user-provided content elsewhere. Ensure no destructive changes occur beyond generated blocks. Add safeguards if needed to prevent overwrites.
+    status: pending
+    dependencies:
+      - task-005
+    acceptance_criteria:
+      - "User content outside generated sections unchanged"
+      - "Generation only touches defined sections"
+      - "No destructive removals observed in tests"
+      - "Backward compatibility maintained"
+    completed_at: null
+
+  - id: task-007
+    title: "Add unit tests for aggregation and tagging"
+    description: |
+      Create unit tests that cover multi-source aggregation, conflict formatting, and deterministic output. Include cases for multiple commands per section and multiple metadata signals. Ensure tests assert tagged outputs and stable ordering.
+    status: pending
+    dependencies:
+      - task-003
+      - task-004
+      - task-005
+    acceptance_criteria:
+      - "Tests cover multi-source command aggregation"
+      - "Tests cover metadata conflicts and tagging"
+      - "Deterministic ordering verified"
+      - "All new tests pass"
+    completed_at: null
