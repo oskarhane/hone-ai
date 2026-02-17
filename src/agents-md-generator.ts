@@ -25,6 +25,7 @@ const GENERATED_BLOCK_START = '<!-- BEGIN GENERATED: AGENTS-MD -->'
 const GENERATED_BLOCK_END = '<!-- END GENERATED: AGENTS-MD -->'
 const GENERATED_BLOCK_REGEX =
   /<!-- BEGIN GENERATED: AGENTS-MD -->[\s\S]*?<!-- END GENERATED: AGENTS-MD -->/m
+const WORKFLOW_DIR = join('.github', 'workflows')
 
 export interface AgentsMdGeneratorOptions {
   projectPath?: string
@@ -967,171 +968,6 @@ async function executeParallelScanning(
   return scanResults
 }
 
-/**
- * Generate project-specific feedback commands based on multi-source repo signals
- */
-type CommandCategory = 'tests' | 'format' | 'lint' | 'yamlFormat' | 'yamlLint' | 'build'
-type SourceType = 'package.json' | 'workflow' | 'doc' | 'config' | 'agents-docs' | 'analysis'
-
-interface CommandSignal {
-  category: CommandCategory
-  command: string
-  sourceType: SourceType
-  sourceTag: string
-}
-
-const COMMAND_CATEGORY_LABELS: Record<CommandCategory, string> = {
-  tests: 'Unit Tests',
-  format: 'Code Formatting',
-  lint: 'Code Linting',
-  yamlFormat: 'YAML Formatting',
-  yamlLint: 'YAML Linting',
-  build: 'Build',
-}
-
-const SOURCE_TYPE_PRIORITY: Record<SourceType, number> = {
-  'package.json': 0,
-  workflow: 1,
-  doc: 2,
-  config: 3,
-  'agents-docs': 4,
-  analysis: 5,
-}
-
-const WORKFLOW_DIR = join('.github', 'workflows')
-
-/** @internal */
-export function normalizeCommand(command: string): string {
-  return command
-    .replace(/`/g, '')
-    .replace(/^\$\s+/, '')
-    .replace(/^\>\s+/, '')
-    .trim()
-    .replace(/\s+/g, ' ')
-}
-
-function splitCommandSegments(command: string): string[] {
-  return command
-    .split(/&&|;/)
-    .map(segment => normalizeCommand(segment))
-    .filter(Boolean)
-}
-
-/** @internal */
-export function categorizeCommand(command: string): CommandCategory[] {
-  const normalized = command.toLowerCase()
-  const categories = new Set<CommandCategory>()
-  const mentionsYaml = normalized.includes('yaml') || normalized.includes('yml')
-
-  const isTest =
-    normalized.includes(' test') ||
-    normalized.startsWith('test ') ||
-    normalized.includes('jest') ||
-    normalized.includes('vitest') ||
-    normalized.includes('pytest') ||
-    normalized.includes('mocha') ||
-    normalized.includes('bun test') ||
-    normalized.includes('go test') ||
-    normalized.includes('cargo test') ||
-    normalized.includes('playwright test') ||
-    normalized.includes('cypress run')
-
-  const isBuild =
-    normalized.includes(' build') ||
-    normalized.startsWith('build ') ||
-    normalized.includes('webpack') ||
-    normalized.includes('vite build') ||
-    normalized.includes('bun build') ||
-    normalized.includes('cargo build') ||
-    normalized.includes('go build') ||
-    normalized.includes('mvn ') ||
-    normalized.includes('gradle')
-
-  const isLint = (normalized.includes('lint') || normalized.includes('eslint')) && !mentionsYaml
-  const isFormat =
-    (normalized.includes('format') ||
-      normalized.includes('prettier') ||
-      normalized.includes('fmt')) &&
-    !mentionsYaml
-  const isYamlLint =
-    mentionsYaml && (normalized.includes('lint') || normalized.includes('yamllint'))
-  const isYamlFormat =
-    mentionsYaml &&
-    (normalized.includes('format') || normalized.includes('prettier') || normalized.includes('fmt'))
-  const isYamlCheck = mentionsYaml && normalized.includes('check')
-
-  if (isTest) categories.add('tests')
-  if (isBuild) categories.add('build')
-  if (isLint) categories.add('lint')
-  if (isFormat) categories.add('format')
-  if (isYamlLint) categories.add('yamlLint')
-  if (isYamlFormat) categories.add('yamlFormat')
-  if (isYamlCheck) {
-    categories.add('yamlLint')
-    categories.add('yamlFormat')
-  }
-
-  return Array.from(categories)
-}
-
-/** @internal */
-export function categorizeScriptName(scriptName: string, scriptValue: string): CommandCategory[] {
-  const normalizedName = scriptName.toLowerCase()
-  const normalizedValue = scriptValue.toLowerCase()
-  const categories = new Set<CommandCategory>()
-
-  if (normalizedName.includes('test')) categories.add('tests')
-  if (normalizedName === 'build' || normalizedName.startsWith('build:')) categories.add('build')
-  if (normalizedName.startsWith('build:') && normalizedValue.includes('test')) {
-    categories.add('tests')
-  }
-  if (normalizedName.includes('lint')) {
-    if (normalizedName.includes('yaml')) {
-      categories.add('yamlLint')
-    } else {
-      categories.add('lint')
-    }
-  }
-  if (normalizedName.includes('format') || normalizedName.includes('fmt')) {
-    if (normalizedName.includes('yaml')) {
-      categories.add('yamlFormat')
-    } else {
-      categories.add('format')
-    }
-  }
-  if (normalizedName.includes('check') && normalizedName.includes('yaml')) {
-    categories.add('yamlLint')
-    categories.add('yamlFormat')
-  }
-
-  if (categories.size === 0) {
-    return categorizeCommand(scriptValue)
-  }
-
-  return Array.from(categories)
-}
-
-function addCommandSignals(
-  signals: CommandSignal[],
-  categories: CommandCategory[],
-  command: string,
-  sourceType: SourceType,
-  sourceTag: string
-): void {
-  if (categories.length === 0) return
-  const normalized = normalizeCommand(command)
-  if (!normalized) return
-
-  for (const category of categories) {
-    signals.push({
-      category,
-      command: normalized,
-      sourceType,
-      sourceTag,
-    })
-  }
-}
-
 function listMarkdownFiles(projectPath: string): string[] {
   const files: string[] = []
   try {
@@ -1167,478 +1003,33 @@ function listFilesRecursive(root: string, matcher: (filePath: string) => boolean
       }
     }
   } catch (error) {
-    logVerbose('[AgentsMd] Could not read directory during command discovery')
+    logVerbose('[AgentsMd] Could not read directory during file discovery')
   }
 
   return files.sort()
 }
 
-/** @internal */
-export function extractCommandsFromMarkdown(content: string): string[] {
-  const commands: string[] = []
-  const lines = content.split('\n')
-  let inCodeBlock = false
-
-  for (const line of lines) {
-    const trimmed = line.trim()
-    if (trimmed.startsWith('```')) {
-      inCodeBlock = !inCodeBlock
-      continue
-    }
-
-    if (inCodeBlock) {
-      const cleaned = trimmed.replace(/^[-*+]\s+/, '')
-      if (categorizeCommand(cleaned).length > 0) {
-        commands.push(...splitCommandSegments(cleaned))
-      }
-      continue
-    }
-
-    const inlineMatches = trimmed.matchAll(/`([^`]+)`/g)
-    for (const match of inlineMatches) {
-      const inlineCommand = match[1]?.trim() || ''
-      if (categorizeCommand(inlineCommand).length > 0) {
-        commands.push(...splitCommandSegments(inlineCommand))
-      }
-    }
+function generateFeedbackContent(testingContent: string, buildContent: string): string {
+  const feedbackLines: string[] = []
+  const testCommands = extractLabeledValue(testingContent, 'TEST COMMANDS')
+  if (testCommands) {
+    feedbackLines.push(`TEST COMMANDS: ${testCommands}`)
+  } else if (isUnavailableAgentResult(testingContent)) {
+    feedbackLines.push('TEST COMMANDS: Not available.')
   }
 
-  return commands
-}
-
-/** @internal */
-export function extractRunCommandsFromWorkflow(content: string): string[] {
-  const commands: string[] = []
-  const lines = content.split('\n')
-  let index = 0
-
-  while (index < lines.length) {
-    const line = lines[index] ?? ''
-    const runMatch = line.match(/^(\s*)run:\s*(.*)$/)
-
-    if (runMatch) {
-      const indent = runMatch[1]?.length ?? 0
-      const runValue = runMatch[2]?.trim() ?? ''
-
-      if (runValue === '|' || runValue === '>') {
-        index += 1
-        const blockLines: string[] = []
-        while (index < lines.length) {
-          const nextLine = lines[index] ?? ''
-          const nextIndent = (nextLine.match(/^(\s*)/) || [''])[0].length
-          if (nextLine.trim() && nextIndent <= indent) break
-          if (nextLine.trim()) {
-            blockLines.push(nextLine.trim())
-          }
-          index += 1
-        }
-        commands.push(...blockLines)
-        continue
-      }
-
-      if (runValue) {
-        commands.push(runValue)
-      }
-    }
-
-    index += 1
+  const buildCommands = extractLabeledValue(buildContent, 'BUILD COMMANDS')
+  if (buildCommands) {
+    feedbackLines.push(`BUILD COMMANDS: ${buildCommands}`)
+  } else if (isUnavailableAgentResult(buildContent)) {
+    feedbackLines.push('BUILD COMMANDS: Not available.')
   }
 
-  return commands
-}
-
-function collectConfigCommands(projectPath: string, signals: CommandSignal[]): void {
-  const configChecks = [
-    {
-      name: 'eslint',
-      files: [
-        '.eslintrc',
-        '.eslintrc.js',
-        '.eslintrc.cjs',
-        '.eslintrc.json',
-        '.eslintrc.yml',
-        '.eslintrc.yaml',
-        'eslint.config.js',
-        'eslint.config.cjs',
-        'eslint.config.mjs',
-        'eslint.config.ts',
-      ],
-      command: 'eslint . --fix',
-      categories: ['lint'] as CommandCategory[],
-    },
-    {
-      name: 'prettier',
-      files: [
-        '.prettierrc',
-        '.prettierrc.json',
-        '.prettierrc.yml',
-        '.prettierrc.yaml',
-        '.prettierrc.js',
-        '.prettierrc.cjs',
-        '.prettierrc.mjs',
-        'prettier.config.js',
-        'prettier.config.cjs',
-        'prettier.config.mjs',
-      ],
-      command: 'prettier --write "**/*.{ts,tsx,js,jsx}"',
-      categories: ['format'] as CommandCategory[],
-    },
-    {
-      name: 'yamllint',
-      files: ['.yamllint.yml', '.yamllint.yaml'],
-      command: 'yamllint -c .yamllint.yml **/*.yml **/*.yaml',
-      categories: ['yamlLint'] as CommandCategory[],
-    },
-    {
-      name: 'jest',
-      files: ['jest.config.js', 'jest.config.cjs', 'jest.config.mjs', 'jest.config.ts'],
-      command: 'jest',
-      categories: ['tests'] as CommandCategory[],
-    },
-    {
-      name: 'vitest',
-      files: ['vitest.config.ts', 'vitest.config.js', 'vitest.config.mjs'],
-      command: 'vitest',
-      categories: ['tests'] as CommandCategory[],
-    },
-    {
-      name: 'playwright',
-      files: ['playwright.config.ts', 'playwright.config.js', 'playwright.config.mjs'],
-      command: 'playwright test',
-      categories: ['tests'] as CommandCategory[],
-    },
-    {
-      name: 'cypress',
-      files: ['cypress.config.ts', 'cypress.config.js', 'cypress.config.mjs'],
-      command: 'cypress run',
-      categories: ['tests'] as CommandCategory[],
-    },
-    {
-      name: 'vite',
-      files: ['vite.config.ts', 'vite.config.js', 'vite.config.mjs'],
-      command: 'vite build',
-      categories: ['build'] as CommandCategory[],
-    },
-    {
-      name: 'webpack',
-      files: ['webpack.config.js', 'webpack.config.cjs', 'webpack.config.ts'],
-      command: 'webpack',
-      categories: ['build'] as CommandCategory[],
-    },
-  ]
-
-  for (const check of configChecks) {
-    const hasConfig = check.files.some(file => existsSync(join(projectPath, file)))
-    if (hasConfig) {
-      addCommandSignals(signals, check.categories, check.command, 'config', `config:${check.name}`)
-    }
-  }
-}
-
-function collectPackageJsonCommands(projectPath: string, signals: CommandSignal[]): void {
-  try {
-    const packageJsonPath = join(projectPath, 'package.json')
-    if (!existsSync(packageJsonPath)) return
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
-    const scripts: Record<string, string> = packageJson.scripts || {}
-
-    for (const [scriptName, scriptValue] of Object.entries(scripts)) {
-      const categories = categorizeScriptName(scriptName, scriptValue)
-      if (categories.length === 0) continue
-      addCommandSignals(
-        signals,
-        categories,
-        `npm run ${scriptName}`,
-        'package.json',
-        'package.json'
-      )
-    }
-  } catch (error) {
-    logVerbose('[AgentsMd] Could not read package.json scripts')
-  }
-}
-
-function collectWorkflowCommands(projectPath: string, signals: CommandSignal[]): void {
-  const workflowsPath = join(projectPath, WORKFLOW_DIR)
-  if (!existsSync(workflowsPath)) return
-
-  try {
-    const workflowFiles = readdirSync(workflowsPath)
-      .filter(file => file.endsWith('.yml') || file.endsWith('.yaml'))
-      .sort()
-
-    for (const file of workflowFiles) {
-      const filePath = join(workflowsPath, file)
-      const content = readFileSync(filePath, 'utf-8')
-      const runCommands = extractRunCommandsFromWorkflow(content)
-
-      for (const runCommand of runCommands) {
-        for (const segment of splitCommandSegments(runCommand)) {
-          const categories = categorizeCommand(segment)
-          addCommandSignals(signals, categories, segment, 'workflow', `workflow:${file}`)
-        }
-      }
-    }
-  } catch (error) {
-    logVerbose('[AgentsMd] Could not read workflow files for command discovery')
-  }
-}
-
-function collectDocCommands(projectPath: string, signals: CommandSignal[]): void {
-  const docFiles = listMarkdownFiles(projectPath)
-
-  for (const filePath of docFiles) {
-    try {
-      const content = readFileSync(filePath, 'utf-8')
-      const commands = extractCommandsFromMarkdown(content)
-      const relativePath = relative(projectPath, filePath)
-      for (const command of commands) {
-        const categories = categorizeCommand(command)
-        addCommandSignals(signals, categories, command, 'doc', `doc:${relativePath}`)
-      }
-    } catch (error) {
-      logVerbose(`[AgentsMd] Could not read doc file for command discovery: ${filePath}`)
-    }
-  }
-}
-
-function collectAgentsDocsCommands(projectPath: string, signals: CommandSignal[]): void {
-  const agentsDocsPath = join(projectPath, AGENTS_DOCS_DIR)
-  if (!existsSync(agentsDocsPath)) return
-
-  const files = listFilesRecursive(agentsDocsPath, filePath => filePath.endsWith('.md'))
-  for (const filePath of files) {
-    try {
-      const content = readFileSync(filePath, 'utf-8')
-      const commands = extractCommandsFromMarkdown(content)
-      const relativePath = relative(agentsDocsPath, filePath)
-      for (const command of commands) {
-        const categories = categorizeCommand(command)
-        addCommandSignals(
-          signals,
-          categories,
-          command,
-          'agents-docs',
-          `agents-docs:${relativePath}`
-        )
-      }
-    } catch (error) {
-      logVerbose(`[AgentsMd] Could not read agents-docs file for command discovery: ${filePath}`)
-    }
-  }
-}
-
-function inferFallbackCommands(analysis: ProjectAnalysis, signals: CommandSignal[]): void {
-  const frameworks = analysis.testingFrameworks.map(fw => fw.toLowerCase())
-  if (frameworks.some(fw => fw.includes('bun'))) {
-    addCommandSignals(signals, ['tests'], 'bun test', 'analysis', 'analysis:bun')
-  }
-  if (frameworks.some(fw => fw.includes('jest'))) {
-    addCommandSignals(signals, ['tests'], 'jest', 'analysis', 'analysis:jest')
-  }
-  if (frameworks.some(fw => fw.includes('pytest'))) {
-    addCommandSignals(signals, ['tests'], 'pytest', 'analysis', 'analysis:pytest')
+  if (feedbackLines.length === 0) {
+    return 'Information not available.'
   }
 
-  const buildSystems = analysis.buildSystems.map(sys => sys.toLowerCase())
-  if (buildSystems.some(sys => sys.includes('bun'))) {
-    addCommandSignals(signals, ['build'], 'bun run build', 'analysis', 'analysis:bun')
-  }
-  if (buildSystems.some(sys => sys.includes('maven'))) {
-    addCommandSignals(signals, ['build'], 'mvn clean compile', 'analysis', 'analysis:maven')
-  }
-  if (buildSystems.some(sys => sys.includes('gradle'))) {
-    addCommandSignals(signals, ['build'], './gradlew build', 'analysis', 'analysis:gradle')
-  }
-}
-
-/** @internal */
-export function collectCommandSignals(
-  projectPath: string,
-  analysis: ProjectAnalysis
-): CommandSignal[] {
-  const signals: CommandSignal[] = []
-
-  collectPackageJsonCommands(projectPath, signals)
-  collectWorkflowCommands(projectPath, signals)
-  collectDocCommands(projectPath, signals)
-  collectConfigCommands(projectPath, signals)
-  collectAgentsDocsCommands(projectPath, signals)
-  inferFallbackCommands(analysis, signals)
-
-  const seen = new Set<string>()
-  const deduped: CommandSignal[] = []
-  for (const signal of signals) {
-    const key = `${signal.sourceTag}::${normalizeCommand(signal.command)}::${signal.category}`
-    if (seen.has(key)) continue
-    seen.add(key)
-    deduped.push(signal)
-  }
-
-  deduped.sort((a, b) => {
-    const sourceCompare = SOURCE_TYPE_PRIORITY[a.sourceType] - SOURCE_TYPE_PRIORITY[b.sourceType]
-    if (sourceCompare !== 0) return sourceCompare
-    const tagCompare = a.sourceTag.localeCompare(b.sourceTag)
-    if (tagCompare !== 0) return tagCompare
-    return a.command.localeCompare(b.command)
-  })
-
-  return deduped
-}
-
-function shortenNpmCommand(command: string): string {
-  if (!command.startsWith('npm run ')) return command
-  const scriptName = command.slice('npm run '.length).trim()
-  if (scriptName === 'test') return 'npm test'
-  return command
-}
-
-function simplifyCommandForDisplay(command: string): string {
-  let simplified = normalizeCommand(command)
-  simplified = simplified.replace(/\s*\|\|.*$/, '').trim()
-  simplified = simplified.replace(/\s*;\s*$/, '').trim()
-  simplified = shortenNpmCommand(simplified)
-  return simplified
-}
-
-function getCommandDedupeKey(command: string): string {
-  const tokens = command.split(' ')
-  if (tokens.length >= 2) {
-    const runner = tokens[0]
-    if (runner === 'npm' || runner === 'pnpm' || runner === 'yarn') {
-      if (tokens[1] === 'run' && tokens.length === 3) {
-        return `script:${tokens[2]}`
-      }
-      if (tokens.length === 2) {
-        return `script:${tokens[1]}`
-      }
-    }
-    if (runner === 'bun' && tokens[1] === 'run' && tokens.length === 3) {
-      return `script:${tokens[2]}`
-    }
-  }
-  return `command:${command}`
-}
-
-function isLowSignalCommand(command: string): boolean {
-  const normalized = command.toLowerCase()
-  return (
-    normalized.startsWith('#') ||
-    normalized.startsWith('//') ||
-    normalized.startsWith('echo ') ||
-    normalized.startsWith('printf ') ||
-    normalized.startsWith('exit ') ||
-    normalized.startsWith('set ') ||
-    normalized === 'true' ||
-    normalized === 'false'
-  )
-}
-
-function stripSourcePrefix(sourceTag: string, prefix: string): string | null {
-  if (!sourceTag.startsWith(prefix)) return null
-  return sourceTag.slice(prefix.length)
-}
-
-function formatSourceLabel(signal: CommandSignal): string {
-  switch (signal.sourceType) {
-    case 'workflow': {
-      const workflowFile = stripSourcePrefix(signal.sourceTag, 'workflow:') || signal.sourceTag
-      return workflowFile.includes('/') ? workflowFile : join('.github', 'workflows', workflowFile)
-    }
-    case 'doc': {
-      return stripSourcePrefix(signal.sourceTag, 'doc:') || signal.sourceTag
-    }
-    case 'agents-docs': {
-      const docPath = stripSourcePrefix(signal.sourceTag, 'agents-docs:')
-      return docPath ? join('.agents-docs', docPath) : signal.sourceTag
-    }
-    case 'config':
-    case 'analysis':
-    case 'package.json':
-    default:
-      return signal.sourceTag
-  }
-}
-
-function formatConciseCommands(commands: CommandSignal[]): string {
-  const simplified: CommandSignal[] = commands
-    .map(command => ({
-      ...command,
-      command: simplifyCommandForDisplay(command.command),
-    }))
-    .filter(command => command.command && !isLowSignalCommand(command.command))
-
-  const sourceTypes = Array.from(new Set(simplified.map(command => command.sourceType))).sort(
-    (a, b) => SOURCE_TYPE_PRIORITY[a] - SOURCE_TYPE_PRIORITY[b]
-  )
-  const allowedSourceTypes = new Set(sourceTypes.slice(0, 2))
-  const filtered = simplified.filter(command => allowedSourceTypes.has(command.sourceType))
-
-  const byKey = new Map<string, CommandSignal[]>()
-  for (const command of filtered) {
-    const key = getCommandDedupeKey(command.command)
-    const existing = byKey.get(key) || []
-    existing.push(command)
-    byKey.set(key, existing)
-  }
-
-  const selected: CommandSignal[] = []
-  for (const entries of byKey.values()) {
-    const sorted = [...entries].sort((a, b) => {
-      const sourceCompare = SOURCE_TYPE_PRIORITY[a.sourceType] - SOURCE_TYPE_PRIORITY[b.sourceType]
-      if (sourceCompare !== 0) return sourceCompare
-      const commandCompare = a.command.localeCompare(b.command)
-      if (commandCompare !== 0) return commandCompare
-      return a.sourceTag.localeCompare(b.sourceTag)
-    })
-    const best = sorted[0]
-    if (!best) continue
-    selected.push(best)
-  }
-
-  selected.sort((a, b) => {
-    const sourceCompare = SOURCE_TYPE_PRIORITY[a.sourceType] - SOURCE_TYPE_PRIORITY[b.sourceType]
-    if (sourceCompare !== 0) return sourceCompare
-    const commandCompare = a.command.localeCompare(b.command)
-    if (commandCompare !== 0) return commandCompare
-    return a.sourceTag.localeCompare(b.sourceTag)
-  })
-
-  return selected.map(command => `${command.command} (${formatSourceLabel(command)})`).join('\n')
-}
-
-function generateFeedbackContent(projectPath: string, analysis: ProjectAnalysis): string {
-  const feedbackCommands: string[] = []
-  const signals = collectCommandSignals(projectPath, analysis)
-
-  const commandsByCategory = new Map<CommandCategory, CommandSignal[]>()
-  for (const signal of signals) {
-    const existing = commandsByCategory.get(signal.category) || []
-    existing.push(signal)
-    commandsByCategory.set(signal.category, existing)
-  }
-
-  const orderedCategories: CommandCategory[] = [
-    'tests',
-    'format',
-    'lint',
-    'yamlFormat',
-    'yamlLint',
-    'build',
-  ]
-
-  for (const category of orderedCategories) {
-    const commands = commandsByCategory.get(category)
-    if (!commands || commands.length === 0) continue
-    const label = COMMAND_CATEGORY_LABELS[category]
-    feedbackCommands.push(`**${label}:**\n${formatConciseCommands(commands)}`)
-  }
-
-  return `Run these commands to validate your changes before committing:
-
-${feedbackCommands.join('\n\n')}
-
-These commands are project-specific based on the configured scripts and tooling.`
+  return feedbackLines.join('\n')
 }
 
 /**
@@ -1646,8 +1037,7 @@ These commands are project-specific based on the configured scripts and tooling.
  */
 function createTemplateSections(
   scanResults: Record<keyof typeof DISCOVERY_PROMPTS, string>,
-  analysis: ProjectAnalysis,
-  projectPath: string
+  analysis: ProjectAnalysis
 ): TemplateSection[] {
   const sections: TemplateSection[] = []
 
@@ -1674,9 +1064,10 @@ function createTemplateSections(
     detailFile: 'languages.md',
   })
 
+  const buildContent = getContentWithFallback(scanResults.buildSystems || '', analysis.buildSystems)
   sections.push({
     title: 'Build System',
-    content: getContentWithFallback(scanResults.buildSystems || '', analysis.buildSystems),
+    content: buildContent,
     priority: 2,
     detailFile: 'build.md',
   })
@@ -1722,10 +1113,10 @@ function createTemplateSections(
     })
   }
 
-  // Add feedback section inline at the top with project-specific commands
+  // Add feedback section inline at the top with test/build commands
   sections.push({
     title: 'Feedback Instructions',
-    content: generateFeedbackContent(projectPath, analysis),
+    content: generateFeedbackContent(testingContent, buildContent),
     priority: 0, // Highest priority to appear at top
     detailFile: undefined, // Force inline, never create separate file
   })
@@ -1926,7 +1317,7 @@ async function generateContent(
     log('-'.repeat(80))
 
     // Create adaptive template sections based on discovered tech stack
-    const sections = createTemplateSections(scanResults, analysis, projectPath)
+    const sections = createTemplateSections(scanResults, analysis)
 
     // Generate initial content to check line count
     const fullContent = generateCompactContent(sections, false)

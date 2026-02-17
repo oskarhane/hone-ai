@@ -226,3 +226,24 @@ Key Decisions:
 - Drop comment-style commands starting with # or // as low-signal.
 
 Next Task: All tasks complete
+
+================================================================================
+TASK-011: better feedback instructions
+Date: 2026-02-17T13:20:00Z
+================================================================================
+
+Summary:
+Simplified feedback instructions to mirror .agents-docs/testing.md and .agents-docs/build.md content, removing multi-source command discovery. Removed related command parsing, aggregation, and tests to keep generation minimal.
+
+Files Changed:
+- src/agents-md-generator.ts (modified - drop command discovery and use agent-labeled test/build content)
+- src/agents-md-generator.test.ts (modified - remove command aggregation test)
+- AGENTS.md (modified - feedback instructions now direct test/build commands)
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - mark task-011 complete)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (modified - add task-011 completion entry)
+
+Key Decisions:
+- Prefer agent-provided test/build command text over inferred repo command discovery.
+- Keep feedback section limited to test/build commands to reduce noise and maintenance burden.
+
+Next Task: All tasks complete

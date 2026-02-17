@@ -167,9 +167,9 @@ tasks:
 
       Remove the trying to be clever feedback instructions on what instructions are being read from where
       and just write the instructions like we do in the files just mentioned
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "write the feedback instructions in AGENTS.md like we do in the files just mentioned"
       - "Remove unused code for feedback instructions"
-    completed_at: null
+    completed_at: 2026-02-17T13:20:00Z

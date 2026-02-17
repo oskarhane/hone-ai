@@ -1,35 +1,13 @@
 <!-- BEGIN GENERATED: AGENTS-MD -->
+
 # AGENTS.md
 
 Learnings and patterns for future agents working on this project.
 
 ## Feedback Instructions
 
-Run these commands to validate your changes before committing:
-
-**Unit Tests:**
-npm test (package.json)
-bun test (.github/workflows/ci.yml)
-
-**Code Formatting:**
-npm run format (package.json)
-CHANGELOG=$(git log --pretty=format:"- %s (%h)" --max-count=20) (.github/workflows/release-major.yml)
-CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG"..HEAD | head -20) (.github/workflows/release-major.yml)
-
-**YAML Formatting:**
-npm run check:yaml (package.json)
-npm run format:yaml (package.json)
-
-**YAML Linting:**
-npm run check:yaml (package.json)
-npm run lint:yaml (package.json)
-
-**Build:**
-npm run build (package.json)
-npm run build:linux (package.json)
-npm run build:macos (package.json)
-
-These commands are project-specific based on the configured scripts and tooling.
+TEST COMMANDS: [`bun test` via `npm run test` or CI `bun test`]
+BUILD COMMANDS: [`bun run build`, `bun run build:linux`, `bun run build:macos`]
 
 ## Project Overview
 
@@ -63,12 +41,13 @@ See [@.agents-docs/deployment.md](.agents-docs/deployment.md) for detailed infor
 
 ---
 
-*This AGENTS.md was generated using agent-based project discovery.*
-*Detailed information is available in the .agents-docs/ directory.*
+_This AGENTS.md was generated using agent-based project discovery._
+_Detailed information is available in the .agents-docs/ directory._
+
 <!-- END GENERATED: AGENTS-MD -->
 
-
 <!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->
+
 ## Phase-Specific Model Configuration
 
 - Config supports optional phase-specific model overrides: `prd`, `prdToTasks`, `extendPrd`, `implement`, `review`, `finalize`
@@ -198,6 +177,7 @@ See [@.agents-docs/deployment.md](.agents-docs/deployment.md) for detailed infor
 - Prefer concrete source paths in feedback command labels (e.g. `.github/workflows/<file>`, `docs/...`, `.agents-docs/...`) instead of generic buckets
 - Dedupe feedback instructions by normalized script name across npm/yarn/pnpm/bun runners
 - Filter comment-style commands starting with `#` or `//` as low-signal
+- Feedback instructions should mirror .agents-docs testing/build content without extra command discovery
 
 ## Logic in hone-ai vs underlying agents
 
