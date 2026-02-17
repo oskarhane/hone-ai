@@ -158,3 +158,18 @@ tasks:
     acceptance_criteria:
       - "Make sure there are no duplicate feedback instructions"
     completed_at: 2026-02-17T13:05:00Z
+
+  - id: task-011
+    title: "better feedback instructions"
+    description: |
+      What's currently being written in the .agents-docs/testing.md and .agents-docs/build.md
+      is exactly what should be written in the ## Feedback Instructions in AGENTS.md.
+
+      Remove the trying to be clever feedback instructions on what instructions are being read from where
+      and just write the instructions like we do in the files just mentioned
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "write the feedback instructions in AGENTS.md like we do in the files just mentioned"
+      - "Remove unused code for feedback instructions"
+    completed_at: null
