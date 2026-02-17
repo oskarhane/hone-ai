@@ -1,3 +1,4 @@
+<!-- BEGIN GENERATED: AGENTS-MD -->
 # AGENTS.md
 
 Learnings and patterns for future agents working on this project.
@@ -6,17 +7,27 @@ Learnings and patterns for future agents working on this project.
 
 Run these commands to validate your changes before committing:
 
-**Unit Tests:** `npm run test` or `bun test`
+**Unit Tests:**
+npm test (package.json)
+bun test (.github/workflows/ci.yml)
 
-**Code Formatting:** `npm run format` or `prettier --write "**/*.ts"`
+**Code Formatting:**
+npm run format (package.json)
+CHANGELOG=$(git log --pretty=format:"- %s (%h)" --max-count=20) (.github/workflows/release-major.yml)
+CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG"..HEAD | head -20) (.github/workflows/release-major.yml)
 
-**Code Linting:** `eslint . --fix`
+**YAML Formatting:**
+npm run check:yaml (package.json)
+npm run format:yaml (package.json)
 
-**YAML Formatting:** `npm run format:yaml` or `prettier --write "**/*.yml" "**/*.yaml"`
+**YAML Linting:**
+npm run check:yaml (package.json)
+npm run lint:yaml (package.json)
 
-**YAML Linting:** `npm run lint:yaml` or `yamllint -c .yamllint.yml **/*.yml **/*.yaml`
-
-**Build:** `npm run build` or `bun run build:linux && bun run build:macos`
+**Build:**
+npm run build (package.json)
+npm run build:linux (package.json)
+npm run build:macos (package.json)
 
 These commands are project-specific based on the configured scripts and tooling.
 
@@ -28,35 +39,36 @@ See [@.agents-docs/languages.md](.agents-docs/languages.md) for detailed informa
 
 ## Build System
 
-BUILD SYSTEMS: [Bun]
+BUILD SYSTEMS: [Bun (bun build/compile), npm-style package.json scripts]
 
 See [@.agents-docs/build.md](.agents-docs/build.md) for detailed information.
 
 ## Testing Framework
 
-TESTING FRAMEWORKS: [Bun's built-in test runner (bun:test)]
+TESTING FRAMEWORKS: [Bun test runner (bun:test)]
 
 See [@.agents-docs/testing.md](.agents-docs/testing.md) for detailed information.
 
 ## Architecture
 
-ARCHITECTURE PATTERN: CLI Orchestration with Subprocess Delegation
+ARCHITECTURE PATTERN: CLI orchestration with subprocess delegation (3-phase implement/review/finalize loop)
 
 See [@.agents-docs/architecture.md](.agents-docs/architecture.md) for detailed information.
 
 ## Deployment
 
-DEPLOYMENT STRATEGY: CLI binary distribution + NPM package registry
+DEPLOYMENT STRATEGY: CLI binary distribution + npm package publishing via GitHub Actions release workflows
 
 See [@.agents-docs/deployment.md](.agents-docs/deployment.md) for detailed information.
 
 ---
 
-_This AGENTS.md was generated using agent-based project discovery._
-_Detailed information is available in the .agents-docs/ directory._
+*This AGENTS.md was generated using agent-based project discovery.*
+*Detailed information is available in the .agents-docs/ directory.*
+<!-- END GENERATED: AGENTS-MD -->
+
 
 <!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->
-
 ## Phase-Specific Model Configuration
 
 - Config supports optional phase-specific model overrides: `prd`, `prdToTasks`, `extendPrd`, `implement`, `review`, `finalize`
