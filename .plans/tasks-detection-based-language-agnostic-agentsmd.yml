@@ -1,21 +1,21 @@
 feature: detection-based-language-agnostic-agentsmd
 prd: ./prd-detection-based-language-agnostic-agentsmd.md
 created_at: 2026-02-17T10:21:03.393Z
-updated_at: 2026-02-17T10:24:16Z
+updated_at: 2026-02-17T10:33:13Z
 
 tasks:
   - id: task-001
     title: "Audit current agents-md generation sections"
     description: |
       Review existing AGENTS.md generation logic to list all sections currently emitted and their data sources. Document which sections use hardcoded defaults versus detected signals. This establishes the baseline to keep sections intact while changing data sourcing.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "All current AGENTS.md sections enumerated"
       - "Each section mapped to current data source(s)"
       - "Hardcoded assumptions identified"
       - "Baseline documented for backward compatibility"
-    completed_at: null
+    completed_at: 2026-02-17T10:28:39Z
 
   - id: task-002
     title: "Define detection sources and tagging scheme"

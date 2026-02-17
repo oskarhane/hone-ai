@@ -236,6 +236,7 @@ _Detailed information is available in the .agents-docs/ directory._
 
 - Error messages should accurately reflect regex patterns - if regex accepts variable digits (\d+), message should say "N" not specific version like "4"
 - Multi-provider regex pattern: /^(?:(?:provider)\/[\w.-]+|claude-(sonnet|opus)-\d+-\d{8})$/ supports both provider-prefixed and legacy formats
+- Invalid model strings in `.plans/hone.config.yml` cause integration regex failures - keep config aligned with validation pattern
 - Review feedback on error message consistency improves user experience even if low priority
 - Test suite validation after feedback application ensures no regressions from minor wording changes
 - Phase-specific OpenAI model tests: verify all 7 phases (prd, prdToTasks, implement, review, finalize, agentsMd, extendPrd) accept provider-prefixed models

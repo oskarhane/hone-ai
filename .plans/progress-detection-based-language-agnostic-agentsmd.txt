@@ -18,3 +18,40 @@ Key Decisions:
 - Replaced curly-style quoting in YAML acceptance criteria with straight quotes
 
 Next Task: task-001 - Audit current agents-md generation sections
+
+================================================================================
+TASK-001: Audit current agents-md generation sections
+Date: 2026-02-17T10:28:39Z
+================================================================================
+
+Summary:
+Audited current AGENTS.md generation sections and data sources. Documented baseline in a new audit file, mapping each section to agent/static sources and listing hardcoded defaults and fallbacks.
+
+Files Changed:
+- .plans/agentsmd-generation-audit.md (created - baseline audit of sections, sources, and hardcoded defaults)
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - task-001 completion)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (updated - task-001 completion entry)
+
+Key Decisions:
+- Documented section order, source precedence (agent -> static fallback), and missing deployment fallback in baseline audit.
+- Captured hardcoded defaults in both static analysis and feedback command generation for later replacement.
+
+Next Task: task-002 - Define detection sources and tagging scheme
+
+================================================================================
+TASK-001: Audit current agents-md generation sections
+Date: 2026-02-17T10:33:13Z
+================================================================================
+
+Summary:
+Finalized review feedback tracking for task-001. Recorded the pre-existing integration test failure and added a config/regex alignment note to AGENTS.md.
+
+Files Changed:
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - updated task file timestamp)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (updated - finalize tracking entry)
+- AGENTS.md (modified - noted config model format impact on regex tests)
+
+Key Decisions:
+- Documented that invalid model strings in `.plans/hone.config.yml` can trigger integration regex failures
+
+Next Task: task-002 - Define detection sources and tagging scheme
