@@ -184,6 +184,8 @@ _Detailed information is available in the .agents-docs/ directory._
 ## Feedback Instruction Labeling
 
 - Prefer concrete source paths in feedback command labels (e.g. `.github/workflows/<file>`, `docs/...`, `.agents-docs/...`) instead of generic buckets
+- Dedupe feedback instructions by normalized script name across npm/yarn/pnpm/bun runners
+- Filter comment-style commands starting with `#` or `//` as low-signal
 
 ## Logic in hone-ai vs underlying agents
 

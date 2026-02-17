@@ -1501,9 +1501,30 @@ function simplifyCommandForDisplay(command: string): string {
   return simplified
 }
 
+function getCommandDedupeKey(command: string): string {
+  const tokens = command.split(' ')
+  if (tokens.length >= 2) {
+    const runner = tokens[0]
+    if (runner === 'npm' || runner === 'pnpm' || runner === 'yarn') {
+      if (tokens[1] === 'run' && tokens.length === 3) {
+        return `script:${tokens[2]}`
+      }
+      if (tokens.length === 2) {
+        return `script:${tokens[1]}`
+      }
+    }
+    if (runner === 'bun' && tokens[1] === 'run' && tokens.length === 3) {
+      return `script:${tokens[2]}`
+    }
+  }
+  return `command:${command}`
+}
+
 function isLowSignalCommand(command: string): boolean {
   const normalized = command.toLowerCase()
   return (
+    normalized.startsWith('#') ||
+    normalized.startsWith('//') ||
     normalized.startsWith('echo ') ||
     normalized.startsWith('printf ') ||
     normalized.startsWith('exit ') ||
@@ -1553,25 +1574,26 @@ function formatConciseCommands(commands: CommandSignal[]): string {
   const allowedSourceTypes = new Set(sourceTypes.slice(0, 2))
   const filtered = simplified.filter(command => allowedSourceTypes.has(command.sourceType))
 
-  const byCommand = new Map<string, CommandSignal[]>()
+  const byKey = new Map<string, CommandSignal[]>()
   for (const command of filtered) {
-    const existing = byCommand.get(command.command) || []
+    const key = getCommandDedupeKey(command.command)
+    const existing = byKey.get(key) || []
     existing.push(command)
-    byCommand.set(command.command, existing)
+    byKey.set(key, existing)
   }
 
   const selected: CommandSignal[] = []
-  for (const [command, entries] of byCommand.entries()) {
+  for (const entries of byKey.values()) {
     const sorted = [...entries].sort((a, b) => {
       const sourceCompare = SOURCE_TYPE_PRIORITY[a.sourceType] - SOURCE_TYPE_PRIORITY[b.sourceType]
       if (sourceCompare !== 0) return sourceCompare
-      const tagCompare = a.sourceTag.localeCompare(b.sourceTag)
-      if (tagCompare !== 0) return tagCompare
-      return a.command.localeCompare(b.command)
+      const commandCompare = a.command.localeCompare(b.command)
+      if (commandCompare !== 0) return commandCompare
+      return a.sourceTag.localeCompare(b.sourceTag)
     })
     const best = sorted[0]
     if (!best) continue
-    selected.push({ ...best, command })
+    selected.push(best)
   }
 
   selected.sort((a, b) => {

@@ -40,10 +40,12 @@ ENVIRONMENT MANAGEMENT: CI-based with Bun caching; no .env files or runtime conf
 ### Build Artifacts
 
 **Binary Targets** (Bun native compilation):
+
 - `hone-linux` - Linux x64 executable
 - `hone-macos` - macOS ARM64 executable
 
 **Distribution Format:**
+
 - Zipped archives: `hone-v{VERSION}-{platform}.zip`
 - Contains single `hone` binary in versioned folder
 - Attached to GitHub Releases
@@ -67,4 +69,4 @@ ENVIRONMENT MANAGEMENT: CI-based with Bun caching; no .env files or runtime conf
 
 ---
 
-*This file is part of the AGENTS.md documentation system.*
+_This file is part of the AGENTS.md documentation system._

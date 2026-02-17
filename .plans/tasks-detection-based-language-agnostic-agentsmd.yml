@@ -1,7 +1,7 @@
 feature: detection-based-language-agnostic-agentsmd
 prd: ./prd-detection-based-language-agnostic-agentsmd.md
 created_at: 2026-02-17T10:21:03.393Z
-updated_at: 2026-02-17T12:50:26Z
+updated_at: 2026-02-17T13:05:00Z
 
 tasks:
   - id: task-001
@@ -136,3 +136,25 @@ tasks:
       - "Feedback instructions updated to be more concise and on point"
       - "High signal-to-noise ratio on the feedback instructions"
     completed_at: 2026-02-17T12:50:26Z
+
+  - id: task-010
+    title: "remove duplicate feedback instructions"
+    description: |
+      The sections under ## Feedback Instructions sometimes are duplicate.
+      For example: |
+          npm run check:yaml (package.json)
+          npm run format:yaml (package.json)
+          # Check YAML formatting and linting (README.md)
+          # Format YAML files (README.md)
+          bun run check:yaml (README.md)
+          bun run format:yaml (README.md)
+      should be: |
+          npm run check:yaml (package.json)
+          npm run format:yaml (package.json)
+
+      and same for the other sections under ## Feedback Instructions
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "Make sure there are no duplicate feedback instructions"
+    completed_at: 2026-02-17T13:05:00Z

@@ -201,3 +201,28 @@ Key Decisions:
 - Use sourceTag-derived paths for workflow/docs labels to match feedback instruction examples
 
 Next Task: All tasks complete
+
+================================================================================
+TASK-010: remove duplicate feedback instructions
+Date: 2026-02-17T13:05:00Z
+================================================================================
+
+Summary:
+Deduped feedback instructions by script name across npm/yarn/pnpm/bun, filtered comment-like commands, and preserved best source priority for remaining commands.
+
+Files Changed:
+- src/agents-md-generator.ts (modified - add command dedupe key and comment filtering for feedback instructions)
+- .agents-docs/architecture.md (modified - normalize trailing note style)
+- .agents-docs/build.md (modified - add spacing and normalize trailing note style)
+- .agents-docs/deployment.md (modified - add spacing and normalize trailing note style)
+- .agents-docs/languages.md (modified - normalize spacing and trailing note style)
+- .agents-docs/testing.md (modified - add spacing and normalize trailing note style)
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - mark task-010 complete)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (modified - add task-010 completion entry)
+- AGENTS.md (modified - add feedback instruction dedupe learnings)
+
+Key Decisions:
+- Dedupe feedback instructions by normalized script name across runners to avoid duplicate entries.
+- Drop comment-style commands starting with # or // as low-signal.
+
+Next Task: All tasks complete

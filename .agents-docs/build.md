@@ -2,6 +2,7 @@
 
 BUILD SYSTEMS: [Bun]
 BUILD COMMANDS:
+
 - `bun test` - Run tests
 - `bun run build` - Build Linux and macOS binaries
 - `bun run build:linux` - Compile to standalone Linux x64 binary
@@ -14,6 +15,7 @@ BUILD COMMANDS:
 BUNDLING: [Bun's built-in bundler/compiler]
 
 NOTES:
+
 - Project uses Bun as runtime, package manager (bun.lock), and bundler
 - Compiles to standalone executables using `bun build --compile`
 - Targets: Linux x64 and macOS ARM64
@@ -22,4 +24,4 @@ NOTES:
 
 ---
 
-*This file is part of the AGENTS.md documentation system.*
+_This file is part of the AGENTS.md documentation system._

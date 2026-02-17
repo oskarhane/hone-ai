@@ -55,4 +55,4 @@ hone-ai/
 
 ---
 
-*This file is part of the AGENTS.md documentation system.*
+_This file is part of the AGENTS.md documentation system._

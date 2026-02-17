@@ -2,11 +2,13 @@
 
 TESTING FRAMEWORKS: [Bun's built-in test runner (bun:test)]
 
-TEST COMMANDS: 
+TEST COMMANDS:
+
 - Run all tests: `npm run test` or `bun test`
 - Run specific test file: `bun test src/config.test.ts`
 
 TEST ORGANIZATION:
+
 - Tests colocated with source files in `src/` directory
 - Naming convention: `*.test.ts` for unit tests
 - Naming convention: `*.integration.test.ts` for integration tests
@@ -17,6 +19,7 @@ TEST ORGANIZATION:
 E2E TESTING: No dedicated E2E framework. Integration tests exist for agent-client and index modules but require actual agent binaries (opencode/claude) to be installed. Integration tests verify API surfaces and subprocess spawning behavior.
 
 NOTABLE PATTERNS:
+
 - Environment isolation via `process.env.BUN_ENV = 'test'`
 - Filesystem cleanup in beforeEach/afterEach for isolated test runs
 - Type-safe test assertions matching TypeScript interfaces
@@ -24,4 +27,4 @@ NOTABLE PATTERNS:
 
 ---
 
-*This file is part of the AGENTS.md documentation system.*
+_This file is part of the AGENTS.md documentation system._
