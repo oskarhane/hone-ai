@@ -21,6 +21,10 @@ import { log, logError, logVerbose, logVerboseError } from './logger'
  * This can be made configurable via config file in the future if needed
  */
 export const AGENTS_DOCS_DIR = '.agents-docs'
+const GENERATED_BLOCK_START = '<!-- BEGIN GENERATED: AGENTS-MD -->'
+const GENERATED_BLOCK_END = '<!-- END GENERATED: AGENTS-MD -->'
+const GENERATED_BLOCK_REGEX =
+  /<!-- BEGIN GENERATED: AGENTS-MD -->[\s\S]*?<!-- END GENERATED: AGENTS-MD -->/m
 
 export interface AgentsMdGeneratorOptions {
   projectPath?: string
@@ -134,51 +138,122 @@ export function isUnavailableAgentResult(content: string): boolean {
 }
 
 /**
- * Extract preservable content (gotchas, custom learnings) from existing AGENTS.md
- * This function looks for custom sections that should be preserved when regenerating
+ * Extract preservable non-generated sections from existing AGENTS.md
+ * This keeps user-authored sections that are outside generated blocks.
  */
-function extractPreservableContent(existingContent: string): string | null {
+/** @internal */
+export function extractPreservableContent(
+  existingContent: string,
+  generatedSectionTitles: string[]
+): string | null {
+  const generatedTitles = new Set(
+    generatedSectionTitles.map(title => title.toLowerCase()).concat('agents.md')
+  )
+
   const lines = existingContent.split('\n')
   const preservedSections: string[] = []
+  let currentHeader = ''
+  let currentHeaderLine = ''
+  let currentHeaderDepth = 0
   let currentSection: string[] = []
-  let inPreservableSection = false
-  let sectionTitle = ''
+  let inGeneratedSection = false
+  let generatedSectionDepth = 0
+
+  const flushSection = () => {
+    if (!currentHeader) return
+    const normalizedHeader = currentHeader.toLowerCase()
+    if (generatedTitles.has(normalizedHeader)) return
+
+    const sectionBody = currentSection.join('\n').trim()
+    if (!sectionBody) return
+
+    const headerLine = currentHeaderLine.startsWith('#') ? currentHeaderLine : `## ${currentHeader}`
+    preservedSections.push(`${headerLine}\n\n${sectionBody}`)
+  }
 
   for (const line of lines) {
-    if (!line) continue
+    const headerMatch = /^(#{1,6})\s+(.*)$/.exec(line)
+    if (headerMatch) {
+      const hashes = headerMatch[1] ?? ''
+      const rawTitle = headerMatch[2] ?? ''
+      const depth = hashes.length
+      const title = rawTitle.trim()
+      const normalizedTitle = title.toLowerCase()
 
-    // Look for section headers that might contain gotchas/learnings
-    if (line.startsWith('## ') || line.startsWith('# ')) {
-      // Save previous section if it was preservable
-      if (inPreservableSection && currentSection.length > 0) {
-        preservedSections.push(`## ${sectionTitle}\n\n${currentSection.join('\n').trim()}`)
+      if (inGeneratedSection && depth > generatedSectionDepth) {
+        continue
       }
 
-      // Check if this is a section we want to preserve
-      const title = line.replace(/^#+\s*/, '').toLowerCase()
-      sectionTitle = line.replace(/^#+\s*/, '')
-      inPreservableSection =
-        title.includes('gotcha') ||
-        title.includes('learning') ||
-        title.includes('note') ||
-        title.includes('warning') ||
-        title.includes('tip') ||
-        title.includes('custom') ||
-        title.includes('specific') ||
-        line.includes('PRESERVED CONTENT')
+      if (inGeneratedSection && depth <= generatedSectionDepth) {
+        inGeneratedSection = false
+        generatedSectionDepth = 0
+      }
 
-      currentSection = []
-    } else if (inPreservableSection) {
+      if (normalizedTitle === 'agents.md') {
+        flushSection()
+        currentHeader = ''
+        currentHeaderLine = ''
+        currentHeaderDepth = 0
+        currentSection = []
+        continue
+      }
+
+      if (generatedTitles.has(normalizedTitle)) {
+        flushSection()
+        currentHeader = ''
+        currentHeaderLine = ''
+        currentHeaderDepth = 0
+        currentSection = []
+        inGeneratedSection = true
+        generatedSectionDepth = depth
+        continue
+      }
+
+      if (currentHeader && depth <= currentHeaderDepth) {
+        flushSection()
+        currentHeader = ''
+        currentHeaderLine = ''
+        currentHeaderDepth = 0
+        currentSection = []
+      }
+
+      if (!currentHeader) {
+        currentHeader = title
+        currentHeaderLine = line
+        currentHeaderDepth = depth
+        currentSection = []
+        continue
+      }
+
+      currentSection.push(line)
+      continue
+    }
+
+    if (inGeneratedSection) continue
+
+    if (currentHeader) {
       currentSection.push(line)
     }
   }
 
-  // Don't forget the last section
-  if (inPreservableSection && currentSection.length > 0) {
-    preservedSections.push(`## ${sectionTitle}\n\n${currentSection.join('\n').trim()}`)
-  }
+  flushSection()
 
   return preservedSections.length > 0 ? preservedSections.join('\n\n') : null
+}
+
+/** @internal */
+export function mergeGeneratedContent(
+  existingContent: string,
+  generatedContent: string
+): string | null {
+  if (
+    !existingContent.includes(GENERATED_BLOCK_START) ||
+    !existingContent.includes(GENERATED_BLOCK_END)
+  ) {
+    return null
+  }
+
+  return existingContent.replace(GENERATED_BLOCK_REGEX, generatedContent.trim())
 }
 
 /**
@@ -1569,7 +1644,7 @@ ${section.content}
       )
       .join('\n')
 
-    return (
+    const content =
       header +
       '\n' +
       fullSections +
@@ -1578,7 +1653,8 @@ ${section.content}
 
 *This AGENTS.md was generated using agent-based project discovery.*
 `
-    )
+
+    return `${GENERATED_BLOCK_START}\n${content.trimEnd()}\n${GENERATED_BLOCK_END}\n`
   }
 
   // Compact version with references to ${AGENTS_DOCS_DIR}/ files, but keep inline sections inline
@@ -1602,7 +1678,7 @@ See [@${AGENTS_DOCS_DIR}/${section.detailFile}](${AGENTS_DOCS_DIR}/${section.det
     })
     .join('\n')
 
-  return (
+  const content =
     header +
     '\n' +
     compactSections +
@@ -1612,7 +1688,8 @@ See [@${AGENTS_DOCS_DIR}/${section.detailFile}](${AGENTS_DOCS_DIR}/${section.det
 *This AGENTS.md was generated using agent-based project discovery.*
 *Detailed information is available in the ${AGENTS_DOCS_DIR}/ directory.*
 `
-  )
+
+  return `${GENERATED_BLOCK_START}\n${content.trimEnd()}\n${GENERATED_BLOCK_END}\n`
 }
 
 /**
@@ -1708,7 +1785,12 @@ async function generateContent(
   analysis: ProjectAnalysis,
   config: HoneConfig,
   agent?: AgentType
-): Promise<{ mainContent: string; detailSections?: TemplateSection[]; useAgentsDir: boolean }> {
+): Promise<{
+  mainContent: string
+  detailSections?: TemplateSection[]
+  useAgentsDir: boolean
+  sectionTitles: string[]
+}> {
   log('\nPhase 2: Agent Discovery')
   log('-'.repeat(80))
 
@@ -1758,6 +1840,7 @@ async function generateContent(
       mainContent,
       detailSections: useAgentsDir ? sections : undefined,
       useAgentsDir,
+      sectionTitles: sections.map(section => section.title),
     }
   } catch (error) {
     process.stdout.write('✗\n')
@@ -1819,7 +1902,7 @@ export async function generateAgentsMd(
       }
     }
 
-    const { mainContent, detailSections, useAgentsDir } = await generateContent(
+    const { mainContent, detailSections, useAgentsDir, sectionTitles } = await generateContent(
       projectPath,
       analysis,
       config,
@@ -1831,15 +1914,23 @@ export async function generateAgentsMd(
 
     process.stdout.write('Writing AGENTS.md file... ')
 
-    // Preserve existing gotchas/learnings if overwriting
+    // Preserve existing non-generated content if overwriting
     let finalContent = mainContent
     if (options.overwrite && existsSync(agentsPath)) {
       try {
         const existingContent = await readFile(agentsPath, 'utf-8')
-        const preservedContent = extractPreservableContent(existingContent)
-        if (preservedContent) {
-          finalContent = `${mainContent}\n\n<!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->\n${preservedContent}`
-          logVerbose('[AgentsMd] Preserved existing gotchas/learnings from previous AGENTS.md')
+        const mergedContent = mergeGeneratedContent(existingContent, mainContent)
+        if (mergedContent) {
+          finalContent = mergedContent
+          logVerbose('[AgentsMd] Preserved existing content outside generated block')
+        } else {
+          const preservedContent = extractPreservableContent(existingContent, sectionTitles)
+          if (preservedContent) {
+            finalContent = `${mainContent}\n\n<!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->\n${preservedContent}`
+            logVerbose(
+              '[AgentsMd] Preserved existing non-generated sections from previous AGENTS.md'
+            )
+          }
         }
       } catch (error) {
         logVerboseError(`[AgentsMd] Could not preserve existing content: ${error}`)

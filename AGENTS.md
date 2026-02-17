@@ -175,6 +175,11 @@ _Detailed information is available in the .agents-docs/ directory._
 - Add usage examples demonstrating real workflow scenarios rather than abstract syntax
 - Doc glob examples should use literal patterns (e.g., `**/*.yml`) without escaping
 
+## AGENTS.md Generation
+
+- Generated block markers must remain exact; replacement assumes a single non-greedy block match
+- Legacy preservation skips generated section titles and their nested subsections based on header depth
+
 ## Logic in hone-ai vs underlying agents
 
 - hone-ai handles high-level orchestration and coordination of agent interactions

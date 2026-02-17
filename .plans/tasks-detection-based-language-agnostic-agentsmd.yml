@@ -1,7 +1,7 @@
 feature: detection-based-language-agnostic-agentsmd
 prd: ./prd-detection-based-language-agnostic-agentsmd.md
 created_at: 2026-02-17T10:21:03.393Z
-updated_at: 2026-02-17T11:02:34Z
+updated_at: 2026-02-17T11:10:37Z
 
 tasks:
   - id: task-001
@@ -78,7 +78,7 @@ tasks:
     title: "Protect user content outside generated sections"
     description: |
       Verify generation only updates the intended sections and preserves user-provided content elsewhere. Ensure no destructive changes occur beyond generated blocks. Add safeguards if needed to prevent overwrites.
-    status: pending
+    status: completed
     dependencies:
       - task-003
       - task-004
@@ -88,7 +88,7 @@ tasks:
       - "Generation only touches defined sections"
       - "No destructive removals observed in tests"
       - "Backward compatibility maintained"
-    completed_at: null
+    completed_at: 2026-02-17T11:10:37Z
 
   - id: task-007
     title: "Add unit tests for aggregation and tagging"

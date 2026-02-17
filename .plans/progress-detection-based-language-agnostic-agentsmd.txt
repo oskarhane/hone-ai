@@ -141,3 +141,24 @@ Key Decisions:
 - Normalized "not available" checks with lowercasing to handle mixed-case agent output
 
 Next Task: task-006 - Protect user content outside generated sections
+
+================================================================================
+TASK-006: Protect user content outside generated sections
+Date: 2026-02-17T11:10:37Z
+================================================================================
+
+Summary:
+Added unit coverage for AGENTS.md preservation helpers, fixed legacy preservation to skip nested generated headers by depth, and made generated block replacement non-greedy while retaining exact markers.
+
+Files Changed:
+- src/agents-md-generator.ts (modified - export preservation helpers, header-depth skipping, non-greedy block match)
+- src/agents-md-generator.test.ts (modified - add preservation/merge tests)
+- AGENTS.md (modified - note on generated block markers and nested header skipping)
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - task-006 completion)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (modified - task-006 completion entry)
+
+Key Decisions:
+- Treat generated section headers as depth-scoped blocks so nested headers are skipped in legacy preservation.
+- Keep generated block markers exact but use non-greedy replacement for safety.
+
+Next Task: task-007 - Add unit tests for aggregation and tagging

@@ -8,6 +8,8 @@ import {
   collectAgentsDocsMetadataSignals,
   dedupeMetadataSignals,
   isUnavailableAgentResult,
+  extractPreservableContent,
+  mergeGeneratedContent,
 } from './agents-md-generator'
 import type {
   AgentsMdGeneratorOptions,
@@ -519,5 +521,84 @@ describe('agents-md-generator', () => {
     expect(isUnavailableAgentResult('not available')).toBe(true)
     expect(isUnavailableAgentResult('Information not available.')).toBe(true)
     expect(isUnavailableAgentResult('Static analysis detected: TypeScript')).toBe(false)
+  })
+
+  test('mergeGeneratedContent replaces generated block when markers exist', () => {
+    const existingContent = [
+      '# AGENTS.md',
+      '',
+      'Intro text',
+      '<!-- BEGIN GENERATED: AGENTS-MD -->',
+      'Old generated',
+      '<!-- END GENERATED: AGENTS-MD -->',
+      '',
+      'Custom notes',
+    ].join('\n')
+
+    const generatedContent = [
+      '<!-- BEGIN GENERATED: AGENTS-MD -->',
+      'New generated',
+      '<!-- END GENERATED: AGENTS-MD -->',
+      '',
+    ].join('\n')
+
+    const merged = mergeGeneratedContent(existingContent, generatedContent)
+    expect(merged).not.toBeNull()
+    expect(merged).toContain('New generated')
+    expect(merged).toContain('Intro text')
+    expect(merged).toContain('Custom notes')
+    expect(merged).not.toContain('Old generated')
+  })
+
+  test('mergeGeneratedContent returns null when markers are missing', () => {
+    const existingContent = ['# AGENTS.md', '', 'No markers'].join('\n')
+    const generatedContent = [
+      '<!-- BEGIN GENERATED: AGENTS-MD -->',
+      'New generated',
+      '<!-- END GENERATED: AGENTS-MD -->',
+    ].join('\n')
+
+    const merged = mergeGeneratedContent(existingContent, generatedContent)
+    expect(merged).toBeNull()
+  })
+
+  test('extractPreservableContent skips generated sections and nested headers', () => {
+    const existingContent = [
+      '# AGENTS.md',
+      '',
+      '## Project Overview',
+      'Generated overview',
+      '### Generated Subsection',
+      'More generated content',
+      '',
+      '## Custom Notes',
+      'Keep this section',
+      '### Detail',
+      'Keep detail too',
+      '',
+      '## Testing Framework',
+      'Generated testing',
+      '### Nested Generated',
+      'Ignore nested content',
+      '',
+      '## Additional Tips',
+      'Keep tips',
+    ].join('\n')
+
+    const preserved = extractPreservableContent(existingContent, [
+      'Project Overview',
+      'Testing Framework',
+    ])
+
+    expect(preserved).not.toBeNull()
+    expect(preserved).toContain('## Custom Notes')
+    expect(preserved).toContain('### Detail')
+    expect(preserved).toContain('Keep detail too')
+    expect(preserved).toContain('## Additional Tips')
+    expect(preserved).toContain('Keep tips')
+    expect(preserved).not.toContain('## Project Overview')
+    expect(preserved).not.toContain('Generated Subsection')
+    expect(preserved).not.toContain('## Testing Framework')
+    expect(preserved).not.toContain('Nested Generated')
   })
 })
