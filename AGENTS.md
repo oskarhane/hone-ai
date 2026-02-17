@@ -1,15 +1,14 @@
 <!-- BEGIN GENERATED: AGENTS-MD -->
-
 # AGENTS.md
 
 Learnings and patterns for future agents working on this project.
 
 ## Feedback Instructions
 
-TEST COMMANDS: [`bun test` via `npm run test` or CI `bun test`]
-BUILD COMMANDS: [`bun run build`, `bun run build:linux`, `bun run build:macos`]
-LINT COMMANDS: [`bun run lint:yaml`]
-FORMAT COMMANDS: [`bun run format`, `bun run format:yaml`, `bun run check:yaml`]
+TEST COMMANDS: [bun test, npm run test]
+BUILD COMMANDS: [bun run build, bun run build:linux, bun run build:macos, bun run tsc --noEmit]
+LINT COMMANDS: [bun run lint:yaml, bun run check:yaml]
+FORMAT COMMANDS: [bun run format, bun run format:yaml, prettier --write "**/*.ts", prettier --write "**/*.yml" "**/*.yaml"]
 
 ## Project Overview
 
@@ -19,7 +18,7 @@ See [@.agents-docs/languages.md](.agents-docs/languages.md) for detailed informa
 
 ## Build System
 
-BUILD SYSTEMS: [Bun (bun build/compile), npm-style package.json scripts]
+BUILD SYSTEMS: [Bun (bun build/compile + bun test), npm scripts via package.json, GitHub Actions workflows]
 
 See [@.agents-docs/build.md](.agents-docs/build.md) for detailed information.
 
@@ -31,21 +30,20 @@ See [@.agents-docs/testing.md](.agents-docs/testing.md) for detailed information
 
 ## Architecture
 
-ARCHITECTURE PATTERN: CLI orchestration with subprocess delegation (3-phase implement/review/finalize loop)
+ARCHITECTURE PATTERN: CLI orchestration with subprocess delegation and a 3‑phase implement/review/finalize loop.
 
 See [@.agents-docs/architecture.md](.agents-docs/architecture.md) for detailed information.
 
 ## Deployment
 
-DEPLOYMENT STRATEGY: CLI binary distribution + npm package publishing via GitHub Actions release workflows
+DEPLOYMENT STRATEGY: GitHub Actions–driven release workflow producing Bun-compiled binaries + manual npm publish.
 
 See [@.agents-docs/deployment.md](.agents-docs/deployment.md) for detailed information.
 
 ---
 
-_This AGENTS.md was generated using agent-based project discovery._
-_Detailed information is available in the .agents-docs/ directory._
-
+*This AGENTS.md was generated using agent-based project discovery.*
+*Detailed information is available in the .agents-docs/ directory.*
 <!-- END GENERATED: AGENTS-MD -->
 
 <!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->

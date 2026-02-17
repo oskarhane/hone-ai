@@ -1,11 +1,11 @@
 # Build System
 
-BUILD SYSTEMS: [Bun (bun build/compile), npm-style package.json scripts]
-BUILD COMMANDS: [`bun run build`, `bun run build:linux`, `bun run build:macos`]
-LINT COMMANDS: [`bun run lint:yaml`]
-FORMAT COMMANDS: [`bun run format`, `bun run format:yaml`, `bun run check:yaml`]
-BUNDLING: [Bun build (`bun build --compile --minify --sourcemap`)]
+BUILD SYSTEMS: [Bun (bun build/compile + bun test), npm scripts via package.json, GitHub Actions workflows]
+BUILD COMMANDS: [bun run build, bun run build:linux, bun run build:macos, bun run tsc --noEmit]
+LINT COMMANDS: [bun run lint:yaml, bun run check:yaml]
+FORMAT COMMANDS: [bun run format, bun run format:yaml, prettier --write "**/*.ts", prettier --write "**/*.yml" "**/*.yaml"]
+BUNDLING: [Bun bundler via bun build --compile --minify --sourcemap]
 
 ---
 
-_This file is part of the AGENTS.md documentation system._
+*This file is part of the AGENTS.md documentation system.*
