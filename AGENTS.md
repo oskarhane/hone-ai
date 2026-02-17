@@ -8,6 +8,8 @@ Learnings and patterns for future agents working on this project.
 
 TEST COMMANDS: [`bun test` via `npm run test` or CI `bun test`]
 BUILD COMMANDS: [`bun run build`, `bun run build:linux`, `bun run build:macos`]
+LINT COMMANDS: [`bun run lint:yaml`]
+FORMAT COMMANDS: [`bun run format`, `bun run format:yaml`, `bun run check:yaml`]
 
 ## Project Overview
 
@@ -178,6 +180,7 @@ _Detailed information is available in the .agents-docs/ directory._
 - Dedupe feedback instructions by normalized script name across npm/yarn/pnpm/bun runners
 - Filter comment-style commands starting with `#` or `//` as low-signal
 - Feedback instructions should mirror .agents-docs testing/build content without extra command discovery
+- Lint/format feedback instructions should include workflow checks just like test/build
 
 ## Logic in hone-ai vs underlying agents
 

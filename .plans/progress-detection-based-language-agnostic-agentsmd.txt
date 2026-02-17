@@ -247,3 +247,21 @@ Key Decisions:
 - Keep feedback section limited to test/build commands to reduce noise and maintenance burden.
 
 Next Task: All tasks complete
+
+================================================================================
+TASK-012: include code formatting and lint checks in the feedback instructions
+Date: 2026-02-17T13:30:00Z
+================================================================================
+
+Summary:
+Completed finalize tracking for task-012. Recorded lint and format feedback instructions alongside test/build guidance and noted workflow checks in AGENTS.md.
+
+Files Changed:
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - mark task-012 completed)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (modified - add task-012 completion entry)
+- AGENTS.md (modified - add lint/format workflow guidance)
+
+Key Decisions:
+- Treat lint/format feedback instructions as first-class entries alongside test/build and ensure workflow checks are included.
+
+Next Task: All tasks complete

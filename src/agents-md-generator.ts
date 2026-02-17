@@ -785,25 +785,28 @@ USAGE CONTEXT: [brief explanation of how each language is used in the project]`,
 
   buildSystems: `Analyze this project to identify build systems, package managers, and compilation/bundling tools.
 
-BUILD SYSTEM DETECTION RULES:
-- npm/yarn/pnpm: Look for package.json, package-lock.json, yarn.lock, pnpm-lock.yaml
-- Maven: Look for pom.xml, maven-wrapper files
-- Gradle: Look for build.gradle, gradlew files
-- Go modules: Look for go.mod, go.sum
-- Cargo: Look for Cargo.toml, Cargo.lock
-- Webpack: Look for webpack.config.js, webpack configurations
-- Vite: Look for vite.config.ts/js
-- Parcel: Look for .parcelrc, parcel configurations
-- Build scripts in package.json (build, bundle, compile commands)
-- Docker: Look for Dockerfile, docker-compose.yml
-- Make: Look for Makefile
-- Custom build scripts in various languages
+ BUILD SYSTEM DETECTION RULES:
+ - npm/yarn/pnpm: Look for package.json, package-lock.json, yarn.lock, pnpm-lock.yaml
+ - Maven: Look for pom.xml, maven-wrapper files
+ - Gradle: Look for build.gradle, gradlew files
+ - Go modules: Look for go.mod, go.sum
+ - Cargo: Look for Cargo.toml, Cargo.lock
+ - Webpack: Look for webpack.config.js, webpack configurations
+ - Vite: Look for vite.config.ts/js
+ - Parcel: Look for .parcelrc, parcel configurations
+ - Build scripts in package.json (build, bundle, compile commands)
+ - Check .github/workflows/*.yml for build, lint, and format commands
+ - Docker: Look for Dockerfile, docker-compose.yml
+ - Make: Look for Makefile
+ - Custom build scripts in various languages
 
 CRITICAL: Your response MUST start directly with the structured format below. NO preambles like "Based on my analysis..." or "Here's what I found..." - start IMMEDIATELY with "BUILD SYSTEMS:".
 
-BUILD SYSTEMS: [system 1, system 2, ...]
-BUILD COMMANDS: [key build commands developers should know]
-BUNDLING: [bundling tools if applicable]`,
+ BUILD SYSTEMS: [system 1, system 2, ...]
+ BUILD COMMANDS: [key build commands developers should know]
+ LINT COMMANDS: [lint commands developers should know]
+ FORMAT COMMANDS: [formatting commands developers should know]
+ BUNDLING: [bundling tools if applicable]`,
 
   testing: `Identify testing frameworks, test organization patterns, and testing strategies used in this project.
 
@@ -816,13 +819,14 @@ TESTING FRAMEWORK DETECTION:
 - Ruby: RSpec, minitest
 - PHP: PHPUnit, Pest
 
-Look for:
-- Test files (*.test.*, *.spec.*, *_test.*, test_*.py)
-- Test directories (/test, /tests, /__tests__)
-- Configuration files (jest.config.js, vitest.config.ts, pytest.ini)
-- CI/CD test configurations
-- Mock/stub patterns
-- E2E testing setup
+  Look for:
+  - Test files (*.test.*, *.spec.*, *_test.*, test_*.py)
+  - Test directories (/test, /tests, /__tests__)
+  - Configuration files (jest.config.js, vitest.config.ts, pytest.ini)
+  - CI/CD test configurations
+  - Check .github/workflows/*.yml for test commands
+  - Mock/stub patterns
+  - E2E testing setup
 
 CRITICAL: Your response MUST start directly with the structured format below. NO preambles like "Based on my analysis..." or "Here's what I found..." - start IMMEDIATELY with "TESTING FRAMEWORKS:".
 
@@ -1023,6 +1027,20 @@ function generateFeedbackContent(testingContent: string, buildContent: string): 
     feedbackLines.push(`BUILD COMMANDS: ${buildCommands}`)
   } else if (isUnavailableAgentResult(buildContent)) {
     feedbackLines.push('BUILD COMMANDS: Not available.')
+  }
+
+  const lintCommands = extractLabeledValue(buildContent, 'LINT COMMANDS')
+  if (lintCommands) {
+    feedbackLines.push(`LINT COMMANDS: ${lintCommands}`)
+  } else if (isUnavailableAgentResult(buildContent)) {
+    feedbackLines.push('LINT COMMANDS: Not available.')
+  }
+
+  const formatCommands = extractLabeledValue(buildContent, 'FORMAT COMMANDS')
+  if (formatCommands) {
+    feedbackLines.push(`FORMAT COMMANDS: ${formatCommands}`)
+  } else if (isUnavailableAgentResult(buildContent)) {
+    feedbackLines.push('FORMAT COMMANDS: Not available.')
   }
 
   if (feedbackLines.length === 0) {
