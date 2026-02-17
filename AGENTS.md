@@ -181,6 +181,10 @@ _Detailed information is available in the .agents-docs/ directory._
 - Generated block markers must remain exact; replacement assumes a single non-greedy block match
 - Legacy preservation skips generated section titles and their nested subsections based on header depth
 
+## Feedback Instruction Labeling
+
+- Prefer concrete source paths in feedback command labels (e.g. `.github/workflows/<file>`, `docs/...`, `.agents-docs/...`) instead of generic buckets
+
 ## Logic in hone-ai vs underlying agents
 
 - hone-ai handles high-level orchestration and coordination of agent interactions

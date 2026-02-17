@@ -1486,8 +1486,103 @@ export function collectCommandSignals(
   return deduped
 }
 
-function formatTaggedCommands(commands: CommandSignal[]): string {
-  return commands.map(command => `\`${command.command}\` (${command.sourceTag})`).join('; ')
+function shortenNpmCommand(command: string): string {
+  if (!command.startsWith('npm run ')) return command
+  const scriptName = command.slice('npm run '.length).trim()
+  if (scriptName === 'test') return 'npm test'
+  return command
+}
+
+function simplifyCommandForDisplay(command: string): string {
+  let simplified = normalizeCommand(command)
+  simplified = simplified.replace(/\s*\|\|.*$/, '').trim()
+  simplified = simplified.replace(/\s*;\s*$/, '').trim()
+  simplified = shortenNpmCommand(simplified)
+  return simplified
+}
+
+function isLowSignalCommand(command: string): boolean {
+  const normalized = command.toLowerCase()
+  return (
+    normalized.startsWith('echo ') ||
+    normalized.startsWith('printf ') ||
+    normalized.startsWith('exit ') ||
+    normalized.startsWith('set ') ||
+    normalized === 'true' ||
+    normalized === 'false'
+  )
+}
+
+function stripSourcePrefix(sourceTag: string, prefix: string): string | null {
+  if (!sourceTag.startsWith(prefix)) return null
+  return sourceTag.slice(prefix.length)
+}
+
+function formatSourceLabel(signal: CommandSignal): string {
+  switch (signal.sourceType) {
+    case 'workflow': {
+      const workflowFile = stripSourcePrefix(signal.sourceTag, 'workflow:') || signal.sourceTag
+      return workflowFile.includes('/') ? workflowFile : join('.github', 'workflows', workflowFile)
+    }
+    case 'doc': {
+      return stripSourcePrefix(signal.sourceTag, 'doc:') || signal.sourceTag
+    }
+    case 'agents-docs': {
+      const docPath = stripSourcePrefix(signal.sourceTag, 'agents-docs:')
+      return docPath ? join('.agents-docs', docPath) : signal.sourceTag
+    }
+    case 'config':
+    case 'analysis':
+    case 'package.json':
+    default:
+      return signal.sourceTag
+  }
+}
+
+function formatConciseCommands(commands: CommandSignal[]): string {
+  const simplified: CommandSignal[] = commands
+    .map(command => ({
+      ...command,
+      command: simplifyCommandForDisplay(command.command),
+    }))
+    .filter(command => command.command && !isLowSignalCommand(command.command))
+
+  const sourceTypes = Array.from(new Set(simplified.map(command => command.sourceType))).sort(
+    (a, b) => SOURCE_TYPE_PRIORITY[a] - SOURCE_TYPE_PRIORITY[b]
+  )
+  const allowedSourceTypes = new Set(sourceTypes.slice(0, 2))
+  const filtered = simplified.filter(command => allowedSourceTypes.has(command.sourceType))
+
+  const byCommand = new Map<string, CommandSignal[]>()
+  for (const command of filtered) {
+    const existing = byCommand.get(command.command) || []
+    existing.push(command)
+    byCommand.set(command.command, existing)
+  }
+
+  const selected: CommandSignal[] = []
+  for (const [command, entries] of byCommand.entries()) {
+    const sorted = [...entries].sort((a, b) => {
+      const sourceCompare = SOURCE_TYPE_PRIORITY[a.sourceType] - SOURCE_TYPE_PRIORITY[b.sourceType]
+      if (sourceCompare !== 0) return sourceCompare
+      const tagCompare = a.sourceTag.localeCompare(b.sourceTag)
+      if (tagCompare !== 0) return tagCompare
+      return a.command.localeCompare(b.command)
+    })
+    const best = sorted[0]
+    if (!best) continue
+    selected.push({ ...best, command })
+  }
+
+  selected.sort((a, b) => {
+    const sourceCompare = SOURCE_TYPE_PRIORITY[a.sourceType] - SOURCE_TYPE_PRIORITY[b.sourceType]
+    if (sourceCompare !== 0) return sourceCompare
+    const commandCompare = a.command.localeCompare(b.command)
+    if (commandCompare !== 0) return commandCompare
+    return a.sourceTag.localeCompare(b.sourceTag)
+  })
+
+  return selected.map(command => `${command.command} (${formatSourceLabel(command)})`).join('\n')
 }
 
 function generateFeedbackContent(projectPath: string, analysis: ProjectAnalysis): string {
@@ -1514,7 +1609,7 @@ function generateFeedbackContent(projectPath: string, analysis: ProjectAnalysis)
     const commands = commandsByCategory.get(category)
     if (!commands || commands.length === 0) continue
     const label = COMMAND_CATEGORY_LABELS[category]
-    feedbackCommands.push(`**${label}:** ${formatTaggedCommands(commands)}`)
+    feedbackCommands.push(`**${label}:**\n${formatConciseCommands(commands)}`)
   }
 
   return `Run these commands to validate your changes before committing:
