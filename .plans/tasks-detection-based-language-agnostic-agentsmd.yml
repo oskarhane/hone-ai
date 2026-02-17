@@ -1,7 +1,7 @@
 feature: detection-based-language-agnostic-agentsmd
 prd: ./prd-detection-based-language-agnostic-agentsmd.md
 created_at: 2026-02-17T10:21:03.393Z
-updated_at: 2026-02-17T12:00:00Z
+updated_at: 2026-02-17T11:02:34Z
 
 tasks:
   - id: task-001
@@ -63,7 +63,7 @@ tasks:
     title: "Add conflict aggregation formatting"
     description: |
       Ensure sections list multiple values when signals conflict, each with a short source tag. Apply consistent formatting across commands and metadata sections. Maintain deterministic ordering and avoid "unknown" when at least one signal exists.
-    status: pending
+    status: completed
     dependencies:
       - task-003
       - task-004
@@ -72,7 +72,7 @@ tasks:
       - "All entries include short, consistent source tags"
       - "Ordering deterministic across runs"
       - "No 'unknown/omitted' when signals exist"
-    completed_at: null
+    completed_at: 2026-02-17T11:02:34Z
 
   - id: task-006
     title: "Protect user content outside generated sections"

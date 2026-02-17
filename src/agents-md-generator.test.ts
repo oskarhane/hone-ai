@@ -7,6 +7,7 @@ import {
   collectDocsMetadataSignals,
   collectAgentsDocsMetadataSignals,
   dedupeMetadataSignals,
+  isUnavailableAgentResult,
 } from './agents-md-generator'
 import type {
   AgentsMdGeneratorOptions,
@@ -510,5 +511,13 @@ describe('agents-md-generator', () => {
       section: 'buildSystems',
       value: 'Bun',
     })
+  })
+
+  test('isUnavailableAgentResult detects placeholder responses', () => {
+    expect(isUnavailableAgentResult('')).toBe(true)
+    expect(isUnavailableAgentResult('Unknown')).toBe(true)
+    expect(isUnavailableAgentResult('not available')).toBe(true)
+    expect(isUnavailableAgentResult('Information not available.')).toBe(true)
+    expect(isUnavailableAgentResult('Static analysis detected: TypeScript')).toBe(false)
   })
 })

@@ -133,6 +133,7 @@ _Detailed information is available in the .agents-docs/ directory._
 - Implement robust parsing that handles variations in AI response format
 - Track in-memory state mutations with clear documentation (e.g. `lineNumber: -1` pattern)
 - Consider extracting parsing logic into separate testable functions for complex AI responses
+- Normalize placeholder checks with `toLowerCase()` to catch mixed-case "not available" responses
 
 ## Task Generation and ID Management
 

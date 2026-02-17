@@ -120,10 +120,17 @@ export function dedupeMetadataSignals(signals: MetadataSignal[]): MetadataSignal
 function formatMetadataSection(signals: MetadataSignal[], section: MetadataSection): string[] {
   const sectionSignals = signals.filter(signal => signal.section === section)
   if (sectionSignals.length === 0) return []
-  const includeTags = sectionSignals.length > 1
-  return sectionSignals.map(signal =>
-    includeTags ? `${signal.value} (${signal.sourceTag})` : signal.value
-  )
+  return sectionSignals.map(signal => `${signal.value} (${signal.sourceTag})`)
+}
+
+/** @internal */
+export function isUnavailableAgentResult(content: string): boolean {
+  const normalized = content.trim().toLowerCase()
+  if (!normalized) return true
+  if (normalized.startsWith('not available')) return true
+  if (normalized.startsWith('information not available')) return true
+  if (normalized === 'unknown' || normalized === 'n/a' || normalized === 'na') return true
+  return false
 }
 
 /**
@@ -1457,7 +1464,8 @@ function createTemplateSections(
     if (
       agentResult &&
       !agentResult.includes('failed to analyze') &&
-      !agentResult.includes('Error:')
+      !agentResult.includes('Error:') &&
+      !isUnavailableAgentResult(agentResult)
     ) {
       return agentResult
     }
@@ -1513,7 +1521,7 @@ function createTemplateSections(
     scanResults.deployment || '',
     analysis.deployment
   )
-  if (deploymentContent && !deploymentContent.includes('not available')) {
+  if (deploymentContent && !deploymentContent.toLowerCase().includes('not available')) {
     sections.push({
       title: 'Deployment',
       content: deploymentContent,

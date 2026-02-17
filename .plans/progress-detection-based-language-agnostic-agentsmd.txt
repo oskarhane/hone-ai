@@ -120,3 +120,24 @@ Key Decisions:
 - Test config, workflow, docs, and agents-docs detection paths explicitly
 
 Next Task: task-005 - Add conflict aggregation formatting
+
+================================================================================
+TASK-005: Add conflict aggregation formatting
+Date: 2026-02-17T11:02:34Z
+================================================================================
+
+Summary:
+Exported the agent result placeholder helper for testing, added a unit test for unavailable agent responses, and made deployment section filtering case-insensitive for "not available" responses.
+
+Files Changed:
+- src/agents-md-generator.ts (modified - export helper and case-insensitive deployment filtering)
+- src/agents-md-generator.test.ts (modified - added unavailable agent result test)
+- AGENTS.md (modified - note on placeholder case normalization)
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - task-005 completion)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (modified - task-005 entry)
+
+Key Decisions:
+- Exported `isUnavailableAgentResult` with `@internal` to enable focused unit testing
+- Normalized "not available" checks with lowercasing to handle mixed-case agent output
+
+Next Task: task-006 - Protect user content outside generated sections
