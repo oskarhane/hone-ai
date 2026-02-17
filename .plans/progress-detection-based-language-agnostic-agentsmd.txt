@@ -20,7 +20,7 @@ Key Decisions:
 Next Task: task-001 - Audit current agents-md generation sections
 
 ================================================================================
-TASK-001: Audit current agents-md generation sections
+TASK-001 (finalize): Audit current agents-md generation sections
 Date: 2026-02-17T10:28:39Z
 ================================================================================
 
@@ -55,3 +55,26 @@ Key Decisions:
 - Documented that invalid model strings in `.plans/hone.config.yml` can trigger integration regex failures
 
 Next Task: task-002 - Define detection sources and tagging scheme
+
+================================================================================
+TASK-002: Define detection sources and tagging scheme
+Date: 2026-02-17T11:15:00Z
+================================================================================
+
+Summary:
+Defined supported repo signal sources and a deterministic tagging scheme for multi-source aggregation. Clarified glob examples, aligned model config strings with validation, documented collect-not-override rules and stable ordering constraints, and ran bun test (pass).
+
+Files Changed:
+- .plans/agentsmd-detection-sources.md (modified - fix glob examples)
+- .plans/hone.config.yml (modified - align model strings with validation)
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - task-002 completion)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (updated - task-002 completion entry)
+- AGENTS.md (modified - doc glob pattern guidance)
+
+Key Decisions:
+- Source tags use short category prefixes with relative paths or tool names for determinism.
+- Aggregation is collect-not-override with dedupe only for exact normalized duplicates per source tag.
+- Deterministic ordering: source type priority, then tag, then value.
+- Model strings in `.plans/hone.config.yml` use provider-prefixed or legacy formats to satisfy validation.
+
+Next Task: task-003 - Implement multi-source command detection

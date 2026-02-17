@@ -1,7 +1,7 @@
 feature: detection-based-language-agnostic-agentsmd
 prd: ./prd-detection-based-language-agnostic-agentsmd.md
 created_at: 2026-02-17T10:21:03.393Z
-updated_at: 2026-02-17T10:33:13Z
+updated_at: 2026-02-17T11:15:00Z
 
 tasks:
   - id: task-001
@@ -21,7 +21,7 @@ tasks:
     title: "Define detection sources and tagging scheme"
     description: |
       Specify supported repo signal sources and the short, consistent source tag format. Ensure tags are deterministic and concise for commands and metadata values. Document aggregation rules to include all signals without overriding.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -29,7 +29,7 @@ tasks:
       - "Tag format defined and consistent (e.g., 'npm test (package.json)')"
       - "Aggregation rule states collect-not-override"
       - "Determinism constraints documented"
-    completed_at: null
+    completed_at: 2026-02-17T11:15:00Z
 
   - id: task-003
     title: "Implement multi-source command detection"

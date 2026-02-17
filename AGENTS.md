@@ -171,6 +171,7 @@ _Detailed information is available in the .agents-docs/ directory._
 - Include troubleshooting sections for common error scenarios and user issues
 - Document phase-specific configuration options with clear examples
 - Add usage examples demonstrating real workflow scenarios rather than abstract syntax
+- Doc glob examples should use literal patterns (e.g., `**/*.yml`) without escaping
 
 ## Logic in hone-ai vs underlying agents
 
