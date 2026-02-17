@@ -1,7 +1,7 @@
 feature: detection-based-language-agnostic-agentsmd
 prd: ./prd-detection-based-language-agnostic-agentsmd.md
 created_at: 2026-02-17T10:21:03.393Z
-updated_at: 2026-02-17T10:21:03.393Z
+updated_at: 2026-02-17T10:24:16Z
 
 tasks:
   - id: task-001
@@ -26,7 +26,7 @@ tasks:
       - task-001
     acceptance_criteria:
       - "Source list includes package.json, workflows, docs, configs, .agents-docs"
-      - "Tag format defined and consistent (e.g., "npm test (package.json)")"
+      - "Tag format defined and consistent (e.g., 'npm test (package.json)')"
       - "Aggregation rule states collect-not-override"
       - "Determinism constraints documented"
     completed_at: null
@@ -71,7 +71,7 @@ tasks:
       - "Multiple entries shown for conflicting signals"
       - "All entries include short, consistent source tags"
       - "Ordering deterministic across runs"
-      - "No "unknown/omitted" when signals exist"
+      - "No 'unknown/omitted' when signals exist"
     completed_at: null
 
   - id: task-006
@@ -80,6 +80,8 @@ tasks:
       Verify generation only updates the intended sections and preserves user-provided content elsewhere. Ensure no destructive changes occur beyond generated blocks. Add safeguards if needed to prevent overwrites.
     status: pending
     dependencies:
+      - task-003
+      - task-004
       - task-005
     acceptance_criteria:
       - "User content outside generated sections unchanged"
@@ -103,3 +105,16 @@ tasks:
       - "Deterministic ordering verified"
       - "All new tests pass"
     completed_at: null
+
+  - id: task-008
+    title: "Apply review feedback to planning docs"
+    description: |
+      Address finalize-phase review feedback for the PRD and tasks file. Update dependencies, fix YAML quoting, and ensure formatting is correct. Update tracking files and capture finalization notes.
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "Review feedback applied to PRD and tasks file"
+      - "Task dependencies updated for task-006"
+      - "Tracking files updated with completion summary"
+      - "Finalization commit created"
+    completed_at: 2026-02-17T10:24:16Z

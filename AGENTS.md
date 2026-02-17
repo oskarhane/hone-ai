@@ -101,6 +101,7 @@ _Detailed information is available in the .agents-docs/ directory._
 - ID extraction patterns: task IDs follow `task-###` format, requirement IDs use `REQ-F-###` or `REQ-NF-###`
 - Sequential ID generation should find highest existing ID and increment by 1 to avoid collisions
 - Pure parsing functions that don't mutate original data structures are preferred
+- Use straight quotes in YAML strings to avoid parser quirks with curly quotes
 
 ## Interactive Q&A Implementation
 

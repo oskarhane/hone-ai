@@ -1,0 +1,20 @@
+================================================================================
+TASK-008: Apply review feedback to planning docs
+Date: 2026-02-17T10:24:16Z
+================================================================================
+
+Summary:
+Applied review feedback to the planning docs by fixing YAML quoting, adding missing PRD trailing newline, and updating task dependencies. Added tracking entries and a YAML parsing learning to AGENTS.md. Ran bun test twice; one pre-existing failure in PRD generator integration test due to model format mismatch (expected provider-prefixed or legacy Claude).
+
+Files Changed:
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - fixed YAML quotes, updated task-006 dependencies, added task-008 completion)
+- .plans/prd-detection-based-language-agnostic-agentsmd.md (modified - added trailing newline)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (created - task-008 finalization record)
+- AGENTS.md (modified - added YAML straight-quotes guidance)
+
+Key Decisions:
+- Added task-008 to explicitly track finalize-phase review feedback
+- Updated task-006 dependencies to include task-003 and task-004 for core generation changes
+- Replaced curly-style quoting in YAML acceptance criteria with straight quotes
+
+Next Task: task-001 - Audit current agents-md generation sections
