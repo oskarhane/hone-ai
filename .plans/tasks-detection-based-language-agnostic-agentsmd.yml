@@ -118,3 +118,21 @@ tasks:
       - "Tracking files updated with completion summary"
       - "Finalization commit created"
     completed_at: 2026-02-17T10:24:16Z
+
+  - id: task-009
+    title: "Make the sections in AGENTS.md more concise"
+    description: |
+      The sections under ## Feedback Instructions and too long.
+      For example: |
+          `npm run test` (package.json); `bun test || {` (workflow:ci.yml); `echo "✅ All tests passed"` (workflow:ci.yml); `echo "❌ Tests failed"` (workflow:ci.yml); `echo "🧪 Running test suite..."` (workflow:ci.yml); `echo "ℹ️ Check test failures above and fix before proceeding"` (workflow:ci.yml); `bun test` (doc:README.md); `│ └── *.test.ts # Co-located test files` (agents-docs:architecture.md); `bun test` (agents-docs:build.md); `bun test` (agents-docs:testing.md); `bun test src/config.test.ts` (agents-docs:testing.md); `npm run test` (agents-docs:testing.md); `bun test` (analysis:bun)
+      should be: |
+        bun test (.github/*)
+        npm test (package.json)
+
+      and same for the other sections under ## Feedback Instructions
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "Feedback instructions updated to be more concise and on point"
+      - "High signal-to-noise ratio on the feedback instructions"
+    completed_at: null
