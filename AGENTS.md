@@ -219,6 +219,11 @@ _Detailed information is available in the .agents-docs/ directory._
 - Test titles must match test behavior - check assertion expectations align with test descriptions
 - Comprehensive test cleanup: tests using temp files should use proper cleanup patterns like `rollbackAtomicWrite()`
 
+## Command Detection
+
+- Inferred commands should use a distinct source type (e.g., `analysis`) to distinguish from config file hits
+- Inline markdown command extraction should skip code block content to avoid double counting
+
 ## Mock Implementation and Test Performance
 
 - Enhanced mock implementations that cover more function signatures can actually fix pre-existing test failures

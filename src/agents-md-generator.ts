@@ -11,8 +11,8 @@ import {
   type AgentType,
 } from './config'
 import { readFile, writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { existsSync, readFileSync } from 'fs'
+import { join, relative } from 'path'
+import { existsSync, readFileSync, readdirSync } from 'fs'
 import { AgentClient } from './agent-client'
 import { log, logError, logVerbose, logVerboseError } from './logger'
 
@@ -425,86 +425,553 @@ async function executeParallelScanning(
 }
 
 /**
- * Generate project-specific feedback commands based on package.json and project files
+ * Generate project-specific feedback commands based on multi-source repo signals
  */
-function generateFeedbackContent(projectPath: string, analysis: ProjectAnalysis): string {
-  const feedbackCommands: string[] = []
+type CommandCategory = 'tests' | 'format' | 'lint' | 'yamlFormat' | 'yamlLint' | 'build'
+type SourceType = 'package.json' | 'workflow' | 'doc' | 'config' | 'agents-docs' | 'analysis'
 
-  // Read package.json to get actual project scripts
-  let packageJsonScripts: Record<string, string> = {}
+interface CommandSignal {
+  category: CommandCategory
+  command: string
+  sourceType: SourceType
+  sourceTag: string
+}
+
+const COMMAND_CATEGORY_LABELS: Record<CommandCategory, string> = {
+  tests: 'Unit Tests',
+  format: 'Code Formatting',
+  lint: 'Code Linting',
+  yamlFormat: 'YAML Formatting',
+  yamlLint: 'YAML Linting',
+  build: 'Build',
+}
+
+const SOURCE_TYPE_PRIORITY: Record<SourceType, number> = {
+  'package.json': 0,
+  workflow: 1,
+  doc: 2,
+  config: 3,
+  'agents-docs': 4,
+  analysis: 5,
+}
+
+const WORKFLOW_DIR = join('.github', 'workflows')
+
+/** @internal */
+export function normalizeCommand(command: string): string {
+  return command
+    .replace(/`/g, '')
+    .replace(/^\$\s+/, '')
+    .replace(/^\>\s+/, '')
+    .trim()
+    .replace(/\s+/g, ' ')
+}
+
+function splitCommandSegments(command: string): string[] {
+  return command
+    .split(/&&|;/)
+    .map(segment => normalizeCommand(segment))
+    .filter(Boolean)
+}
+
+/** @internal */
+export function categorizeCommand(command: string): CommandCategory[] {
+  const normalized = command.toLowerCase()
+  const categories = new Set<CommandCategory>()
+  const mentionsYaml = normalized.includes('yaml') || normalized.includes('yml')
+
+  const isTest =
+    normalized.includes(' test') ||
+    normalized.startsWith('test ') ||
+    normalized.includes('jest') ||
+    normalized.includes('vitest') ||
+    normalized.includes('pytest') ||
+    normalized.includes('mocha') ||
+    normalized.includes('bun test') ||
+    normalized.includes('go test') ||
+    normalized.includes('cargo test') ||
+    normalized.includes('playwright test') ||
+    normalized.includes('cypress run')
+
+  const isBuild =
+    normalized.includes(' build') ||
+    normalized.startsWith('build ') ||
+    normalized.includes('webpack') ||
+    normalized.includes('vite build') ||
+    normalized.includes('bun build') ||
+    normalized.includes('cargo build') ||
+    normalized.includes('go build') ||
+    normalized.includes('mvn ') ||
+    normalized.includes('gradle')
+
+  const isLint = (normalized.includes('lint') || normalized.includes('eslint')) && !mentionsYaml
+  const isFormat =
+    (normalized.includes('format') ||
+      normalized.includes('prettier') ||
+      normalized.includes('fmt')) &&
+    !mentionsYaml
+  const isYamlLint =
+    mentionsYaml && (normalized.includes('lint') || normalized.includes('yamllint'))
+  const isYamlFormat =
+    mentionsYaml &&
+    (normalized.includes('format') || normalized.includes('prettier') || normalized.includes('fmt'))
+  const isYamlCheck = mentionsYaml && normalized.includes('check')
+
+  if (isTest) categories.add('tests')
+  if (isBuild) categories.add('build')
+  if (isLint) categories.add('lint')
+  if (isFormat) categories.add('format')
+  if (isYamlLint) categories.add('yamlLint')
+  if (isYamlFormat) categories.add('yamlFormat')
+  if (isYamlCheck) {
+    categories.add('yamlLint')
+    categories.add('yamlFormat')
+  }
+
+  return Array.from(categories)
+}
+
+/** @internal */
+export function categorizeScriptName(scriptName: string, scriptValue: string): CommandCategory[] {
+  const normalizedName = scriptName.toLowerCase()
+  const normalizedValue = scriptValue.toLowerCase()
+  const categories = new Set<CommandCategory>()
+
+  if (normalizedName.includes('test')) categories.add('tests')
+  if (normalizedName === 'build' || normalizedName.startsWith('build:')) categories.add('build')
+  if (normalizedName.startsWith('build:') && normalizedValue.includes('test')) {
+    categories.add('tests')
+  }
+  if (normalizedName.includes('lint')) {
+    if (normalizedName.includes('yaml')) {
+      categories.add('yamlLint')
+    } else {
+      categories.add('lint')
+    }
+  }
+  if (normalizedName.includes('format') || normalizedName.includes('fmt')) {
+    if (normalizedName.includes('yaml')) {
+      categories.add('yamlFormat')
+    } else {
+      categories.add('format')
+    }
+  }
+  if (normalizedName.includes('check') && normalizedName.includes('yaml')) {
+    categories.add('yamlLint')
+    categories.add('yamlFormat')
+  }
+
+  if (categories.size === 0) {
+    return categorizeCommand(scriptValue)
+  }
+
+  return Array.from(categories)
+}
+
+function addCommandSignals(
+  signals: CommandSignal[],
+  categories: CommandCategory[],
+  command: string,
+  sourceType: SourceType,
+  sourceTag: string
+): void {
+  if (categories.length === 0) return
+  const normalized = normalizeCommand(command)
+  if (!normalized) return
+
+  for (const category of categories) {
+    signals.push({
+      category,
+      command: normalized,
+      sourceType,
+      sourceTag,
+    })
+  }
+}
+
+function listMarkdownFiles(projectPath: string): string[] {
+  const files: string[] = []
+  try {
+    const entries = readdirSync(projectPath, { withFileTypes: true })
+    for (const entry of entries) {
+      if (entry.isFile() && entry.name.endsWith('.md')) {
+        if (entry.name === 'AGENTS.md') continue
+        files.push(join(projectPath, entry.name))
+      }
+    }
+  } catch (error) {
+    logVerbose('[AgentsMd] Could not read top-level markdown files')
+  }
+
+  const docsPath = join(projectPath, 'docs')
+  if (existsSync(docsPath)) {
+    files.push(...listFilesRecursive(docsPath, filePath => filePath.endsWith('.md')))
+  }
+
+  return files.sort()
+}
+
+function listFilesRecursive(root: string, matcher: (filePath: string) => boolean): string[] {
+  const files: string[] = []
+  try {
+    const entries = readdirSync(root, { withFileTypes: true })
+    for (const entry of entries) {
+      const entryPath = join(root, entry.name)
+      if (entry.isDirectory()) {
+        files.push(...listFilesRecursive(entryPath, matcher))
+      } else if (entry.isFile() && matcher(entryPath)) {
+        files.push(entryPath)
+      }
+    }
+  } catch (error) {
+    logVerbose('[AgentsMd] Could not read directory during command discovery')
+  }
+
+  return files.sort()
+}
+
+/** @internal */
+export function extractCommandsFromMarkdown(content: string): string[] {
+  const commands: string[] = []
+  const lines = content.split('\n')
+  let inCodeBlock = false
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (trimmed.startsWith('```')) {
+      inCodeBlock = !inCodeBlock
+      continue
+    }
+
+    if (inCodeBlock) {
+      const cleaned = trimmed.replace(/^[-*+]\s+/, '')
+      if (categorizeCommand(cleaned).length > 0) {
+        commands.push(...splitCommandSegments(cleaned))
+      }
+      continue
+    }
+
+    const inlineMatches = trimmed.matchAll(/`([^`]+)`/g)
+    for (const match of inlineMatches) {
+      const inlineCommand = match[1]?.trim() || ''
+      if (categorizeCommand(inlineCommand).length > 0) {
+        commands.push(...splitCommandSegments(inlineCommand))
+      }
+    }
+  }
+
+  return commands
+}
+
+/** @internal */
+export function extractRunCommandsFromWorkflow(content: string): string[] {
+  const commands: string[] = []
+  const lines = content.split('\n')
+  let index = 0
+
+  while (index < lines.length) {
+    const line = lines[index] ?? ''
+    const runMatch = line.match(/^(\s*)run:\s*(.*)$/)
+
+    if (runMatch) {
+      const indent = runMatch[1]?.length ?? 0
+      const runValue = runMatch[2]?.trim() ?? ''
+
+      if (runValue === '|' || runValue === '>') {
+        index += 1
+        const blockLines: string[] = []
+        while (index < lines.length) {
+          const nextLine = lines[index] ?? ''
+          const nextIndent = (nextLine.match(/^(\s*)/) || [''])[0].length
+          if (nextLine.trim() && nextIndent <= indent) break
+          if (nextLine.trim()) {
+            blockLines.push(nextLine.trim())
+          }
+          index += 1
+        }
+        commands.push(...blockLines)
+        continue
+      }
+
+      if (runValue) {
+        commands.push(runValue)
+      }
+    }
+
+    index += 1
+  }
+
+  return commands
+}
+
+function collectConfigCommands(projectPath: string, signals: CommandSignal[]): void {
+  const configChecks = [
+    {
+      name: 'eslint',
+      files: [
+        '.eslintrc',
+        '.eslintrc.js',
+        '.eslintrc.cjs',
+        '.eslintrc.json',
+        '.eslintrc.yml',
+        '.eslintrc.yaml',
+        'eslint.config.js',
+        'eslint.config.cjs',
+        'eslint.config.mjs',
+        'eslint.config.ts',
+      ],
+      command: 'eslint . --fix',
+      categories: ['lint'] as CommandCategory[],
+    },
+    {
+      name: 'prettier',
+      files: [
+        '.prettierrc',
+        '.prettierrc.json',
+        '.prettierrc.yml',
+        '.prettierrc.yaml',
+        '.prettierrc.js',
+        '.prettierrc.cjs',
+        '.prettierrc.mjs',
+        'prettier.config.js',
+        'prettier.config.cjs',
+        'prettier.config.mjs',
+      ],
+      command: 'prettier --write "**/*.{ts,tsx,js,jsx}"',
+      categories: ['format'] as CommandCategory[],
+    },
+    {
+      name: 'yamllint',
+      files: ['.yamllint.yml', '.yamllint.yaml'],
+      command: 'yamllint -c .yamllint.yml **/*.yml **/*.yaml',
+      categories: ['yamlLint'] as CommandCategory[],
+    },
+    {
+      name: 'jest',
+      files: ['jest.config.js', 'jest.config.cjs', 'jest.config.mjs', 'jest.config.ts'],
+      command: 'jest',
+      categories: ['tests'] as CommandCategory[],
+    },
+    {
+      name: 'vitest',
+      files: ['vitest.config.ts', 'vitest.config.js', 'vitest.config.mjs'],
+      command: 'vitest',
+      categories: ['tests'] as CommandCategory[],
+    },
+    {
+      name: 'playwright',
+      files: ['playwright.config.ts', 'playwright.config.js', 'playwright.config.mjs'],
+      command: 'playwright test',
+      categories: ['tests'] as CommandCategory[],
+    },
+    {
+      name: 'cypress',
+      files: ['cypress.config.ts', 'cypress.config.js', 'cypress.config.mjs'],
+      command: 'cypress run',
+      categories: ['tests'] as CommandCategory[],
+    },
+    {
+      name: 'vite',
+      files: ['vite.config.ts', 'vite.config.js', 'vite.config.mjs'],
+      command: 'vite build',
+      categories: ['build'] as CommandCategory[],
+    },
+    {
+      name: 'webpack',
+      files: ['webpack.config.js', 'webpack.config.cjs', 'webpack.config.ts'],
+      command: 'webpack',
+      categories: ['build'] as CommandCategory[],
+    },
+  ]
+
+  for (const check of configChecks) {
+    const hasConfig = check.files.some(file => existsSync(join(projectPath, file)))
+    if (hasConfig) {
+      addCommandSignals(signals, check.categories, check.command, 'config', `config:${check.name}`)
+    }
+  }
+}
+
+function collectPackageJsonCommands(projectPath: string, signals: CommandSignal[]): void {
   try {
     const packageJsonPath = join(projectPath, 'package.json')
-    if (existsSync(packageJsonPath)) {
-      const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
-      packageJsonScripts = packageJson.scripts || {}
+    if (!existsSync(packageJsonPath)) return
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+    const scripts: Record<string, string> = packageJson.scripts || {}
+
+    for (const [scriptName, scriptValue] of Object.entries(scripts)) {
+      const categories = categorizeScriptName(scriptName, scriptValue)
+      if (categories.length === 0) continue
+      addCommandSignals(
+        signals,
+        categories,
+        `npm run ${scriptName}`,
+        'package.json',
+        'package.json'
+      )
     }
   } catch (error) {
     logVerbose('[AgentsMd] Could not read package.json scripts')
   }
+}
 
-  // Unit tests - use actual package.json scripts or detected framework
-  if (packageJsonScripts.test) {
-    feedbackCommands.push(`**Unit Tests:** \`npm run test\` or \`${packageJsonScripts.test}\``)
-  } else if (analysis.testingFrameworks.some(fw => fw.toLowerCase().includes('jest'))) {
-    feedbackCommands.push('**Unit Tests:** `npm test` or `jest`')
-  } else if (analysis.testingFrameworks.some(fw => fw.toLowerCase().includes('pytest'))) {
-    feedbackCommands.push('**Unit Tests:** `pytest`')
-  } else if (analysis.testingFrameworks.some(fw => fw.toLowerCase().includes('bun'))) {
-    feedbackCommands.push('**Unit Tests:** `bun test`')
-  } else {
-    feedbackCommands.push('**Unit Tests:** `bun test`')
-  }
+function collectWorkflowCommands(projectPath: string, signals: CommandSignal[]): void {
+  const workflowsPath = join(projectPath, WORKFLOW_DIR)
+  if (!existsSync(workflowsPath)) return
 
-  // Code formatting - use actual package.json scripts if available
-  if (packageJsonScripts.format) {
-    feedbackCommands.push(
-      `**Code Formatting:** \`npm run format\` or \`${packageJsonScripts.format}\``
-    )
-  } else if (
-    analysis.languages.some(
-      lang => lang.toLowerCase().includes('typescript') || lang.toLowerCase().includes('javascript')
-    )
-  ) {
-    feedbackCommands.push('**Code Formatting:** `prettier --write "**/*.{ts,tsx,js,jsx}"`')
-  }
+  try {
+    const workflowFiles = readdirSync(workflowsPath)
+      .filter(file => file.endsWith('.yml') || file.endsWith('.yaml'))
+      .sort()
 
-  // Code linting - check for lint script or eslint
-  if (packageJsonScripts.lint) {
-    feedbackCommands.push(`**Code Linting:** \`npm run lint\` or \`${packageJsonScripts.lint}\``)
-  } else if (
-    analysis.languages.some(
-      lang => lang.toLowerCase().includes('typescript') || lang.toLowerCase().includes('javascript')
-    )
-  ) {
-    feedbackCommands.push('**Code Linting:** `eslint . --fix`')
-  }
+    for (const file of workflowFiles) {
+      const filePath = join(workflowsPath, file)
+      const content = readFileSync(filePath, 'utf-8')
+      const runCommands = extractRunCommandsFromWorkflow(content)
 
-  // YAML formatting and linting from package.json scripts
-  if (packageJsonScripts['format:yaml']) {
-    feedbackCommands.push(
-      `**YAML Formatting:** \`npm run format:yaml\` or \`${packageJsonScripts['format:yaml']}\``
-    )
-  }
-  if (packageJsonScripts['lint:yaml']) {
-    feedbackCommands.push(
-      `**YAML Linting:** \`npm run lint:yaml\` or \`${packageJsonScripts['lint:yaml']}\``
-    )
-  }
-
-  // Build command - use actual package.json scripts or detected build systems
-  if (packageJsonScripts.build) {
-    feedbackCommands.push(`**Build:** \`npm run build\` or \`${packageJsonScripts.build}\``)
-  } else if (analysis.buildSystems.length > 0) {
-    const buildSystems = analysis.buildSystems.map(sys => sys.toLowerCase())
-    if (buildSystems.some(sys => sys.includes('bun'))) {
-      feedbackCommands.push('**Build:** `bun run build`')
-    } else if (buildSystems.some(sys => sys.includes('npm') || sys.includes('yarn'))) {
-      feedbackCommands.push('**Build:** `npm run build` or `yarn build`')
-    } else if (buildSystems.some(sys => sys.includes('maven'))) {
-      feedbackCommands.push('**Build:** `mvn clean compile`')
-    } else if (buildSystems.some(sys => sys.includes('gradle'))) {
-      feedbackCommands.push('**Build:** `./gradlew build`')
+      for (const runCommand of runCommands) {
+        for (const segment of splitCommandSegments(runCommand)) {
+          const categories = categorizeCommand(segment)
+          addCommandSignals(signals, categories, segment, 'workflow', `workflow:${file}`)
+        }
+      }
     }
+  } catch (error) {
+    logVerbose('[AgentsMd] Could not read workflow files for command discovery')
+  }
+}
+
+function collectDocCommands(projectPath: string, signals: CommandSignal[]): void {
+  const docFiles = listMarkdownFiles(projectPath)
+
+  for (const filePath of docFiles) {
+    try {
+      const content = readFileSync(filePath, 'utf-8')
+      const commands = extractCommandsFromMarkdown(content)
+      const relativePath = relative(projectPath, filePath)
+      for (const command of commands) {
+        const categories = categorizeCommand(command)
+        addCommandSignals(signals, categories, command, 'doc', `doc:${relativePath}`)
+      }
+    } catch (error) {
+      logVerbose(`[AgentsMd] Could not read doc file for command discovery: ${filePath}`)
+    }
+  }
+}
+
+function collectAgentsDocsCommands(projectPath: string, signals: CommandSignal[]): void {
+  const agentsDocsPath = join(projectPath, AGENTS_DOCS_DIR)
+  if (!existsSync(agentsDocsPath)) return
+
+  const files = listFilesRecursive(agentsDocsPath, filePath => filePath.endsWith('.md'))
+  for (const filePath of files) {
+    try {
+      const content = readFileSync(filePath, 'utf-8')
+      const commands = extractCommandsFromMarkdown(content)
+      const relativePath = relative(agentsDocsPath, filePath)
+      for (const command of commands) {
+        const categories = categorizeCommand(command)
+        addCommandSignals(
+          signals,
+          categories,
+          command,
+          'agents-docs',
+          `agents-docs:${relativePath}`
+        )
+      }
+    } catch (error) {
+      logVerbose(`[AgentsMd] Could not read agents-docs file for command discovery: ${filePath}`)
+    }
+  }
+}
+
+function inferFallbackCommands(analysis: ProjectAnalysis, signals: CommandSignal[]): void {
+  const frameworks = analysis.testingFrameworks.map(fw => fw.toLowerCase())
+  if (frameworks.some(fw => fw.includes('bun'))) {
+    addCommandSignals(signals, ['tests'], 'bun test', 'analysis', 'analysis:bun')
+  }
+  if (frameworks.some(fw => fw.includes('jest'))) {
+    addCommandSignals(signals, ['tests'], 'jest', 'analysis', 'analysis:jest')
+  }
+  if (frameworks.some(fw => fw.includes('pytest'))) {
+    addCommandSignals(signals, ['tests'], 'pytest', 'analysis', 'analysis:pytest')
+  }
+
+  const buildSystems = analysis.buildSystems.map(sys => sys.toLowerCase())
+  if (buildSystems.some(sys => sys.includes('bun'))) {
+    addCommandSignals(signals, ['build'], 'bun run build', 'analysis', 'analysis:bun')
+  }
+  if (buildSystems.some(sys => sys.includes('maven'))) {
+    addCommandSignals(signals, ['build'], 'mvn clean compile', 'analysis', 'analysis:maven')
+  }
+  if (buildSystems.some(sys => sys.includes('gradle'))) {
+    addCommandSignals(signals, ['build'], './gradlew build', 'analysis', 'analysis:gradle')
+  }
+}
+
+/** @internal */
+export function collectCommandSignals(
+  projectPath: string,
+  analysis: ProjectAnalysis
+): CommandSignal[] {
+  const signals: CommandSignal[] = []
+
+  collectPackageJsonCommands(projectPath, signals)
+  collectWorkflowCommands(projectPath, signals)
+  collectDocCommands(projectPath, signals)
+  collectConfigCommands(projectPath, signals)
+  collectAgentsDocsCommands(projectPath, signals)
+  inferFallbackCommands(analysis, signals)
+
+  const seen = new Set<string>()
+  const deduped: CommandSignal[] = []
+  for (const signal of signals) {
+    const key = `${signal.sourceTag}::${normalizeCommand(signal.command)}::${signal.category}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    deduped.push(signal)
+  }
+
+  deduped.sort((a, b) => {
+    const sourceCompare = SOURCE_TYPE_PRIORITY[a.sourceType] - SOURCE_TYPE_PRIORITY[b.sourceType]
+    if (sourceCompare !== 0) return sourceCompare
+    const tagCompare = a.sourceTag.localeCompare(b.sourceTag)
+    if (tagCompare !== 0) return tagCompare
+    return a.command.localeCompare(b.command)
+  })
+
+  return deduped
+}
+
+function formatTaggedCommands(commands: CommandSignal[]): string {
+  return commands.map(command => `\`${command.command}\` (${command.sourceTag})`).join('; ')
+}
+
+function generateFeedbackContent(projectPath: string, analysis: ProjectAnalysis): string {
+  const feedbackCommands: string[] = []
+  const signals = collectCommandSignals(projectPath, analysis)
+
+  const commandsByCategory = new Map<CommandCategory, CommandSignal[]>()
+  for (const signal of signals) {
+    const existing = commandsByCategory.get(signal.category) || []
+    existing.push(signal)
+    commandsByCategory.set(signal.category, existing)
+  }
+
+  const orderedCategories: CommandCategory[] = [
+    'tests',
+    'format',
+    'lint',
+    'yamlFormat',
+    'yamlLint',
+    'build',
+  ]
+
+  for (const category of orderedCategories) {
+    const commands = commandsByCategory.get(category)
+    if (!commands || commands.length === 0) continue
+    const label = COMMAND_CATEGORY_LABELS[category]
+    feedbackCommands.push(`**${label}:** ${formatTaggedCommands(commands)}`)
   }
 
   return `Run these commands to validate your changes before committing:

@@ -78,3 +78,24 @@ Key Decisions:
 - Model strings in `.plans/hone.config.yml` use provider-prefixed or legacy formats to satisfy validation.
 
 Next Task: task-003 - Implement multi-source command detection
+
+================================================================================
+TASK-003: Implement multi-source command detection
+Date: 2026-02-17T10:46:34Z
+================================================================================
+
+Summary:
+Applied review feedback by distinguishing inferred command sources, preventing inline markdown extraction from double-counting code blocks, and exporting helper functions for unit testing. Expanded script categorization to tag build-prefixed scripts that run tests. Ran bun test (pass).
+
+Files Changed:
+- src/agents-md-generator.ts (modified - analysis source tags, markdown extraction fix, exported helpers, script categorization tweak)
+- .plans/tasks-detection-based-language-agnostic-agentsmd.yml (modified - task-003 completion)
+- .plans/progress-detection-based-language-agnostic-agentsmd.txt (updated - task-003 completion entry)
+- AGENTS.md (modified - command detection learnings)
+
+Key Decisions:
+- Tag inferred commands with sourceType `analysis` to separate them from config file detections.
+- Extract inline markdown commands only outside code blocks to avoid duplicates.
+- Export command parsing helpers with `@internal` to enable focused unit tests.
+
+Next Task: task-004 - Implement detection for languages and systems
