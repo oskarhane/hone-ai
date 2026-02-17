@@ -173,3 +173,16 @@ tasks:
       - "write the feedback instructions in AGENTS.md like we do in the files just mentioned"
       - "Remove unused code for feedback instructions"
     completed_at: 2026-02-17T13:20:00Z
+
+  - id: task-012
+    title: "include code formatting and lint checks in the feedback instructions"
+    description: |
+      the new feedback instructions should include code formatting and lint checks in the same way we have for
+      testing and building.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "add code formatting and lint checks to the feedback instructions"
+      - "keep them as short and concise as possible, like for testing and building"
+      - "always check for commands in github workflow files, if they exist. Same for testing and building."
+    completed_at: null
