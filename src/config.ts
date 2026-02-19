@@ -26,8 +26,8 @@ export const DEFAULT_AGENT: AgentType = 'claude'
 const DEFAULT_CONFIG: HoneConfig = {
   defaultAgent: DEFAULT_AGENT,
   models: {
-    opencode: 'claude-sonnet-4-20250514',
-    claude: 'claude-sonnet-4-20250514',
+    opencode: 'openai/gpt-5.2-codex',
+    claude: 'anthropic/claude-sonnet-4-5',
   },
   lintCommand: undefined,
 }
@@ -209,7 +209,7 @@ export function resolveModelForPhase(
   }
 
   // 3. Fall back to default model
-  return 'claude-sonnet-4-20250514'
+  return 'anthropic/claude-sonnet-4-5'
 }
 
 /**

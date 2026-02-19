@@ -1,6 +1,6 @@
 defaultAgent: opencode
 models:
   opencode: openai/gpt-5.2-codex
-  claude: anthropic/claude-sonnet-4-20250514
-  review: anthropic/claude-opus-4-20250514
+  claude: anthropic/claude-sonnet-4-5
+  review: anthropic/claude-opus-4-5
   agentsMd: openai/gpt-5.2-codex

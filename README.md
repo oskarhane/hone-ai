@@ -174,24 +174,24 @@ Edit `.plans/hone.config.yml` to customize models and test commands:
 ```yaml
 defaultAgent: claude
 models:
-  opencode: claude-sonnet-4-20250514
-  claude: claude-sonnet-4-20250514
+  opencode: openai/gpt-5.2-codex
+  claude: anthropic/claude-sonnet-4-5
 ```
 
 **Advanced model configuration:**
 
 - Use phase-specific models (prd, prdToTasks, extendPrd, implement, review, finalize)
-- Model names need full version: `claude-sonnet-4-YYYYMMDD`
+- Model names use provider format: `provider/model` (e.g., `openai/gpt-5.2-codex`, `anthropic/claude-sonnet-4-5`)
 - Check available models: `opencode --help` or `claude --help`
 
 ```yaml
 models:
-  prd: claude-sonnet-4-20250514 # PRD generation
-  prdToTasks: claude-opus-4-20250514 # Task generation
-  extendPrd: claude-sonnet-4-20250514 # PRD extension
-  implement: claude-opus-4-20250514 # Implementation
-  review: claude-sonnet-4-20250514 # Code review
-  finalize: claude-sonnet-4-20250514 # Finalization
+  prd: anthropic/claude-sonnet-4-5 # PRD generation
+  prdToTasks: anthropic/claude-opus-4-5 # Task generation
+  extendPrd: anthropic/claude-sonnet-4-5 # PRD extension
+  implement: anthropic/claude-opus-4-5 # Implementation
+  review: anthropic/claude-sonnet-4-5 # Code review
+  finalize: anthropic/claude-sonnet-4-5 # Finalization
 ```
 
 ## How It Works
@@ -257,8 +257,8 @@ Configure the `extendPrd` phase model in `.plans/hone.config.yml`:
 
 ```yaml
 models:
-  extendPrd: claude-sonnet-4-20250514 # Model for requirement generation
-  prd: claude-opus-4-20250514 # Fallback to prd model
+  extendPrd: anthropic/claude-sonnet-4-5 # Model for requirement generation
+  prd: anthropic/claude-opus-4-5 # Fallback to prd model
 ```
 
 **Interactive Q&A:**

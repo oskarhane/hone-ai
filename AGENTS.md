@@ -1,11 +1,12 @@
 <!-- BEGIN GENERATED: AGENTS-MD -->
+
 # AGENTS.md
 
 Learnings and patterns for future agents working on this project.
 
 ## Feedback Instructions
 
-TEST COMMANDS: [bun test, npm run test]
+TEST COMMANDS: [bun test]
 BUILD COMMANDS: [bun run build, bun run build:linux, bun run build:macos, bun run tsc --noEmit]
 LINT COMMANDS: [bun run lint:yaml, bun run check:yaml]
 FORMAT COMMANDS: [bun run format, bun run format:yaml, prettier --write "**/*.ts", prettier --write "**/*.yml" "**/*.yaml"]
@@ -42,8 +43,9 @@ See [@.agents-docs/deployment.md](.agents-docs/deployment.md) for detailed infor
 
 ---
 
-*This AGENTS.md was generated using agent-based project discovery.*
-*Detailed information is available in the .agents-docs/ directory.*
+_This AGENTS.md was generated using agent-based project discovery._
+_Detailed information is available in the .agents-docs/ directory._
+
 <!-- END GENERATED: AGENTS-MD -->
 
 <!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->
