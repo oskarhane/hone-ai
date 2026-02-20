@@ -107,6 +107,56 @@ cp hone-macos /usr/local/bin/hone  # macOS
 cp hone-linux /usr/local/bin/hone  # Linux
 ```
 
+## Concepts
+
+### A Feature
+
+A feature has three files: 
+
+- `prd-<feature>.md` - Feature description, goals, non-goals, and acceptance criteria.
+- `tasks-<feature>.yml` - A task breakdown of the prd. Description, status, dependencies, and most important, acceptance criteria for each task.
+- `progress-<feature>.txt` - A continuously updated progress report on description of what has been done, choices made for each **task** etc.
+
+To create a feature, you run `hone prd "<description or link or file>"`.  
+To break down a PRD into tasks, you run `hone prd-to-tasks .plans/prd-<feature>.md`.
+
+### Implementation loop
+
+The implementation loop is a continuous process of iterating over the tasks in a feature's `tasks-<feature>.yml` file. 
+This is the most important part: every iteration starts with a new agent invocation, i.e. a new agent context. 
+
+This also means that you can work some time on a feature, switch to a different feature and get back to the old one without polluting the context or have the agent digress over time.
+
+The agent context is initialized with 3 files (plus directions via the prompt):
+- `tasks-<feature>.yml`
+- `progress-<feature>.txt`
+- `AGENT.md` - information on how to run feedback loops in here, extremely important!
+
+The tasks file has a link to the PRD file so the agent knows how to find it if needed.
+
+The Agent decides what task to work on in each iteration of the loop. 
+
+Implementation has three stages: 
+1. **Implementation**: Implement the chosen task. Run feedback loops (type checking, linting, unit testing) before moving forward.
+2. **Review**: Have the agent review the implementation (preferably with a different LLM). Run feedback loops (type checking, linting, unit testing) again.
+3. **Finalization**: Finalize the implementation with the Agent. Run feedback loops (type checking, linting, unit testing) again. Update the task status in `tasks-<feature>.yml`, write a summary in `progress-<feature>.txt`, and update AGENT.md with gotchas if necessary. 
+
+To work on a feature you run `hone run .plans/tasks-<feature>.yml -i <iterations>`.
+
+#### The power of the loop
+
+The real benefits of having this implementation loop with a very focused and on point agent context each iteration is that the agents don't get distracted or digress over time. After each task, everything is cleaned up and ready to be picked up at any time without having to look for old chat threads to find important information needed for the implementation.  
+
+> **The focused context combined with clear task acceptance criteria and running feedback loops (linting, testing etc.) in each step is key**. 
+
+This usually takes you to a good 90% of a completely finished feature (depending on the size/complexity, often it takes you 100%) and if needed you'd use the agent directly a bit back and forth to get all the way.
+
+#### Extending PRDs and editing tasks
+
+You can at any time manually add new tasks in the tasks file for a feature. Just add them in the same format as the rest and set their status to `pending` and the agent will get to them.
+
+If you want to add something larger to an existing feature and don't fancy writing a lot of tasks yourself you can extend a PRD and have the agent create new tasks in the existing tasks file. `hone extend-prd .plans/prd-<feature>.md "<added scope description>"`.
+
 ## Commands
 
 ### Create and implement a feature
