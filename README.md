@@ -4,6 +4,8 @@
 
 Transform feature ideas into working code through autonomous development with human oversight.
 
+![info](.github/info.png)
+
 ## Why
 
 When working on long running tasks with agents, their context window fills up and the performance degrades. To mitigate this, hone-ai provides a solution starting each new iteration with a fresh context window just passing in a summary of the progress made so far on the specific PRD, repository architecture and gotchas, and any other relevant information.
