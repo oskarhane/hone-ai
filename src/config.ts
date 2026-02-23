@@ -26,8 +26,8 @@ export const DEFAULT_AGENT: AgentType = 'claude'
 const DEFAULT_CONFIG: HoneConfig = {
   defaultAgent: DEFAULT_AGENT,
   models: {
-    opencode: 'openai/gpt-5.2-codex',
-    claude: 'anthropic/claude-sonnet-4-5',
+    opencode: 'anthropic/claude-sonnet-4-6',
+    claude: 'claude-sonnet-4-6',
   },
   lintCommand: undefined,
 }
@@ -209,7 +209,7 @@ export function resolveModelForPhase(
   }
 
   // 3. Fall back to default model
-  return 'anthropic/claude-sonnet-4-5'
+  return 'anthropic/claude-sonnet-4-6'
 }
 
 /**
@@ -219,7 +219,7 @@ export function resolveModelForPhase(
 export function validateConfig(config: HoneConfig): { valid: boolean; errors: string[] } {
   const errors: string[] = []
   // Multi-provider model validation: supports OpenAI, Anthropic, Google formats + legacy Claude format
-  const modelRegex = /^(?:(?:openai|anthropic|google)\/[\w.-]+|claude-(?:sonnet|opus)-\d+-\d{8})$/
+  const modelRegex = /^(?:(?:openai|anthropic|google)\/[\w.-]+|claude-(?:sonnet|opus)-[\d.-]+)$/
 
   // Validate agent-specific models
   if (config.models.opencode && !modelRegex.test(config.models.opencode)) {

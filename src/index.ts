@@ -51,14 +51,14 @@ Model Configuration:
   Configure models in .plans/hone.config.yml:
   
   models:
-    opencode: openai/gpt-5.2-codex           # Default for opencode agent
-    claude: anthropic/claude-sonnet-4-5      # Default for claude agent
-    prd: anthropic/claude-sonnet-4-5         # Override for PRD generation (optional)
+    opencode: anthropic/claude-sonnet-4-6     # Default for opencode agent
+    claude: claude-sonnet-4-6                # Default for claude agent
+    prd: anthropic/claude-sonnet-4-6         # Override for PRD generation (optional)
     prdToTasks: anthropic/claude-opus-4-5    # Override for task generation (optional)
     implement: anthropic/claude-opus-4-5     # Override for implementation (optional)
-    review: anthropic/claude-sonnet-4-5      # Override for review (optional)
-    finalize: anthropic/claude-sonnet-4-5    # Override for finalization (optional)
-    agentsMd: anthropic/claude-sonnet-4-5    # Override for AGENTS.md generation (optional)
+    review: anthropic/claude-sonnet-4-6      # Override for review (optional)
+    finalize: anthropic/claude-sonnet-4-6    # Override for finalization (optional)
+    agentsMd: anthropic/claude-sonnet-4-6    # Override for AGENTS.md generation (optional)
   
   Phase-specific models are optional and override agent-specific models.
   Check available models: opencode --help or claude --help

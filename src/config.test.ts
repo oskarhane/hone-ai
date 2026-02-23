@@ -68,8 +68,8 @@ describe('Config Management', () => {
     const config = await loadConfig()
 
     expect(config.defaultAgent).toBe('claude')
-    expect(config.models.opencode).toBe('openai/gpt-5.2-codex')
-    expect(config.models.claude).toBe('anthropic/claude-sonnet-4-5')
+    expect(config.models.opencode).toBe('anthropic/claude-sonnet-4-6')
+    expect(config.models.claude).toBe('claude-sonnet-4-6')
 
     // Verify file was created
     expect(existsSync(getConfigPath())).toBe(true)
@@ -267,7 +267,7 @@ describe('Model Resolution', () => {
     }
 
     const model = resolveModelForPhase(config, 'finalize')
-    expect(model).toBe('anthropic/claude-sonnet-4-5')
+    expect(model).toBe('anthropic/claude-sonnet-4-6')
   })
 
   test('resolveModelForPhase handles all phase types', () => {
@@ -1034,8 +1034,8 @@ describe('Config Validation', () => {
       const config: HoneConfig = {
         defaultAgent: 'claude',
         models: {
-          opencode: 'openai/gpt-5.2-codex',
-          claude: 'anthropic/claude-sonnet-4-5',
+          opencode: 'anthropic/claude-sonnet-4-6',
+          claude: 'claude-sonnet-4-6',
         },
       }
 
