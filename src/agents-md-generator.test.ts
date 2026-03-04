@@ -467,17 +467,23 @@ describe('agents-md-generator', () => {
     const signals: MetadataSignal[] = []
     collectAgentsDocsMetadataSignals(process.cwd(), signals)
 
+    // Source tag reflects actual directory name without trailing slash
+    const expectedDirPrefix = AGENTS_DOCS_DIR.replace(/\/$/, '')
     const signalKeys = new Set(
       signals.map(
         signal => `${signal.section}|${signal.value}|${signal.sourceType}|${signal.sourceTag}`
       )
     )
 
-    expect(signalKeys).toContain('languages|Rust|agents-docs|agents-docs:metadata.md')
-    expect(signalKeys).toContain('buildSystems|Cargo|agents-docs|agents-docs:metadata.md')
-    expect(signalKeys).toContain('testingFrameworks|pytest|agents-docs|agents-docs:metadata.md')
-    expect(signalKeys).toContain('architecture|event-driven|agents-docs|agents-docs:metadata.md')
-    expect(signalKeys).toContain('deployment|Fly.io|agents-docs|agents-docs:metadata.md')
+    expect(signalKeys).toContain(`languages|Rust|agents-docs|${expectedDirPrefix}:metadata.md`)
+    expect(signalKeys).toContain(`buildSystems|Cargo|agents-docs|${expectedDirPrefix}:metadata.md`)
+    expect(signalKeys).toContain(
+      `testingFrameworks|pytest|agents-docs|${expectedDirPrefix}:metadata.md`
+    )
+    expect(signalKeys).toContain(
+      `architecture|event-driven|agents-docs|${expectedDirPrefix}:metadata.md`
+    )
+    expect(signalKeys).toContain(`deployment|Fly.io|agents-docs|${expectedDirPrefix}:metadata.md`)
   })
 
   test('dedupeMetadataSignals removes duplicates deterministically', () => {
@@ -628,8 +634,10 @@ describe('agents-md-generator', () => {
 
     if (result.mainFilePath) {
       const content = await fs.readFile(result.mainFilePath, 'utf-8')
+      // Source tag reflects actual directory name without trailing slash
+      const expectedDirPrefix = AGENTS_DOCS_DIR.replace(/\/$/, '')
       expect(content).toContain(
-        'Static analysis detected: Go (doc:README.md), TypeScript (config:ext:ts), Rust (agents-docs:metadata.md)'
+        `Static analysis detected: Go (doc:README.md), TypeScript (config:ext:ts), Rust (${expectedDirPrefix}:metadata.md)`
       )
     }
 

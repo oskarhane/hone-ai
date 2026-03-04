@@ -69,3 +69,25 @@ Key Decisions:
 - All log messages and file paths use resolved directory name
 
 Next Task: task-005
+
+================================================================================
+TASK-005: Update collectAgentsDocsMetadataSignals to use config
+Date: 2026-03-04T15:00:00.000Z
+================================================================================
+
+Summary:
+Updated collectAgentsDocsMetadataSignals() to accept optional HoneConfig parameter and use 
+getAgentsDocsDir() for path resolution. Fixed analyzeProject() to load config first and pass 
+it through to metadata collection, ensuring configured agentsDocsDir is used during analysis.
+
+Files Changed:
+- src/agents-md-generator.ts (modified - added config param to collectAgentsDocsMetadataSignals 
+  and analyzeProject, reordered config loading before analysis in generateAgentsMd)
+
+Key Decisions:
+- Config loaded before analyzeProject() to ensure custom agentsDocsDir is used for reading 
+  existing agents docs during metadata collection
+- Source tags use directory name without trailing slash for clean display
+- Backward compatible - works without config parameter (uses default)
+
+Next Task: task-006

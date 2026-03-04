@@ -274,8 +274,10 @@ export function mergeGeneratedContent(
 
 /**
  * Analyze project structure and gather context for AGENTS.md generation
+ * @param projectPath - The root project directory path
+ * @param config - Optional HoneConfig for resolving agentsDocsDir
  */
-async function analyzeProject(projectPath: string): Promise<ProjectAnalysis> {
+async function analyzeProject(projectPath: string, config?: HoneConfig): Promise<ProjectAnalysis> {
   const analysis: ProjectAnalysis = {
     languages: [],
     buildSystems: [],
@@ -291,7 +293,7 @@ async function analyzeProject(projectPath: string): Promise<ProjectAnalysis> {
     collectConfigMetadataSignals(projectPath, metadataSignals)
     collectWorkflowMetadataSignals(projectPath, metadataSignals)
     collectDocsMetadataSignals(projectPath, metadataSignals)
-    collectAgentsDocsMetadataSignals(projectPath, metadataSignals)
+    collectAgentsDocsMetadataSignals(projectPath, metadataSignals, config)
 
     const deduped = dedupeMetadataSignals(metadataSignals)
     analysis.languages = formatMetadataSection(deduped, 'languages')
@@ -725,14 +727,26 @@ export function collectDocsMetadataSignals(projectPath: string, signals: Metadat
   }
 }
 
-/** @internal */
+/**
+ * Collect metadata signals from existing agents documentation files.
+ * @param projectPath - The root project directory path
+ * @param signals - Array to append discovered metadata signals to
+ * @param config - Optional HoneConfig to resolve agentsDocsDir; uses default if not provided
+ * @internal
+ */
 export function collectAgentsDocsMetadataSignals(
   projectPath: string,
-  signals: MetadataSignal[]
+  signals: MetadataSignal[],
+  config?: HoneConfig
 ): void {
-  const agentsDocsPath = join(projectPath, AGENTS_DOCS_DIR)
+  const agentsDocsDir = getAgentsDocsDir(config)
+  const agentsDocsPath = join(projectPath, agentsDocsDir)
   if (!existsSync(agentsDocsPath)) return
   const files = listFilesRecursive(agentsDocsPath, filePath => filePath.endsWith('.md'))
+
+  // Extract directory name without trailing slash for source tag prefix
+  const dirName = agentsDocsDir.replace(/\/$/, '')
+
   for (const filePath of files) {
     let content = ''
     try {
@@ -742,7 +756,7 @@ export function collectAgentsDocsMetadataSignals(
       continue
     }
     const relativePath = relative(agentsDocsPath, filePath)
-    const sourceTag = `agents-docs:${relativePath}`
+    const sourceTag = `${dirName}:${relativePath}`
 
     for (const language of extractBracketedList(content, 'PRIMARY LANGUAGES')) {
       addMetadataSignal(signals, 'languages', language, 'agents-docs', sourceTag)
@@ -1409,16 +1423,16 @@ export async function generateAgentsMd(
     log('Phase 1: Project Analysis')
     log('-'.repeat(80))
 
-    process.stdout.write('Analyzing project structure... ')
-    const analysis = await analyzeProject(projectPath)
-    process.stdout.write('✓\n')
-
     process.stdout.write('Loading configuration... ')
     const config = await loadConfigWithoutCreation()
     process.stdout.write('✓\n')
 
     // Resolve the agents documentation directory from config
     const agentsDocsDir = getAgentsDocsDir(config)
+
+    process.stdout.write('Analyzing project structure... ')
+    const analysis = await analyzeProject(projectPath, config)
+    process.stdout.write('✓\n')
 
     logVerbose(
       `[AgentsMd] Found ${analysis.languages.length} languages, ${analysis.buildSystems.length} build systems, ${analysis.testingFrameworks.length} testing frameworks`
