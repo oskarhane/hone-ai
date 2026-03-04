@@ -50,3 +50,22 @@ Key Decisions:
 - Marked @internal for testing purposes
 
 Next Task: task-004
+
+================================================================================
+TASK-004: Update generateAgentsMd to use configured directory
+Date: 2026-03-04T14:30:00.000Z
+================================================================================
+
+Summary:
+Updated generateAgentsMd() and generateCompactContent() to use configurable agentsDocsDir.
+Added path normalization to ensure trailing slash for markdown link construction.
+
+Files Changed:
+- src/agents-md-generator.ts (modified - generateAgentsMd uses getAgentsDocsDir(), generateCompactContent normalizes dir path)
+
+Key Decisions:
+- Normalize agentsDocsDir with trailing slash in generateCompactContent to ensure valid markdown links
+- Config loaded via loadConfigWithoutCreation() (already existed in previous impl phase)
+- All log messages and file paths use resolved directory name
+
+Next Task: task-005

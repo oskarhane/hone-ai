@@ -47,7 +47,7 @@ tasks:
     title: "Update generateAgentsMd to use configured directory"
     description: |
       Modify generateAgentsMd() function to load config and use resolved agentsDocsDir for directory creation and file paths. Update all directory references within the function.
-    status: pending
+    status: completed
     dependencies:
       - task-003
     acceptance_criteria:
@@ -55,7 +55,7 @@ tasks:
       - "agentsDirPath uses resolved directory name"
       - "Log messages reflect configured directory name"
       - "Created files are in configured directory"
-    completed_at: null
+    completed_at: 2026-03-04T14:30:00.000Z
 
   - id: task-005
     title: "Update collectAgentsDocsMetadataSignals to use config"
