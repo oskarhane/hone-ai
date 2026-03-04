@@ -18,9 +18,9 @@ import { log, logError, logVerbose, logVerboseError } from './logger'
 
 /**
  * Central constant for the agents documentation directory name
- * This can be made configurable via config file in the future if needed
+ * This is now configurable via config file using the agentsDocsDir property
  */
-export const AGENTS_DOCS_DIR = '.agents-docs'
+export const AGENTS_DOCS_DIR = '.agents/'
 const GENERATED_BLOCK_START = '<!-- BEGIN GENERATED: AGENTS-MD -->'
 const GENERATED_BLOCK_END = '<!-- END GENERATED: AGENTS-MD -->'
 const GENERATED_BLOCK_REGEX =
