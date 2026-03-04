@@ -111,3 +111,26 @@ Key Decisions:
 - AGENTS_DOCS_DIR constant still in set for config-based custom directories
 
 Next Task: task-007
+
+================================================================================
+TASK-007: Update generateCompactContent to use configured directory
+Date: 2026-03-04T16:00:00.000Z
+================================================================================
+
+Summary:
+Verified that generateCompactContent() and related functions already properly accept and use 
+the agentsDocsDir parameter. This work was completed as part of task-004. All acceptance 
+criteria are met: function accepts parameter, markdown links use configured path, footer 
+message references configured directory, and all @references point to correct directory.
+
+Files Changed:
+- No additional changes needed (functionality already implemented in task-004)
+
+Key Decisions:
+- generateCompactContent accepts agentsDocsDir parameter with default AGENTS_DOCS_DIR (line 1189)
+- Path normalization ensures trailing slash for proper markdown link construction (line 1192)
+- Generated links use ${normalizedDir}${section.detailFile} pattern (line 1239)
+- Footer message dynamically references the configured directory (lines 1252-1253)
+- All 22 tests pass confirming correct behavior
+
+Next Task: task-008

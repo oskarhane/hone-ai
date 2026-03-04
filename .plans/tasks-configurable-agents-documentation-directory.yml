@@ -88,7 +88,7 @@ tasks:
     title: "Update generateCompactContent to use configured directory"
     description: |
       Modify generateCompactContent() and related functions to accept directory parameter instead of using AGENTS_DOCS_DIR constant directly. Update markdown links to use configured directory.
-    status: pending
+    status: completed
     dependencies:
       - task-003
     acceptance_criteria:
@@ -96,7 +96,7 @@ tasks:
       - "Generated markdown links use configured directory path"
       - "Footer message references configured directory name"
       - "All @references in content point to correct directory"
-    completed_at: null
+    completed_at: 2026-03-04T16:00:00.000Z
 
   - id: task-008
     title: "Update CLI help text to document agentsDocsDir"
