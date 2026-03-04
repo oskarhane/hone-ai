@@ -75,14 +75,14 @@ tasks:
     title: "Update collectConfigMetadataSignals ignoreDirs"
     description: |
       Update the ignoreDirs set in collectConfigMetadataSignals() to include both '.agents' and '.agents-docs' for backward compatibility during metadata collection.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
       - "ignoreDirs includes '.agents'"
       - "ignoreDirs includes '.agents-docs' for backward compatibility"
       - "Neither directory is scanned during config metadata collection"
-    completed_at: null
+    completed_at: 2026-03-04T15:30:00.000Z
 
   - id: task-007
     title: "Update generateCompactContent to use configured directory"

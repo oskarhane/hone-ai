@@ -91,3 +91,23 @@ Key Decisions:
 - Backward compatible - works without config parameter (uses default)
 
 Next Task: task-006
+
+================================================================================
+TASK-006: Update collectConfigMetadataSignals ignoreDirs
+Date: 2026-03-04T15:30:00.000Z
+================================================================================
+
+Summary:
+Added '.agents-docs' to the ignoreDirs set in collectConfigMetadataSignals() for backward 
+compatibility. The set now includes both '.agents' and '.agents-docs' to ensure neither 
+directory is scanned during config metadata collection.
+
+Files Changed:
+- src/agents-md-generator.ts (modified - added '.agents-docs' to ignoreDirs set at line 436)
+
+Key Decisions:
+- Added '.agents-docs' between '.agents' and AGENTS_DOCS_DIR for logical grouping
+- Both old (.agents-docs) and new (.agents/, .agents) directory names are ignored
+- AGENTS_DOCS_DIR constant still in set for config-based custom directories
+
+Next Task: task-007

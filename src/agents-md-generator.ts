@@ -433,6 +433,7 @@ export function collectConfigMetadataSignals(projectPath: string, signals: Metad
     '.next',
     'out',
     '.agents',
+    '.agents-docs',
     AGENTS_DOCS_DIR,
     '.plans',
   ])
