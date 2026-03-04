@@ -194,3 +194,23 @@ Key Decisions:
 - Actual repo still uses '.agents-docs' until task-011 handles migration
 
 Next Task: task-011
+
+================================================================================
+TASK-011: Rename existing .agents-docs to .agents in repo
+Date: 2026-03-04T18:00:00.000Z
+================================================================================
+
+Summary:
+Renamed .agents-docs directory to .agents/ using git mv to preserve history. Updated AGENTS.md 
+links to reference new directory location.
+
+Files Changed:
+- .agents-docs/ -> .agents/ (renamed via git mv - 5 files: architecture.md, build.md, deployment.md, languages.md, testing.md)
+- AGENTS.md (modified - updated all 5 @reference links from .agents-docs to .agents)
+
+Key Decisions:
+- Used git mv for proper rename tracking in git history
+- All 5 detail files preserved: architecture, build, deployment, languages, testing
+- AGENTS.md staged atomically with directory rename per review feedback
+
+Next Task: task-012

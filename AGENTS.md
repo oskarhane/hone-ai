@@ -15,36 +15,36 @@ FORMAT COMMANDS: [bun run format, bun run format:yaml, prettier --write "**/*.ts
 
 PRIMARY LANGUAGES: [TypeScript]
 
-See [@.agents-docs/languages.md](.agents-docs/languages.md) for detailed information.
+See [@.agents/languages.md](.agents/languages.md) for detailed information.
 
 ## Build System
 
 BUILD SYSTEMS: [Bun (bun build/compile + bun test), npm scripts via package.json, GitHub Actions workflows]
 
-See [@.agents-docs/build.md](.agents-docs/build.md) for detailed information.
+See [@.agents/build.md](.agents/build.md) for detailed information.
 
 ## Testing Framework
 
 TESTING FRAMEWORKS: [Bun test runner (bun:test)]
 
-See [@.agents-docs/testing.md](.agents-docs/testing.md) for detailed information.
+See [@.agents/testing.md](.agents/testing.md) for detailed information.
 
 ## Architecture
 
 ARCHITECTURE PATTERN: CLI orchestration with subprocess delegation and a 3‑phase implement/review/finalize loop.
 
-See [@.agents-docs/architecture.md](.agents-docs/architecture.md) for detailed information.
+See [@.agents/architecture.md](.agents/architecture.md) for detailed information.
 
 ## Deployment
 
 DEPLOYMENT STRATEGY: GitHub Actions–driven release workflow producing Bun-compiled binaries + manual npm publish.
 
-See [@.agents-docs/deployment.md](.agents-docs/deployment.md) for detailed information.
+See [@.agents/deployment.md](.agents/deployment.md) for detailed information.
 
 ---
 
 _This AGENTS.md was generated using agent-based project discovery._
-_Detailed information is available in the .agents-docs/ directory._
+_Detailed information is available in the .agents/ directory._
 
 <!-- END GENERATED: AGENTS-MD -->
 

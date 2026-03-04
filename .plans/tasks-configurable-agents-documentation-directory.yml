@@ -144,7 +144,7 @@ tasks:
     title: "Rename existing .agents-docs to .agents in repo"
     description: |
       Rename the existing .agents-docs directory in the hone-ai repository to .agents/ and regenerate AGENTS.md to use the new default directory.
-    status: pending
+    status: completed
     dependencies:
       - task-004
       - task-007
@@ -153,7 +153,7 @@ tasks:
       - "AGENTS.md links updated to reference .agents/"
       - "All content preserved during migration"
       - "Git history shows rename operation"
-    completed_at: null
+    completed_at: 2026-03-04T18:00:00.000Z
 
   - id: task-012
     title: "Run tests and fix any failures"
