@@ -2,6 +2,7 @@ import { describe, expect, test, beforeEach, afterEach, mock } from 'bun:test'
 import {
   generateAgentsMd,
   AGENTS_DOCS_DIR,
+  getAgentsDocsDir,
   collectConfigMetadataSignals,
   collectWorkflowMetadataSignals,
   collectDocsMetadataSignals,
@@ -17,6 +18,7 @@ import type {
   MetadataSignal,
   ProjectAnalysis,
 } from './agents-md-generator'
+import type { HoneConfig } from './config'
 import { existsSync, mkdirSync, rmSync } from 'fs'
 import { join } from 'path'
 import * as fs from 'fs/promises'
@@ -642,5 +644,117 @@ describe('agents-md-generator', () => {
     }
 
     mockAgentClient.messages.create = originalMock
+  })
+
+  // Tests for agentsDocsDir configuration
+  describe('agentsDocsDir configuration', () => {
+    test('getAgentsDocsDir returns default value when config is undefined', () => {
+      const result = getAgentsDocsDir(undefined)
+      expect(result).toBe('.agents/')
+    })
+
+    test('getAgentsDocsDir returns default value when config has no agentsDocsDir', () => {
+      const config: Partial<HoneConfig> = {
+        defaultAgent: 'claude',
+        models: { opencode: 'test-model', claude: 'test-model' },
+      }
+      const result = getAgentsDocsDir(config as HoneConfig)
+      expect(result).toBe('.agents/')
+    })
+
+    test('getAgentsDocsDir returns custom agentsDocsDir from config', () => {
+      const config: HoneConfig = {
+        defaultAgent: 'claude',
+        models: { opencode: 'test-model', claude: 'test-model' },
+        agentsDocsDir: '.custom-docs/',
+      }
+      const result = getAgentsDocsDir(config)
+      expect(result).toBe('.custom-docs/')
+    })
+
+    test('getAgentsDocsDir preserves old .agents-docs behavior when configured', () => {
+      const config: HoneConfig = {
+        defaultAgent: 'claude',
+        models: { opencode: 'test-model', claude: 'test-model' },
+        agentsDocsDir: '.agents-docs',
+      }
+      const result = getAgentsDocsDir(config)
+      expect(result).toBe('.agents-docs')
+    })
+
+    test('getAgentsDocsDir returns default when agentsDocsDir is empty string', () => {
+      const config: HoneConfig = {
+        defaultAgent: 'claude',
+        models: { opencode: 'test-model', claude: 'test-model' },
+        agentsDocsDir: '',
+      }
+      // Empty string is falsy, so should fall back to default
+      const result = getAgentsDocsDir(config)
+      expect(result).toBe('.agents/')
+    })
+
+    test('collectAgentsDocsMetadataSignals uses custom agentsDocsDir from config', async () => {
+      // Create custom agents-docs directory
+      const customDir = '.my-docs'
+      const customDocsPath = join(process.cwd(), customDir)
+      await fs.mkdir(customDocsPath, { recursive: true })
+      await fs.writeFile(
+        join(customDocsPath, 'metadata.md'),
+        ['PRIMARY LANGUAGES: [Python]', 'BUILD SYSTEMS: [Poetry]'].join('\n'),
+        'utf-8'
+      )
+
+      const config: HoneConfig = {
+        defaultAgent: 'claude',
+        models: { opencode: 'test-model', claude: 'test-model' },
+        agentsDocsDir: customDir,
+      }
+
+      const signals: MetadataSignal[] = []
+      collectAgentsDocsMetadataSignals(process.cwd(), signals, config)
+
+      const signalKeys = new Set(
+        signals.map(
+          signal => `${signal.section}|${signal.value}|${signal.sourceType}|${signal.sourceTag}`
+        )
+      )
+
+      expect(signalKeys).toContain('languages|Python|agents-docs|.my-docs:metadata.md')
+      expect(signalKeys).toContain('buildSystems|Poetry|agents-docs|.my-docs:metadata.md')
+    })
+
+    test('collectAgentsDocsMetadataSignals preserves old .agents-docs behavior when configured', async () => {
+      // Create old-style agents-docs directory
+      const oldDir = '.agents-docs'
+      const oldDocsPath = join(process.cwd(), oldDir)
+      await fs.mkdir(oldDocsPath, { recursive: true })
+      await fs.writeFile(
+        join(oldDocsPath, 'info.md'),
+        ['PRIMARY LANGUAGES: [Java]', 'TESTING FRAMEWORKS: [JUnit]'].join('\n'),
+        'utf-8'
+      )
+
+      const config: HoneConfig = {
+        defaultAgent: 'claude',
+        models: { opencode: 'test-model', claude: 'test-model' },
+        agentsDocsDir: '.agents-docs',
+      }
+
+      const signals: MetadataSignal[] = []
+      collectAgentsDocsMetadataSignals(process.cwd(), signals, config)
+
+      const signalKeys = new Set(
+        signals.map(
+          signal => `${signal.section}|${signal.value}|${signal.sourceType}|${signal.sourceTag}`
+        )
+      )
+
+      expect(signalKeys).toContain('languages|Java|agents-docs|.agents-docs:info.md')
+      expect(signalKeys).toContain('testingFrameworks|JUnit|agents-docs|.agents-docs:info.md')
+    })
+
+    test('AGENTS_DOCS_DIR constant has correct default value', () => {
+      expect(AGENTS_DOCS_DIR).toBe('.agents/')
+    })
   })
 })

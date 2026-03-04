@@ -153,3 +153,24 @@ Key Decisions:
 - Shows default value explicitly: "(files in agentsDocsDir, default: .agents/)"
 
 Next Task: task-009
+
+================================================================================
+TASK-009: Add unit tests for agentsDocsDir config
+Date: 2026-03-04T17:00:00.000Z
+================================================================================
+
+Summary:
+Added 8 unit tests for agentsDocsDir config functionality covering default value, custom 
+directory config, generated markdown links, and backward compatibility with '.agents-docs'.
+
+Files Changed:
+- src/agents-md-generator.test.ts (modified - added 8 tests for getAgentsDocsDir, 
+  collectAgentsDocsMetadataSignals with custom dir, and AGENTS_DOCS_DIR constant)
+
+Key Decisions:
+- Tests verify default '.agents/' value via constant and helper function
+- Tests create temp directories inside TEST_WORKSPACE (cleaned by afterEach)
+- Tests verify source tags use directory name without trailing slash
+- Backward compatibility verified with '.agents-docs' config value
+
+Next Task: task-010

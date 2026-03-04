@@ -115,7 +115,7 @@ tasks:
     title: "Add unit tests for agentsDocsDir config"
     description: |
       Add tests in agents-md-generator.test.ts verifying: default value behavior, custom directory configuration, and generated content using configured directory.
-    status: pending
+    status: completed
     dependencies:
       - task-004
       - task-007
@@ -124,7 +124,7 @@ tasks:
       - "Test verifies custom agentsDocsDir from config is used"
       - "Test verifies generated markdown links use configured directory"
       - "Test verifies config with agentsDocsDir: '.agents-docs' preserves old behavior"
-    completed_at: null
+    completed_at: 2026-03-04T17:00:00.000Z
 
   - id: task-010
     title: "Update README documentation for agentsDocsDir"
