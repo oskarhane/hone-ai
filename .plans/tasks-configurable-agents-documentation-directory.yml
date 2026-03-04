@@ -33,7 +33,7 @@ tasks:
     title: "Create helper function to resolve agentsDocsDir from config"
     description: |
       Add a function like getAgentsDocsDir(config?: HoneConfig) that returns the configured agentsDocsDir or falls back to AGENTS_DOCS_DIR constant. This centralizes directory resolution logic.
-    status: pending
+    status: completed
     dependencies:
       - task-001
       - task-002
@@ -41,7 +41,7 @@ tasks:
       - "Function returns config.agentsDocsDir when provided and set"
       - "Function falls back to AGENTS_DOCS_DIR constant when not configured"
       - "Function handles undefined config gracefully"
-    completed_at: null
+    completed_at: 2026-03-04T13:00:00.000Z
 
   - id: task-004
     title: "Update generateAgentsMd to use configured directory"

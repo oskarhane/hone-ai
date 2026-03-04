@@ -21,6 +21,21 @@ import { log, logError, logVerbose, logVerboseError } from './logger'
  * This is now configurable via config file using the agentsDocsDir property
  */
 export const AGENTS_DOCS_DIR = '.agents/'
+
+/**
+ * Resolve the agents documentation directory from config.
+ * Returns config.agentsDocsDir if set, otherwise falls back to AGENTS_DOCS_DIR constant.
+ * @param config - Optional HoneConfig to read agentsDocsDir from
+ * @returns The resolved agents documentation directory path
+ * @internal
+ */
+export function getAgentsDocsDir(config?: HoneConfig): string {
+  if (config?.agentsDocsDir) {
+    return config.agentsDocsDir
+  }
+  return AGENTS_DOCS_DIR
+}
+
 const GENERATED_BLOCK_START = '<!-- BEGIN GENERATED: AGENTS-MD -->'
 const GENERATED_BLOCK_END = '<!-- END GENERATED: AGENTS-MD -->'
 const GENERATED_BLOCK_REGEX =

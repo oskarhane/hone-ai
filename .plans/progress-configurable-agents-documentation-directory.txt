@@ -32,3 +32,21 @@ Key Decisions:
 - Trailing slash handled correctly by path.join
 
 Next Task: task-003
+
+================================================================================
+TASK-003: Create helper function to resolve agentsDocsDir from config
+Date: 2026-03-04T13:00:00.000Z
+================================================================================
+
+Summary:
+Added getAgentsDocsDir() helper function that returns configured agentsDocsDir or falls back to AGENTS_DOCS_DIR constant.
+
+Files Changed:
+- src/agents-md-generator.ts (modified - added getAgentsDocsDir function with JSDoc)
+
+Key Decisions:
+- Uses optional chaining (config?.agentsDocsDir) for undefined config handling
+- Truthiness check means empty string falls back to default (correct behavior)
+- Marked @internal for testing purposes
+
+Next Task: task-004
