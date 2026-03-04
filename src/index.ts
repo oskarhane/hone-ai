@@ -59,8 +59,10 @@ Model Configuration:
     review: anthropic/claude-sonnet-4-6      # Override for review (optional)
     finalize: anthropic/claude-sonnet-4-6    # Override for finalization (optional)
     agentsMd: anthropic/claude-sonnet-4-6    # Override for AGENTS.md generation (optional)
+  agentsDocsDir: '.agents/'                  # Directory for AGENTS.md detail files (default: '.agents/')
   
   Phase-specific models are optional and override agent-specific models.
+  Use agentsDocsDir: '.agents-docs' to preserve old directory name.
   Check available models: opencode --help or claude --help
 `
   )
@@ -241,7 +243,7 @@ program
 
 program
   .command('agents-md')
-  .description('Generate AGENTS.md documentation for the current project')
+  .description('Generate AGENTS.md documentation (files in agentsDocsDir, default: .agents/)')
   .option('--overwrite', 'Overwrite existing AGENTS.md file if it exists')
   .action(async (options: { overwrite?: boolean }) => {
     try {

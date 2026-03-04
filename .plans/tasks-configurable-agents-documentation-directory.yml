@@ -102,14 +102,14 @@ tasks:
     title: "Update CLI help text to document agentsDocsDir"
     description: |
       Update agents-md command description and model configuration help text in src/index.ts to mention the configurable agentsDocsDir option.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
       - "agents-md command help mentions configurable directory"
       - "Model Configuration section shows agentsDocsDir example"
       - "Help text explains default value is '.agents/'"
-    completed_at: null
+    completed_at: 2026-03-04T16:30:00.000Z
 
   - id: task-009
     title: "Add unit tests for agentsDocsDir config"

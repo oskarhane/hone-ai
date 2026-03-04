@@ -134,3 +134,22 @@ Key Decisions:
 - All 22 tests pass confirming correct behavior
 
 Next Task: task-008
+
+================================================================================
+TASK-008: Update CLI help text to document agentsDocsDir
+Date: 2026-03-04T16:30:00.000Z
+================================================================================
+
+Summary:
+Updated CLI help text in src/index.ts to document the new agentsDocsDir config option.
+Added example and default value explanation in Model Configuration section.
+
+Files Changed:
+- src/index.ts (modified - updated agents-md command description to show configurable directory, added agentsDocsDir example to Model Configuration section with backward compatibility hint)
+
+Key Decisions:
+- Placed agentsDocsDir in Model Configuration section for visibility (cosmetic improvement deferred)
+- Added backward compatibility hint: "Use agentsDocsDir: '.agents-docs' to preserve old directory name"
+- Shows default value explicitly: "(files in agentsDocsDir, default: .agents/)"
+
+Next Task: task-009
