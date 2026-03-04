@@ -44,3 +44,4 @@ test-cli-integration
 test-agents-md-cli-integration
 test-workspace-prune-integration
 test-atomic-operations
+.test-*
