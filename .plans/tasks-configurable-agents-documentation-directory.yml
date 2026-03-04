@@ -1,0 +1,171 @@
+feature: configurable-agents-documentation-directory
+prd: ./prd-configurable-agents-documentation-directory.md
+created_at: 2026-03-04T07:09:37.418Z
+updated_at: 2026-03-04T07:09:37.418Z
+
+tasks:
+  - id: task-001
+    title: "Add agentsDocsDir property to HoneConfig interface"
+    description: |
+      Add optional agentsDocsDir property to HoneConfig interface in src/config.ts with type string. Add default value '.agents/' in DEFAULT_CONFIG constant.
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "HoneConfig interface includes optional agentsDocsDir?: string property"
+      - "DEFAULT_CONFIG includes agentsDocsDir: '.agents/'"
+      - "TypeScript compilation passes with no errors"
+    completed_at: 2026-03-04T12:30:00.000Z
+
+  - id: task-002
+    title: "Update AGENTS_DOCS_DIR constant to new default value"
+    description: |
+      Change AGENTS_DOCS_DIR constant in src/agents-md-generator.ts from '.agents-docs' to '.agents/'. This establishes the new default directory name.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "AGENTS_DOCS_DIR constant value is '.agents/'"
+      - "All hardcoded references to '.agents-docs' in comments are updated"
+      - "Existing functionality still works with new default"
+    completed_at: null
+
+  - id: task-003
+    title: "Create helper function to resolve agentsDocsDir from config"
+    description: |
+      Add a function like getAgentsDocsDir(config?: HoneConfig) that returns the configured agentsDocsDir or falls back to AGENTS_DOCS_DIR constant. This centralizes directory resolution logic.
+    status: pending
+    dependencies:
+      - task-001
+      - task-002
+    acceptance_criteria:
+      - "Function returns config.agentsDocsDir when provided and set"
+      - "Function falls back to AGENTS_DOCS_DIR constant when not configured"
+      - "Function handles undefined config gracefully"
+    completed_at: null
+
+  - id: task-004
+    title: "Update generateAgentsMd to use configured directory"
+    description: |
+      Modify generateAgentsMd() function to load config and use resolved agentsDocsDir for directory creation and file paths. Update all directory references within the function.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "Function loads config via loadConfigWithoutCreation()"
+      - "agentsDirPath uses resolved directory name"
+      - "Log messages reflect configured directory name"
+      - "Created files are in configured directory"
+    completed_at: null
+
+  - id: task-005
+    title: "Update collectAgentsDocsMetadataSignals to use config"
+    description: |
+      Modify collectAgentsDocsMetadataSignals() to accept optional config parameter and use resolved agentsDocsDir for reading existing documentation files.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "Function accepts optional HoneConfig parameter"
+      - "Function uses getAgentsDocsDir() for path resolution"
+      - "Source tags in metadata signals reflect actual directory name"
+      - "Backward compatible - works without config parameter"
+    completed_at: null
+
+  - id: task-006
+    title: "Update collectConfigMetadataSignals ignoreDirs"
+    description: |
+      Update the ignoreDirs set in collectConfigMetadataSignals() to include both '.agents' and '.agents-docs' for backward compatibility during metadata collection.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "ignoreDirs includes '.agents'"
+      - "ignoreDirs includes '.agents-docs' for backward compatibility"
+      - "Neither directory is scanned during config metadata collection"
+    completed_at: null
+
+  - id: task-007
+    title: "Update generateCompactContent to use configured directory"
+    description: |
+      Modify generateCompactContent() and related functions to accept directory parameter instead of using AGENTS_DOCS_DIR constant directly. Update markdown links to use configured directory.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "Function accepts agentsDocsDir parameter"
+      - "Generated markdown links use configured directory path"
+      - "Footer message references configured directory name"
+      - "All @references in content point to correct directory"
+    completed_at: null
+
+  - id: task-008
+    title: "Update CLI help text to document agentsDocsDir"
+    description: |
+      Update agents-md command description and model configuration help text in src/index.ts to mention the configurable agentsDocsDir option.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "agents-md command help mentions configurable directory"
+      - "Model Configuration section shows agentsDocsDir example"
+      - "Help text explains default value is '.agents/'"
+    completed_at: null
+
+  - id: task-009
+    title: "Add unit tests for agentsDocsDir config"
+    description: |
+      Add tests in agents-md-generator.test.ts verifying: default value behavior, custom directory configuration, and generated content using configured directory.
+    status: pending
+    dependencies:
+      - task-004
+      - task-007
+    acceptance_criteria:
+      - "Test verifies default agentsDocsDir is '.agents/'"
+      - "Test verifies custom agentsDocsDir from config is used"
+      - "Test verifies generated markdown links use configured directory"
+      - "Test verifies config with agentsDocsDir: '.agents-docs' preserves old behavior"
+    completed_at: null
+
+  - id: task-010
+    title: "Update README documentation for agentsDocsDir"
+    description: |
+      Document the new agentsDocsDir config option in README.md with examples showing how to customize the directory and how to preserve old behavior with '.agents-docs'.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "README shows agentsDocsDir in config example"
+      - "README explains default value is '.agents/'"
+      - "README shows backward compatibility example with '.agents-docs'"
+      - "File structure examples updated to show '.agents/'"
+    completed_at: null
+
+  - id: task-011
+    title: "Rename existing .agents-docs to .agents in repo"
+    description: |
+      Rename the existing .agents-docs directory in the hone-ai repository to .agents/ and regenerate AGENTS.md to use the new default directory.
+    status: pending
+    dependencies:
+      - task-004
+      - task-007
+    acceptance_criteria:
+      - ".agents-docs directory renamed to .agents/"
+      - "AGENTS.md links updated to reference .agents/"
+      - "All content preserved during migration"
+      - "Git history shows rename operation"
+    completed_at: null
+
+  - id: task-012
+    title: "Run tests and fix any failures"
+    description: |
+      Run full test suite with 'bun test' and fix any test failures caused by the directory rename or configuration changes. Update test fixtures as needed.
+    status: pending
+    dependencies:
+      - task-009
+      - task-011
+    acceptance_criteria:
+      - "bun test passes with no failures"
+      - "bun run build completes successfully"
+      - "bun run tsc --noEmit shows no type errors"
+      - "All existing tests updated for new default directory"
+    completed_at: null

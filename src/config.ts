@@ -19,6 +19,7 @@ export interface HoneConfig {
     extendPrd?: string
   }
   lintCommand?: string
+  agentsDocsDir?: string
 }
 
 export const DEFAULT_AGENT: AgentType = 'claude'
@@ -30,6 +31,7 @@ const DEFAULT_CONFIG: HoneConfig = {
     claude: 'claude-sonnet-4-6',
   },
   lintCommand: undefined,
+  agentsDocsDir: '.agents/',
 }
 
 export function getPlansDir(): string {

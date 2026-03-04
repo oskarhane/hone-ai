@@ -99,6 +99,7 @@ describe('Config Management', () => {
         claude: 'test-claude',
       },
       lintCommand: 'npm run lint',
+      agentsDocsDir: '.agents/',
     }
 
     await saveConfig(config)

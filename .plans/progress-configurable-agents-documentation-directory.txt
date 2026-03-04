@@ -1,0 +1,17 @@
+================================================================================
+TASK-001: Add agentsDocsDir property to HoneConfig interface
+Date: 2026-03-04T12:30:00.000Z
+================================================================================
+
+Summary:
+Added optional agentsDocsDir property to HoneConfig interface with default value '.agents/' in DEFAULT_CONFIG constant.
+
+Files Changed:
+- src/config.ts (modified - added agentsDocsDir property to interface and default)
+- src/config.test.ts (modified - added agentsDocsDir to test config object)
+
+Key Decisions:
+- Default value uses trailing slash '.agents/' for consistency
+- Property is optional to maintain backward compatibility
+
+Next Task: task-002
