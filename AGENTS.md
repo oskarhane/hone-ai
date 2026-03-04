@@ -1,13 +1,12 @@
 <!-- BEGIN GENERATED: AGENTS-MD -->
-
 # AGENTS.md
 
 Learnings and patterns for future agents working on this project.
 
 ## Feedback Instructions
 
-TEST COMMANDS: [bun test]
-BUILD COMMANDS: [bun run build, bun run build:linux, bun run build:macos, bun run tsc --noEmit]
+TEST COMMANDS: [`bun test` - runs all tests, `bun run tsc --noEmit` - type checking]
+BUILD COMMANDS: [bun test, bun run build, bun run build:linux, bun run build:macos, bun run tsc --noEmit]
 LINT COMMANDS: [bun run lint:yaml, bun run check:yaml]
 FORMAT COMMANDS: [bun run format, bun run format:yaml, prettier --write "**/*.ts", prettier --write "**/*.yml" "**/*.yaml"]
 
@@ -31,21 +30,20 @@ See [@.agents/testing.md](.agents/testing.md) for detailed information.
 
 ## Architecture
 
-ARCHITECTURE PATTERN: CLI orchestration with subprocess delegation and a 3‑phase implement/review/finalize loop.
+ARCHITECTURE PATTERN: CLI orchestration with subprocess delegation and 3-phase implement/review/finalize loop
 
 See [@.agents/architecture.md](.agents/architecture.md) for detailed information.
 
 ## Deployment
 
-DEPLOYMENT STRATEGY: GitHub Actions–driven release workflow producing Bun-compiled binaries + manual npm publish.
+DEPLOYMENT STRATEGY: GitHub Actions–driven release workflow producing Bun-compiled binaries + manual npm publish
 
 See [@.agents/deployment.md](.agents/deployment.md) for detailed information.
 
 ---
 
-_This AGENTS.md was generated using agent-based project discovery._
-_Detailed information is available in the .agents/ directory._
-
+*This AGENTS.md was generated using agent-based project discovery.*
+*Detailed information is available in the .agents/ directory.*
 <!-- END GENERATED: AGENTS-MD -->
 
 <!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->
