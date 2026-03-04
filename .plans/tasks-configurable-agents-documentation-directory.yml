@@ -130,7 +130,7 @@ tasks:
     title: "Update README documentation for agentsDocsDir"
     description: |
       Document the new agentsDocsDir config option in README.md with examples showing how to customize the directory and how to preserve old behavior with '.agents-docs'.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -138,7 +138,7 @@ tasks:
       - "README explains default value is '.agents/'"
       - "README shows backward compatibility example with '.agents-docs'"
       - "File structure examples updated to show '.agents/'"
-    completed_at: null
+    completed_at: 2026-03-04T17:30:00.000Z
 
   - id: task-011
     title: "Rename existing .agents-docs to .agents in repo"

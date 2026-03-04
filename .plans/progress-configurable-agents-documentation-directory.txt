@@ -174,3 +174,23 @@ Key Decisions:
 - Backward compatibility verified with '.agents-docs' config value
 
 Next Task: task-010
+
+================================================================================
+TASK-010: Update README documentation for agentsDocsDir
+Date: 2026-03-04T17:30:00.000Z
+================================================================================
+
+Summary:
+Updated README.md to document the new agentsDocsDir config option with examples, default value 
+explanation, backward compatibility notes, and updated file structure examples.
+
+Files Changed:
+- README.md (modified - added agentsDocsDir to config example, explained default '.agents/', 
+  added backward compatibility with '.agents-docs', updated file structure to show '.agents/')
+
+Key Decisions:
+- Whitespace cleanup on unrelated lines accepted as incidental formatting improvement
+- File structure example uses '.agents/' with representative generated files
+- Actual repo still uses '.agents-docs' until task-011 handles migration
+
+Next Task: task-011
