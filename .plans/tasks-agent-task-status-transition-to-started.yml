@@ -23,8 +23,8 @@ tasks:
     title: "Add test asserting implement prompt contains in_progress"
     description: |
       Add a new test case in src/prompt.test.ts within the existing constructPrompt describe block. The test should call constructPrompt with phase implement and assert that the returned prompt string contains the substring in_progress.
-      
-    status: pending
+
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -32,7 +32,7 @@ tasks:
       - "The test follows the existing pattern (creates a task file, calls constructPrompt, uses expect().toContain())"
       - "bun test passes with all existing tests still green"
       - "bun run tsc --noEmit passes"
-    completed_at: null
+    completed_at: "2026-03-08T18:20:00.000Z"
 
   - id: task-003
     title: "Add started task check instruction to review phase prompt"

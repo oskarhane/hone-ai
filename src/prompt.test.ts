@@ -253,6 +253,21 @@ describe('constructPrompt', () => {
     expect(prompt).toContain('Only output this marker if the task is fully complete')
   })
 
+  test('implement phase contains in_progress status instruction', () => {
+    writeFileSync(
+      join(TEST_PLANS_DIR, 'tasks-test.yml'),
+      'tasks:\n  - id: task-001\n    status: pending\n'
+    )
+
+    const prompt = constructPrompt({
+      phase: 'implement',
+      featureName: 'test',
+      config: mockConfig,
+    })
+
+    expect(prompt).toContain('in_progress')
+  })
+
   test('implement phase enforces task file isolation', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),

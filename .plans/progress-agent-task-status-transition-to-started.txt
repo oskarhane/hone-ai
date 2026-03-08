@@ -14,3 +14,20 @@ Key Decisions:
 - Referenced "task YAML file referenced in CONTEXT FILES above" to avoid hardcoding a path
 
 Next Task: task-002
+
+================================================================================
+TASK-002: Add test asserting implement prompt contains in_progress
+Date: 2026-03-08T18:20:00.000Z
+================================================================================
+
+Summary:
+Added test in src/prompt.test.ts asserting the implement phase prompt contains 'in_progress'. All 15 tests pass and type checking passes.
+
+Files Changed:
+- src/prompt.test.ts (modified: added test asserting implement prompt contains 'in_progress')
+
+Key Decisions:
+- Followed existing pattern: create task file, call constructPrompt with phase 'implement', use expect().toContain()
+- Test validates the instruction added in task-001 is present in the generated prompt
+
+Next Task: task-003
