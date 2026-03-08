@@ -219,6 +219,16 @@ hone prune --dry-run                       # Preview what would be archived
 ```bash
 hone run tasks.yml -i 3 --agent opencode   # Use specific agent
 hone run tasks.yml -i 5 --skip=review      # Skip code review
+hone run tasks.yml -i 5 --verbose          # Show detailed agent interaction logs
+```
+
+### Verbose mode
+
+Add `--verbose` to any command to see detailed agent interaction logs. By default, hone only shows progress indicators and critical messages. With `--verbose`, you get the full output from agent interactions, useful for debugging or understanding what the agent is doing.
+
+```bash
+hone prd "Add login" --verbose
+hone agents-md --verbose
 ```
 
 ## Configuration
