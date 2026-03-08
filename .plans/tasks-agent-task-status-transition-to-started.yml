@@ -77,7 +77,7 @@ tasks:
     title: "Add tests asserting review prompt contains started task instructions"
     description: |
       Write tests verifying the review phase prompt contains the started task check, prioritization hint, and fallback instructions. Tests should mirror the pattern established in task-002 for the implement prompt. Covers REQ-F-001, REQ-F-002, and REQ-F-003.
-    status: pending
+    status: completed
     dependencies:
       - task-002
       - task-003
@@ -88,4 +88,4 @@ tasks:
       - "Test asserts review prompt contains prioritization instruction when started task found"
       - "Test asserts review prompt contains fallback instruction when no started task found"
       - "All tests pass"
-    completed_at: null
+    completed_at: "2026-03-08T18:45:00.000Z"

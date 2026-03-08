@@ -49,3 +49,21 @@ Key Decisions:
 - Valid Task status values: pending | in_progress | completed | failed | cancelled (no "started")
 
 Next Task: task-006
+
+================================================================================
+TASK-006: Add tests asserting review prompt contains started task instructions
+Date: 2026-03-08T18:45:00.000Z
+================================================================================
+
+Summary:
+Combined three duplicate review prompt tests into a single test with shared setup. Fixed task-006 completed_at timestamp (was null). All 432 tests pass.
+
+Files Changed:
+- src/prompt.test.ts (modified: merged 3 identical-setup review tests into 1)
+- .plans/tasks-agent-task-status-transition-to-started.yml (modified: set completed_at on task-006)
+
+Key Decisions:
+- Combined tests per review feedback (low priority but cleaner)
+- Single test still covers all three acceptance criteria assertions
+
+Next Task: All tasks complete

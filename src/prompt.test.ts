@@ -268,6 +268,24 @@ describe('constructPrompt', () => {
     expect(prompt).toContain('in_progress')
   })
 
+  test('review phase contains started task check, prioritization, and fallback instructions', () => {
+    writeFileSync(
+      join(TEST_PLANS_DIR, 'tasks-test.yml'),
+      'tasks:\n  - id: task-001\n    status: pending\n'
+    )
+
+    const prompt = constructPrompt({
+      phase: 'review',
+      featureName: 'test',
+      config: mockConfig,
+      taskId: 'task-001',
+    })
+
+    expect(prompt).toContain('in_progress')
+    expect(prompt).toContain('prioritize')
+    expect(prompt).toContain('default review behavior')
+  })
+
   test('implement phase enforces task file isolation', () => {
     writeFileSync(
       join(TEST_PLANS_DIR, 'tasks-test.yml'),
