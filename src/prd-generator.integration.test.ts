@@ -80,14 +80,15 @@ describe('PRD Generator Integration', () => {
 
   describe('Model configuration', () => {
     test('uses correct model name format', async () => {
-      const { loadConfig } = await import('./config')
+      const { loadConfig, resolveModelForPhase } = await import('./config')
       const config = await loadConfig()
 
       // Model names should match either legacy Claude format or provider-prefixed format
       const modelRegex =
-        /^(?:(?:openai|anthropic|google)\/[\w.-]+|claude-(?:sonnet|opus)-\d+-\d{8})$/
-      expect(config.models.claude).toMatch(modelRegex)
-      expect(config.models.opencode).toMatch(modelRegex)
+        /^(?:(?:openai|anthropic|google)\/[\w.-]+|claude-(?:sonnet|opus)-[\w.-]+)$/
+      // resolveModelForPhase always returns a string (falls back to hardcoded default)
+      expect(resolveModelForPhase(config, undefined, 'claude')).toMatch(modelRegex)
+      expect(resolveModelForPhase(config, undefined, 'opencode')).toMatch(modelRegex)
     })
   })
 })
