@@ -1,0 +1,91 @@
+feature: agent-task-status-transition-to-started
+prd: ./prd-agent-task-status-transition-to-started.md
+created_at: Sun Mar 08 2026 19:03:26 GMT+0100 (Central European Standard Time)
+updated_at: 2026-03-08T18:07:47.972Z
+
+tasks:
+  - id: task-001
+    title: "Add in_progress status update instruction to implement prompt"
+    description: |
+      In getImplementInstructions() in src/prompt.ts, insert a new step in the TASK SELECTION section instructing the agent to immediately update the selected task's status field from pending to in_progress in the task YAML file before beginning exploration or implementation. The instruction must name the exact YAML field (status) and value (in_progress) and reference the task file from CONTEXT FILES.
+      
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "getImplementInstructions() contains text instructing the agent to set status: in_progress on the selected task"
+      - "Instruction is placed in the TASK SELECTION section, after task selection and before EXPLORATION"
+      - "Instruction references the task file from CONTEXT FILES by name"
+      - "Instruction specifies the exact YAML field (status) and value (in_progress)"
+      - "Instruction is placed before TASK_COMPLETED output and feedback loops"
+    completed_at: null
+
+  - id: task-002
+    title: "Add test asserting implement prompt contains in_progress"
+    description: |
+      Add a new test case in src/prompt.test.ts within the existing constructPrompt describe block. The test should call constructPrompt with phase implement and assert that the returned prompt string contains the substring in_progress.
+      
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "A new test exists in src/prompt.test.ts asserting the implement prompt contains 'in_progress'"
+      - "The test follows the existing pattern (creates a task file, calls constructPrompt, uses expect().toContain())"
+      - "bun test passes with all existing tests still green"
+      - "bun run tsc --noEmit passes"
+    completed_at: null
+
+  - id: task-003
+    title: "Add started task check instruction to review phase prompt"
+    description: |
+      Update the review phase prompt to instruct the agent to check for a task with status `started` before beginning review. The prompt should include explicit logic to look up the task list and identify any started task. This satisfies REQ-F-001.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Review prompt contains instruction to check for a task with status `started`"
+      - "Instruction appears before the default review behavior section"
+      - "Wording is clear and unambiguous about when to perform the check"
+    completed_at: null
+
+  - id: task-004
+    title: "Add prioritization instruction for started task in review prompt"
+    description: |
+      Extend the review phase prompt to instruct the agent to prioritize reviewing the `started` task when one is found. The instruction must make clear the started task is a hint, not a hard requirement. This satisfies REQ-F-002.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "Review prompt instructs agent to prioritize the started task when found"
+      - "Prompt frames the started task as a hint rather than a strict directive"
+      - "Instruction is logically connected to the check added in task-003"
+    completed_at: null
+
+  - id: task-005
+    title: "Add fallback instruction for no started task in review prompt"
+    description: |
+      Extend the review phase prompt to instruct the agent to proceed with default review behavior when no `started` task is found. The instruction must ensure no error or halt occurs in this case. This satisfies REQ-F-003.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "Review prompt includes explicit fallback instruction for the no-started-task case"
+      - "Fallback directs agent to use default review behavior without error"
+      - "Instruction is part of the same conditional block as task-003 and task-004 additions"
+    completed_at: null
+
+  - id: task-006
+    title: "Add tests asserting review prompt contains started task instructions"
+    description: |
+      Write tests verifying the review phase prompt contains the started task check, prioritization hint, and fallback instructions. Tests should mirror the pattern established in task-002 for the implement prompt. Covers REQ-F-001, REQ-F-002, and REQ-F-003.
+    status: pending
+    dependencies:
+      - task-002
+      - task-003
+      - task-004
+      - task-005
+    acceptance_criteria:
+      - "Test asserts review prompt contains instruction to check for `started` task"
+      - "Test asserts review prompt contains prioritization instruction when started task found"
+      - "Test asserts review prompt contains fallback instruction when no started task found"
+      - "All tests pass"
+    completed_at: null
