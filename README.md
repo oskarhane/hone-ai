@@ -273,6 +273,46 @@ opencode:
 - `agentsDocsDir` - Directory where `hone agents-md` generates detailed documentation files (default: `.agents/`)
 - Use `agentsDocsDir: '.agents-docs'` to preserve the old directory name for backward compatibility
 
+### Migrating from v1 to v2 config
+
+hone automatically migrates v1 configs to v2 on first load — no manual action required.
+
+**v1 (old format):**
+
+```yaml
+defaultAgent: claude
+models:
+  claude: claude-sonnet-4-6
+  opencode: anthropic/claude-opus-4-5
+  review: claude-opus-4-6
+  agentsMd: claude-opus-4-6
+lintCommand: bun run lint
+```
+
+**v2 (new format, auto-migrated):**
+
+```yaml
+version: 2
+agent: claude # was defaultAgent
+claude:
+  model: claude-sonnet-4-6 # was models.claude
+  models:
+    review: claude-opus-4-6 # phase keys scoped to defaultAgent's block
+    agentsMd: claude-opus-4-6
+opencode:
+  model: anthropic/claude-opus-4-5 # was models.opencode
+lintCommand: bun run lint
+```
+
+**What changed:**
+
+- `defaultAgent` → `agent`
+- `models.claude` → `claude.model`, `models.opencode` → `opencode.model`
+- Phase keys (`prd`, `implement`, `review`, etc.) move into the default agent's `models` block
+- `version: 2` added at top level
+
+After auto-migration, the updated v2 config is written back to disk.
+
 ## How It Works
 
 hone breaks feature development into 3 phases:
