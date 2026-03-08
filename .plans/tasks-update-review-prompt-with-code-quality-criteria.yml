@@ -8,7 +8,7 @@ tasks:
     title: "Update review checklist in getReviewInstructions()"
     description: |
       Replace the existing # REVIEW CHECKLIST items in src/prompt.ts:186-195 with a merged set that includes both the original items (Correctness, Tests, Security, Performance, Edge cases) and the 7 new code quality questions. All other sections (# STARTED TASK CHECK, # REVIEW OBJECTIVE, # GIT DIFF, # OUTPUT) must remain unchanged.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "All 7 new questions are present: elegant, clean, well-structured, easy to understand, efficient, conventions, most efficient approach"
@@ -16,13 +16,13 @@ tasks:
       - "# REVIEW CHECKLIST heading is preserved"
       - "No other sections of getReviewInstructions() are modified"
       - "bun run tsc --noEmit passes"
-    completed_at: null
+    completed_at: 2026-03-08T18:30:00.000Z
 
   - id: task-002
     title: "Update review prompt tests for merged checklist"
     description: |
       Update the existing test 'review phase includes review checklist' in src/prompt.test.ts to assert on the new merged checklist content. Remove assertion for 'Correctness' only if it was removed (it wasn't per merge decision), and add assertions for at least one of the new quality questions to confirm they appear in the prompt.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -30,4 +30,4 @@ tasks:
       - "Test still asserts # REVIEW CHECKLIST heading exists"
       - "Test still asserts original items like 'Correctness' exist"
       - "bun test passes with no regressions"
-    completed_at: null
+    completed_at: 2026-03-08T18:45:00.000Z

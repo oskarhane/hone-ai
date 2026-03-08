@@ -1,0 +1,33 @@
+================================================================================
+TASK-001: Update review checklist in getReviewInstructions()
+Date: 2026-03-08T18:30:00.000Z
+================================================================================
+
+Summary:
+Merged original 5 checklist items with 7 new code quality questions in getReviewInstructions(). Removed "Code quality" item as it's subsumed by new items.
+
+Files Changed:
+- src/prompt.ts (modified: replaced # REVIEW CHECKLIST items with merged set)
+
+Key Decisions:
+- Kept all original items (Correctness, Tests, Security, Performance, Edge cases)
+- Added 7 new quality questions (elegant, clean, well-structured, easy to understand, efficient, conventions, most efficient approach)
+- Removed "Code quality - Is the code maintainable and well-structured?" as subsumed by new items
+
+Next Task: task-002
+
+================================================================================
+TASK-002: Update review prompt tests for merged checklist
+Date: 2026-03-08T18:45:00.000Z
+================================================================================
+
+Summary:
+Added assertion for 'elegantly written' to existing review checklist test.
+
+Files Changed:
+- src/prompt.test.ts (modified: added expect for 'elegantly written')
+
+Key Decisions:
+- Minimal change: one new assertion added to existing test
+
+Next Task: All tasks complete

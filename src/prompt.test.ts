@@ -149,6 +149,7 @@ describe('constructPrompt', () => {
     expect(prompt).toContain('# HONE: REVIEW PHASE')
     expect(prompt).toContain('# REVIEW CHECKLIST')
     expect(prompt).toContain('Correctness')
+    expect(prompt).toContain('elegantly written')
     expect(prompt).toContain('task-001')
   })
 
