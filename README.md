@@ -223,36 +223,55 @@ hone run tasks.yml -i 5 --skip=review      # Skip code review
 
 ## Configuration
 
-Edit `.plans/hone.config.yml` to customize models, directories, and test commands:
+Edit `.plans/hone.config.yml` to customize models, directories, and agents.
+
+### Basic configuration (v2 format)
 
 ```yaml
-defaultAgent: claude
-models:
-  opencode: openai/gpt-5.2-codex
-  claude: anthropic/claude-sonnet-4-5
-agentsDocsDir: '.agents/' # Directory for generated documentation (default: .agents/)
+version: 2
+agent: claude # default agent: claude or opencode
+claude:
+  model: claude-sonnet-4-6 # default model for all claude phases
+opencode:
+  model: anthropic/claude-sonnet-4-6 # default model for all opencode phases
+agentsDocsDir: '.agents/' # directory for generated documentation (default: .agents/)
 ```
+
+### Agent-specific model configuration
+
+Each agent (`claude`, `opencode`) has its own model block. Set a default model for the agent, or override individual phases:
+
+```yaml
+version: 2
+agent: claude
+claude:
+  model: claude-sonnet-4-6 # fallback for all phases
+  models:
+    prd: claude-sonnet-4-6 # PRD generation
+    prdToTasks: claude-opus-4-6 # task breakdown (expensive, use powerful model)
+    implement: claude-sonnet-4-6 # implementation
+    review: claude-opus-4-6 # code review (expensive, use powerful model)
+    finalize: claude-sonnet-4-6 # finalization
+    agentsMd: claude-opus-4-6 # AGENTS.md generation
+    extendPrd: claude-sonnet-4-6 # PRD extension
+opencode:
+  model: anthropic/claude-sonnet-4-6
+  models:
+    implement: openai/gpt-4o # use a different model just for implementation
+```
+
+**Model resolution order:** phase model → agent model → hardcoded default
+
+**Valid phase keys:** `prd`, `prdToTasks`, `implement`, `review`, `finalize`, `agentsMd`, `extendPrd`
+
+**Model name formats:**
+- Provider-prefixed: `openai/gpt-4o`, `anthropic/claude-opus-4-6`, `google/gemini-2.0-flash`
+- Legacy Claude format: `claude-sonnet-4-6`, `claude-opus-4-6`
 
 **Directory configuration:**
 
 - `agentsDocsDir` - Directory where `hone agents-md` generates detailed documentation files (default: `.agents/`)
 - Use `agentsDocsDir: '.agents-docs'` to preserve the old directory name for backward compatibility
-
-**Advanced model configuration:**
-
-- Use phase-specific models (prd, prdToTasks, extendPrd, implement, review, finalize)
-- Model names use provider format: `provider/model` (e.g., `openai/gpt-5.2-codex`, `anthropic/claude-sonnet-4-5`)
-- Check available models: `opencode --help` or `claude --help`
-
-```yaml
-models:
-  prd: anthropic/claude-sonnet-4-5 # PRD generation
-  prdToTasks: anthropic/claude-opus-4-5 # Task generation
-  extendPrd: anthropic/claude-sonnet-4-5 # PRD extension
-  implement: anthropic/claude-opus-4-5 # Implementation
-  review: anthropic/claude-sonnet-4-5 # Code review
-  finalize: anthropic/claude-sonnet-4-5 # Finalization
-```
 
 ## How It Works
 
@@ -316,9 +335,9 @@ hone extend-prd .plans/prd-payment.md "Implement webhooks following https://stri
 Configure the `extendPrd` phase model in `.plans/hone.config.yml`:
 
 ```yaml
-models:
-  extendPrd: anthropic/claude-sonnet-4-5 # Model for requirement generation
-  prd: anthropic/claude-opus-4-5 # Fallback to prd model
+claude:
+  models:
+    extendPrd: claude-sonnet-4-6
 ```
 
 **Interactive Q&A:**

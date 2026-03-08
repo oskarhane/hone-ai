@@ -51,4 +51,24 @@ Key Decisions:
 - Phase keys only go into the defaultAgent's models block (per spec)
 - loadConfig writes v2 back to disk on migration; loadConfigWithoutCreation does not
 
-Next Task: All tasks complete
+Next Task: task-012 (README agent-specific model config section)
+
+================================================================================
+TASK-012: Update README with agent-specific model config syntax and examples
+Date: 2026-03-08T12:20:00.000Z
+================================================================================
+
+Summary:
+Added dedicated section to README documenting v2 agent-specific model configuration.
+Restructured configuration section with logical progression: basic config → agent-specific
+→ resolution rules → format reference.
+
+Files Changed:
+- README.md (modified: added agent-specific model config section with YAML examples,
+  resolution priority docs, all valid phase keys, updated extendPrd section to v2 format)
+
+Key Decisions:
+- Removed cross-phase fallback mention (prd→extendPrd) since v2 uses phase→agent model→hardcoded default
+- Documented all 7 phase keys: prd, prdToTasks, implement, review, finalize, agentsMd, extendPrd
+
+Next Task: task-013 (config v2 vs v1 migration/comparison note)
