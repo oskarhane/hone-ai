@@ -206,7 +206,7 @@ tasks:
     title: "Add config v2 vs v1 migration/comparison note to README"
     description: |
       Add a section or callout to the README explaining how config v2 differs from v1, including what changed structurally. Include a before/after comparison or migration note so existing users can update their config files.
-    status: pending
+    status: completed
     dependencies:
       - task-012
     acceptance_criteria:
@@ -214,7 +214,7 @@ tasks:
       - "A side-by-side or before/after example is included"
       - "Migration path (auto-migration via loadConfig) is mentioned"
       - "Note is placed near the config documentation section"
-    completed_at: null
+    completed_at: 2026-03-08T12:30:00.000Z
 
   - id: task-014
     title: "Update CLI help output to reflect v2 config keys and options"

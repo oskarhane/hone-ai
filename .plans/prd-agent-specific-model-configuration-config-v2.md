@@ -20,17 +20,16 @@ Restructure `hone.config.yml` to support per-agent model configs instead of a fl
 - Changing agent types (still `claude` | `opencode`)
 
 ## Requirements
-
 ### Functional Requirements
 
 - **REQ-F-001**: Config v2 schema — top-level `version: 2`, `agent: <default-agent>`, and agent-specific blocks `claude: { models: { <phase>: <model> } }` and `opencode: { models: { <phase>: <model> } }`
 - **REQ-F-002**: `loadConfig()` detects v1 (no `version` field) and auto-migrates to v2 in memory, then writes the migrated file to disk
 - **REQ-F-003**: Migration rules from v1 → v2:
-  - `defaultAgent` → `agent`
-  - `models.claude` (the default model string) → `claude.model` as the resolved phase fallback (stored but resolution falls through to hardcoded default if absent)
-  - `models.opencode` (the default model string) → `opencode.model` similarly
-  - Any v1 phase keys (`prd`, `implement`, `review`, `finalize`, `prdToTasks`, `agentsMd`, `extendPrd`) are copied **only into the `defaultAgent`'s `models` block** (v1 phases were agent-agnostic, so we preserve them for the agent the user was running)
-  - `lintCommand`, `agentsDocsDir` carry over unchanged
+- `defaultAgent` → `agent`
+- `models.claude` (the default model string) → `claude.model` as the resolved phase fallback (stored but resolution falls through to hardcoded default if absent)
+- `models.opencode` (the default model string) → `opencode.model` similarly
+- Any v1 phase keys (`prd`, `implement`, `review`, `finalize`, `prdToTasks`, `agentsMd`, `extendPrd`) are copied **only into the `defaultAgent`'s `models` block** (v1 phases were agent-agnostic, so we preserve them for the agent the user was running)
+- `lintCommand`, `agentsDocsDir` carry over unchanged
 - **REQ-F-004**: `resolveModelForPhase(config, phase, agent)` updated to look up `config[agent].models[phase]`, falling back to the hardcoded default (`claude-sonnet-4-6` for claude, `anthropic/claude-sonnet-4-6` for opencode)
 - **REQ-F-005**: Default v2 config written for new projects has empty phase-specific models; just `claude: { models: {} }`, `opencode: { models: {} }` plus hardcoded defaults applied at resolution time
 - **REQ-F-006**: `validateConfig()` updated to validate models inside each agent block using the existing regex
@@ -43,7 +42,6 @@ Restructure `hone.config.yml` to support per-agent model configs instead of a fl
 - **REQ-NF-001**: Migration is transparent — no user interaction required, no breaking failures
 - **REQ-NF-002**: All existing tests remain passing after changes; new tests cover migration and v2 resolution
 - **REQ-NF-003**: YAML output remains human-readable with logical grouping by agent
-
 ## Technical Considerations
 
 ### New Config Schema (v2)

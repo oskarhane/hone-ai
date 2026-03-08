@@ -72,3 +72,22 @@ Key Decisions:
 - Documented all 7 phase keys: prd, prdToTasks, implement, review, finalize, agentsMd, extendPrd
 
 Next Task: task-013 (config v2 vs v1 migration/comparison note)
+
+================================================================================
+TASK-013: Add config v2 vs v1 migration/comparison note to README
+Date: 2026-03-08T12:30:00.000Z
+================================================================================
+
+Summary:
+README already had the v2 vs v1 section added (was part of task-012/013 work).
+Cleaned up PRD file: removed incorrectly appended duplicate REQ-F-001/REQ-F-002/REQ-F-003
+lines that clashed with existing bolded requirements.
+
+Files Changed:
+- .plans/prd-agent-specific-model-configuration-config-v2.md (modified: removed 3 duplicate/incorrectly-appended requirement lines)
+
+Key Decisions:
+- Duplicate unbolded REQ-F-001/002/003 lines were documentation-task requirements, not product requirements - removed per review feedback
+- README content was already complete and met all acceptance criteria
+
+Next Task: task-014 (update CLI help output for v2 config)
