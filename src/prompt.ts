@@ -190,8 +190,14 @@ Check for:
 2. Tests - Are there adequate tests? Do they pass?
 3. Security - Any security concerns or vulnerabilities?
 4. Performance - Any obvious performance issues?
-5. Code quality - Is the code maintainable and well-structured?
-6. Edge cases - Are edge cases handled?
+5. Edge cases - Are edge cases handled?
+6. Is the code elegantly written?
+7. Is the code clean?
+8. Is the code well-structured?
+9. Is the code easy to understand?
+10. Is the code efficient?
+11. Are we following best practices and conventions for the rest of the codebase?
+12. Is the implementation the most efficient way to solve the problem?
 
 # GIT DIFF
 
