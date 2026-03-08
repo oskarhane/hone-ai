@@ -1,0 +1,16 @@
+================================================================================
+TASK-001: Add in_progress status update instruction to implement prompt
+Date: 2026-03-08T18:10:00.000Z
+================================================================================
+
+Summary:
+Added instruction in getImplementInstructions() to immediately update the selected task's status from pending to in_progress in the task YAML file before exploration or implementation begins.
+
+Files Changed:
+- src/prompt.ts (modified: added in_progress status update instruction in TASK SELECTION section, line 121)
+
+Key Decisions:
+- Placed instruction after the "no tasks left" check and before the EXPLORATION section for correct ordering
+- Referenced "task YAML file referenced in CONTEXT FILES above" to avoid hardcoding a path
+
+Next Task: task-002

@@ -118,6 +118,8 @@ Pick the next single task that's not completed yet. Prioritize from this list (w
 
 If there are no tasks left with \`status: pending\`, output \`<promise>COMPLETE</promise>\` and stop.
 
+Immediately after selecting a task, update the task's \`status\` field from \`pending\` to \`in_progress\` in the task YAML file referenced in CONTEXT FILES above. Do this before any exploration or implementation.
+
 # EXPLORATION
 
 Explore the repo and fill your context window with relevant information that will allow you to complete the task.

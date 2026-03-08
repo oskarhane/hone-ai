@@ -9,7 +9,7 @@ tasks:
     description: |
       In getImplementInstructions() in src/prompt.ts, insert a new step in the TASK SELECTION section instructing the agent to immediately update the selected task's status field from pending to in_progress in the task YAML file before beginning exploration or implementation. The instruction must name the exact YAML field (status) and value (in_progress) and reference the task file from CONTEXT FILES.
       
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "getImplementInstructions() contains text instructing the agent to set status: in_progress on the selected task"
@@ -17,7 +17,7 @@ tasks:
       - "Instruction references the task file from CONTEXT FILES by name"
       - "Instruction specifies the exact YAML field (status) and value (in_progress)"
       - "Instruction is placed before TASK_COMPLETED output and feedback loops"
-    completed_at: null
+    completed_at: "2026-03-08T18:10:00.000Z"
 
   - id: task-002
     title: "Add test asserting implement prompt contains in_progress"
