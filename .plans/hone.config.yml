@@ -1,6 +1,9 @@
-defaultAgent: claude
-models:
-  opencode: anthropic/claude-opus-4-5
-  claude: claude-sonnet-4-6
-  review: claude-opus-4-6
-  agentsMd: anthropic/claude-opus-4-5
+version: 2
+agent: claude
+claude:
+  model: claude-sonnet-4-6
+  models:
+    review: claude-opus-4-6
+    agentsMd: claude-opus-4-6
+opencode:
+  model: anthropic/claude-opus-4-5

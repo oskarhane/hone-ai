@@ -1065,7 +1065,7 @@ async function generateClarifyingQuestion(
   model: string
 ): Promise<QAResponse> {
   const client = new AgentClient({
-    agent: config.defaultAgent,
+    agent: config.agent,
     model,
   })
 
@@ -1323,7 +1323,7 @@ export async function generateNewRequirementsContent(
   model: string
 ): Promise<{ functional: string[]; nonFunctional: string[] }> {
   const client = new AgentClient({
-    agent: config.defaultAgent,
+    agent: config.agent,
     model,
   })
 
@@ -1761,7 +1761,7 @@ async function generateTasksForNewRequirements(
   model: string
 ): Promise<Task[]> {
   const client = new AgentClient({
-    agent: config.defaultAgent,
+    agent: config.agent,
     model,
   })
 

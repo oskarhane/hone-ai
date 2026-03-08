@@ -8,7 +8,7 @@ tasks:
     title: "Update TypeScript interfaces for v2 config schema"
     description: |
       Add AgentModelConfig interface and update HoneConfig to v2 shape in config.ts. Add LegacyConfig interface for migration input typing. Export AgentModelConfig so tests can reference it.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "AgentModelConfig interface exported with optional model and models fields"
@@ -16,13 +16,13 @@ tasks:
       - "LegacyConfig interface defined (can be internal/unexported) covering all v1 fields"
       - "defaultAgent removed from HoneConfig"
       - "bun run tsc --noEmit passes"
-    completed_at: null
+    completed_at: "2026-03-08T10:30:00.000Z"
 
   - id: task-002
     title: "Update DEFAULT_CONFIG and hardcoded model constants"
     description: |
       Replace the flat DEFAULT_CONFIG with a v2-shaped constant using the new HoneConfig interface. Define HARDCODED_DEFAULTS for claude and opencode as named constants so they can be reused in resolution and tests.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -31,13 +31,13 @@ tasks:
       - "HARDCODED_DEFAULT_OPENCODE = 'anthropic/claude-sonnet-4-6' constant exported or accessible"
       - "DEFAULT_AGENT constant still exported and unchanged"
       - "bun run tsc --noEmit passes"
-    completed_at: null
+    completed_at: "2026-03-08T10:30:00.000Z"
 
   - id: task-003
     title: "Implement migrateV1ToV2 function"
     description: |
       Write a pure migrateV1ToV2(v1: LegacyConfig): HoneConfig function in config.ts. Phase keys from v1.models are copied only into the defaultAgent's models block; bare agent strings (claude, opencode) go into their respective model fields.
-    status: pending
+    status: completed
     dependencies:
       - task-001
       - task-002
@@ -48,13 +48,13 @@ tasks:
       - "lintCommand and agentsDocsDir carry over unchanged"
       - "Function is idempotent: migrating a v1 config twice produces the same v2 output"
       - "bun run tsc --noEmit passes"
-    completed_at: null
+    completed_at: "2026-03-08T10:30:00.000Z"
 
   - id: task-004
     title: "Update loadConfig to detect v1 and auto-migrate"
     description: |
       In loadConfig(), after reading YAML, check for absence of version field to detect v1. If v1, call migrateV1ToV2 and write the migrated config back to disk before returning it. Also update loadConfigWithoutCreation() similarly.
-    status: pending
+    status: completed
     dependencies:
       - task-003
     acceptance_criteria:
@@ -63,13 +63,13 @@ tasks:
       - "loadConfigWithoutCreation also migrates v1 in-memory (no disk write since file already exists)"
       - "Migration on already-migrated file is a no-op"
       - "bun run tsc --noEmit passes"
-    completed_at: null
+    completed_at: "2026-03-08T10:30:00.000Z"
 
   - id: task-005
     title: "Update resolveModelForPhase for v2 lookup"
     description: |
       Change the internal lookup in resolveModelForPhase to read config[resolvedAgent].models[phase]. Remove all shared phase-key logic. Fall back directly to hardcoded default for the agent (no agent-level model field fallback in the chain).
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
@@ -78,13 +78,13 @@ tasks:
       - "Uses config.agent when no agent arg passed (replacing config.defaultAgent reference)"
       - "Signature unchanged: resolveModelForPhase(config, phase?, agent?)"
       - "bun run tsc --noEmit passes"
-    completed_at: null
+    completed_at: "2026-03-08T10:30:00.000Z"
 
   - id: task-006
     title: "Update validateConfig for v2 agent-specific blocks"
     description: |
       Rewrite validateConfig to iterate over config.claude.models and config.opencode.models entries, validating each with the existing regex. Remove all references to the old flat config.models structure.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -93,13 +93,13 @@ tasks:
       - "Error messages include agent name and phase for clarity"
       - "Skips undefined/empty model strings (no false positives)"
       - "bun run tsc --noEmit passes"
-    completed_at: null
+    completed_at: "2026-03-08T10:30:00.000Z"
 
   - id: task-007
     title: "Update resolveAgentWithoutConfigCreation and resolveAgent for v2"
     description: |
       Update resolveAgentWithoutConfigCreation to read config.agent instead of config.defaultAgent. Update resolveAgent similarly. Both should continue to work correctly after v2 migration.
-    status: pending
+    status: completed
     dependencies:
       - task-004
     acceptance_criteria:
@@ -108,13 +108,13 @@ tasks:
       - "Flag override still takes priority over config"
       - "Falls back to DEFAULT_AGENT when no config exists"
       - "bun run tsc --noEmit passes"
-    completed_at: null
+    completed_at: "2026-03-08T10:30:00.000Z"
 
   - id: task-008
     title: "Update saveConfig and initProject for v2 format"
     description: |
       Ensure saveConfig always serializes in v2 YAML format with logical agent grouping. Update initProject to write DEFAULT_CONFIG (now v2) for new projects.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
@@ -123,13 +123,13 @@ tasks:
       - "initProject creates config with version: 2 schema"
       - "YAML output is human-readable with correct grouping (version, agent, claude, opencode, lintCommand, agentsDocsDir)"
       - "bun run tsc --noEmit passes"
-    completed_at: null
+    completed_at: "2026-03-08T10:30:00.000Z"
 
   - id: task-009
     title: "Rewrite config.test.ts for v2 schema"
     description: |
       Update all test fixtures from v1 HoneConfig shape to v2 shape. Rewrite Model Resolution and Config Validation describe blocks to use agent-nested models. Add new tests for migrateV1ToV2 covering all migration rules and idempotency.
-    status: pending
+    status: completed
     dependencies:
       - task-003
       - task-005
@@ -143,13 +143,13 @@ tasks:
       - "resolveModelForPhase tests verify per-agent lookup, not shared phase keys"
       - "validateConfig tests verify errors reported for invalid models in agent blocks"
       - "bun test passes with no failures"
-    completed_at: null
+    completed_at: "2026-03-08T10:30:00.000Z"
 
   - id: task-010
     title: "Update .plans/hone.config.yml to v2 format"
     description: |
       Manually migrate the repo's own .plans/hone.config.yml from v1 to v2 format following the migration rules. Phase keys (review, agentsMd) go into the claude block since defaultAgent is claude.
-    status: pending
+    status: completed
     dependencies:
       - task-003
     acceptance_criteria:
@@ -159,13 +159,13 @@ tasks:
       - "claude.models contains review and agentsMd entries (phase keys scoped to defaultAgent)"
       - "opencode.model: anthropic/claude-opus-4-5 (from models.opencode)"
       - "opencode.models is empty or absent"
-    completed_at: null
+    completed_at: "2026-03-08T10:30:00.000Z"
 
   - id: task-011
     title: "Run full test suite and fix any regressions"
     description: |
       Run bun test and bun run tsc --noEmit to verify no regressions across all test files. Fix any type errors or test failures caused by the HoneConfig shape change in files outside config.ts.
-    status: pending
+    status: completed
     dependencies:
       - task-009
       - task-010
@@ -174,4 +174,4 @@ tasks:
       - "bun run tsc --noEmit exits clean"
       - "No existing non-config tests broken by HoneConfig shape change"
       - "Integration tests unaffected"
-    completed_at: null
+    completed_at: "2026-03-08T11:00:00.000Z"

@@ -28,11 +28,10 @@ afterEach(() => {
 })
 
 const mockConfig: HoneConfig = {
-  defaultAgent: 'claude',
-  models: {
-    opencode: 'claude-sonnet-4-20250514',
-    claude: 'claude-sonnet-4-20250514',
-  },
+  version: 2,
+  agent: 'claude',
+  claude: { model: 'claude-sonnet-4-20250514', models: {} },
+  opencode: { model: 'claude-sonnet-4-20250514', models: {} },
   lintCommand: 'bun run lint',
 }
 

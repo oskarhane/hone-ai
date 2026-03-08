@@ -654,18 +654,22 @@ describe('agents-md-generator', () => {
     })
 
     test('getAgentsDocsDir returns default value when config has no agentsDocsDir', () => {
-      const config: Partial<HoneConfig> = {
-        defaultAgent: 'claude',
-        models: { opencode: 'test-model', claude: 'test-model' },
+      const config: HoneConfig = {
+        version: 2,
+        agent: 'claude',
+        claude: { model: 'test-model', models: {} },
+        opencode: { model: 'test-model', models: {} },
       }
-      const result = getAgentsDocsDir(config as HoneConfig)
+      const result = getAgentsDocsDir(config)
       expect(result).toBe('.agents/')
     })
 
     test('getAgentsDocsDir returns custom agentsDocsDir from config', () => {
       const config: HoneConfig = {
-        defaultAgent: 'claude',
-        models: { opencode: 'test-model', claude: 'test-model' },
+        version: 2,
+        agent: 'claude',
+        claude: { model: 'test-model', models: {} },
+        opencode: { model: 'test-model', models: {} },
         agentsDocsDir: '.custom-docs/',
       }
       const result = getAgentsDocsDir(config)
@@ -674,8 +678,10 @@ describe('agents-md-generator', () => {
 
     test('getAgentsDocsDir preserves old .agents-docs behavior when configured', () => {
       const config: HoneConfig = {
-        defaultAgent: 'claude',
-        models: { opencode: 'test-model', claude: 'test-model' },
+        version: 2,
+        agent: 'claude',
+        claude: { model: 'test-model', models: {} },
+        opencode: { model: 'test-model', models: {} },
         agentsDocsDir: '.agents-docs',
       }
       const result = getAgentsDocsDir(config)
@@ -684,8 +690,10 @@ describe('agents-md-generator', () => {
 
     test('getAgentsDocsDir returns default when agentsDocsDir is empty string', () => {
       const config: HoneConfig = {
-        defaultAgent: 'claude',
-        models: { opencode: 'test-model', claude: 'test-model' },
+        version: 2,
+        agent: 'claude',
+        claude: { model: 'test-model', models: {} },
+        opencode: { model: 'test-model', models: {} },
         agentsDocsDir: '',
       }
       // Empty string is falsy, so should fall back to default
@@ -705,8 +713,10 @@ describe('agents-md-generator', () => {
       )
 
       const config: HoneConfig = {
-        defaultAgent: 'claude',
-        models: { opencode: 'test-model', claude: 'test-model' },
+        version: 2,
+        agent: 'claude',
+        claude: { model: 'test-model', models: {} },
+        opencode: { model: 'test-model', models: {} },
         agentsDocsDir: customDir,
       }
 
@@ -735,8 +745,10 @@ describe('agents-md-generator', () => {
       )
 
       const config: HoneConfig = {
-        defaultAgent: 'claude',
-        models: { opencode: 'test-model', claude: 'test-model' },
+        version: 2,
+        agent: 'claude',
+        claude: { model: 'test-model', models: {} },
+        opencode: { model: 'test-model', models: {} },
         agentsDocsDir: '.agents-docs',
       }
 

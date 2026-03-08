@@ -160,7 +160,7 @@ async function generateClarifyingQuestion(
   const model = resolveModelForPhase(config, 'prd')
 
   const client = new AgentClient({
-    agent: config.defaultAgent,
+    agent: config.agent,
     model,
   })
 
@@ -259,7 +259,7 @@ async function generatePRDContent(
   const model = resolveModelForPhase(config, 'prd')
 
   const client = new AgentClient({
-    agent: config.defaultAgent,
+    agent: config.agent,
     model,
   })
 

@@ -937,7 +937,7 @@ async function executeDiscoveryPrompt(
   config: HoneConfig,
   agent?: AgentType
 ): Promise<string> {
-  const resolvedAgent = agent || config.defaultAgent
+  const resolvedAgent = agent || config.agent
   const model = resolveModelForPhase(config, 'agentsMd', resolvedAgent) // Use agentsMd phase model with resolved agent
   const client = new AgentClient({
     agent: resolvedAgent,

@@ -78,7 +78,7 @@ async function generateTasksWithAI(prdContent: string): Promise<Task[]> {
   const model = resolveModelForPhase(config, 'prdToTasks')
 
   const client = new AgentClient({
-    agent: config.defaultAgent,
+    agent: config.agent,
     model,
   })
 

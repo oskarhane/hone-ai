@@ -2,14 +2,39 @@ import { existsSync, mkdirSync } from 'fs'
 import { readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 import * as yaml from 'js-yaml'
-import { exitWithError, ErrorMessages } from './errors'
+import { exitWithError } from './errors'
+
+export type AgentType = 'opencode' | 'claude'
+
+export type ModelPhase =
+  | 'prd'
+  | 'prdToTasks'
+  | 'implement'
+  | 'review'
+  | 'finalize'
+  | 'agentsMd'
+  | 'extendPrd'
+
+export interface AgentModelConfig {
+  model?: string
+  models?: Partial<Record<ModelPhase, string>>
+}
 
 export interface HoneConfig {
-  defaultAgent: 'opencode' | 'claude'
-  models: {
-    opencode: string
-    claude: string
-    // Phase-specific model overrides (optional)
+  version: 2
+  agent: AgentType
+  claude: AgentModelConfig
+  opencode: AgentModelConfig
+  lintCommand?: string
+  agentsDocsDir?: string
+}
+
+// LegacyConfig represents v1 config shape (no version field)
+interface LegacyConfig {
+  defaultAgent?: 'opencode' | 'claude'
+  models?: {
+    opencode?: string
+    claude?: string
     prd?: string
     prdToTasks?: string
     implement?: string
@@ -25,13 +50,53 @@ export interface HoneConfig {
 export const DEFAULT_AGENT: AgentType = 'claude'
 
 const DEFAULT_CONFIG: HoneConfig = {
-  defaultAgent: DEFAULT_AGENT,
-  models: {
-    opencode: 'anthropic/claude-sonnet-4-6',
-    claude: 'claude-sonnet-4-6',
-  },
+  version: 2,
+  agent: DEFAULT_AGENT,
+  claude: { models: {} },
+  opencode: { models: {} },
   lintCommand: undefined,
   agentsDocsDir: '.agents/',
+}
+
+const PHASE_KEYS: ModelPhase[] = [
+  'prd',
+  'prdToTasks',
+  'implement',
+  'review',
+  'finalize',
+  'agentsMd',
+  'extendPrd',
+]
+
+export function migrateV1ToV2(v1: LegacyConfig): HoneConfig {
+  const agent: AgentType = (v1.defaultAgent as AgentType) || DEFAULT_AGENT
+  const claudeModel = v1.models?.claude
+  const opencodeModel = v1.models?.opencode
+
+  // Phase keys go into defaultAgent's models block only
+  const agentModels: Partial<Record<ModelPhase, string>> = {}
+  for (const phase of PHASE_KEYS) {
+    const phaseModel = v1.models?.[phase as keyof typeof v1.models]
+    if (phaseModel) agentModels[phase] = phaseModel
+  }
+
+  const claude: AgentModelConfig = {
+    models: agent === 'claude' ? agentModels : {},
+    ...(claudeModel ? { model: claudeModel } : {}),
+  }
+  const opencode: AgentModelConfig = {
+    models: agent === 'opencode' ? agentModels : {},
+    ...(opencodeModel ? { model: opencodeModel } : {}),
+  }
+
+  return {
+    version: 2,
+    agent,
+    claude,
+    opencode,
+    ...(v1.lintCommand !== undefined ? { lintCommand: v1.lintCommand } : {}),
+    ...(v1.agentsDocsDir !== undefined ? { agentsDocsDir: v1.agentsDocsDir } : {}),
+  }
 }
 
 export function getPlansDir(): string {
@@ -61,12 +126,18 @@ export async function loadConfig(): Promise<HoneConfig> {
 
   try {
     const content = await readFile(configPath, 'utf-8')
-    const config = yaml.load(content) as Partial<HoneConfig>
-    // Deep merge models to preserve defaults
+    const raw = yaml.load(content) as Partial<HoneConfig> & LegacyConfig
+    if (!raw.version) {
+      // v1 config: migrate to v2 and write back to disk
+      const migrated = migrateV1ToV2(raw)
+      await writeFile(configPath, yaml.dump(migrated))
+      return migrated
+    }
     return {
       ...DEFAULT_CONFIG,
-      ...config,
-      models: { ...DEFAULT_CONFIG.models, ...config.models },
+      ...raw,
+      claude: { ...DEFAULT_CONFIG.claude, ...raw.claude },
+      opencode: { ...DEFAULT_CONFIG.opencode, ...raw.opencode },
     }
   } catch (error) {
     console.error('Error reading config, using defaults:', error)
@@ -79,8 +150,6 @@ export async function saveConfig(config: HoneConfig): Promise<void> {
   const configPath = getConfigPath()
   await writeFile(configPath, yaml.dump(config))
 }
-
-export type AgentType = 'opencode' | 'claude'
 
 export function isValidAgent(agent: string): agent is AgentType {
   return agent === 'opencode' || agent === 'claude'
@@ -99,7 +168,7 @@ export async function resolveAgent(flagAgent?: string): Promise<AgentType> {
   }
 
   const config = await loadConfig()
-  return config.defaultAgent
+  return config.agent
 }
 
 export async function resolveAgentWithoutConfigCreation(flagAgent?: string): Promise<AgentType> {
@@ -119,7 +188,7 @@ export async function resolveAgentWithoutConfigCreation(flagAgent?: string): Pro
     try {
       const content = await readFile(configPath, 'utf-8')
       const config = yaml.load(content) as Partial<HoneConfig>
-      return config.defaultAgent || DEFAULT_AGENT
+      return config.agent || DEFAULT_AGENT
     } catch (error) {
       console.error('Error reading config, using default agent:', error)
       return DEFAULT_AGENT
@@ -139,12 +208,16 @@ export async function loadConfigWithoutCreation(): Promise<HoneConfig> {
 
   try {
     const content = await readFile(configPath, 'utf-8')
-    const config = yaml.load(content) as Partial<HoneConfig>
-    // Deep merge models to preserve defaults
+    const raw = yaml.load(content) as Partial<HoneConfig> & LegacyConfig
+    if (!raw.version) {
+      // v1 config: migrate in-memory only (no disk write)
+      return migrateV1ToV2(raw)
+    }
     return {
       ...DEFAULT_CONFIG,
-      ...config,
-      models: { ...DEFAULT_CONFIG.models, ...config.models },
+      ...raw,
+      claude: { ...DEFAULT_CONFIG.claude, ...raw.claude },
+      opencode: { ...DEFAULT_CONFIG.opencode, ...raw.opencode },
     }
   } catch (error) {
     console.error('Error reading config, using defaults:', error)
@@ -180,42 +253,37 @@ export async function initProject(): Promise<InitResult> {
   }
 }
 
-export type ModelPhase =
-  | 'prd'
-  | 'prdToTasks'
-  | 'implement'
-  | 'review'
-  | 'finalize'
-  | 'agentsMd'
-  | 'extendPrd'
+const HARDCODED_DEFAULT_CLAUDE = 'claude-sonnet-4-6'
+const HARDCODED_DEFAULT_OPENCODE = 'anthropic/claude-sonnet-4-6'
 
 /**
  * Resolve the model to use for a specific phase.
- * Priority: phase-specific model > agent-specific model > default model
+ * Priority: phase-specific model (in agent block) > agent model > hardcoded default
  */
 export function resolveModelForPhase(
   config: HoneConfig,
   phase?: ModelPhase,
   agent?: AgentType
 ): string {
-  const resolvedAgent = agent || config.defaultAgent
+  const resolvedAgent = agent || config.agent
+  const agentConfig = config[resolvedAgent]
 
-  // 1. Check phase-specific model override
-  if (phase && config.models[phase]) {
-    return config.models[phase]!
+  // 1. Check phase-specific model in agent's models block
+  if (phase && agentConfig?.models?.[phase]) {
+    return agentConfig.models[phase]!
   }
 
   // 2. Fall back to agent-specific model
-  if (config.models[resolvedAgent]) {
-    return config.models[resolvedAgent]
+  if (agentConfig?.model) {
+    return agentConfig.model
   }
 
-  // 3. Fall back to default model
-  return 'anthropic/claude-sonnet-4-6'
+  // 3. Fall back to hardcoded default for the agent
+  return resolvedAgent === 'claude' ? HARDCODED_DEFAULT_CLAUDE : HARDCODED_DEFAULT_OPENCODE
 }
 
 /**
- * Validate configuration for phase-specific models.
+ * Validate configuration for agent-specific and phase-specific models.
  * Ensures model names follow the correct format.
  */
 export function validateConfig(config: HoneConfig): { valid: boolean; errors: string[] } {
@@ -223,34 +291,30 @@ export function validateConfig(config: HoneConfig): { valid: boolean; errors: st
   // Multi-provider model validation: supports OpenAI, Anthropic, Google formats + legacy Claude format
   const modelRegex = /^(?:(?:openai|anthropic|google)\/[\w.-]+|claude-(?:sonnet|opus)-[\d.-]+)$/
 
-  // Validate agent-specific models
-  if (config.models.opencode && !modelRegex.test(config.models.opencode)) {
+  // Validate claude block
+  if (config.claude.model && !modelRegex.test(config.claude.model)) {
     errors.push(
-      `Invalid model format for opencode: ${config.models.opencode}. Expected format: provider/model-name (e.g., openai/gpt-4o, anthropic/claude-sonnet-4) or legacy claude-(sonnet|opus)-N-YYYYMMDD`
+      `Invalid model format for claude: ${config.claude.model}. Expected format: provider/model-name (e.g., openai/gpt-4o, anthropic/claude-sonnet-4) or legacy claude-(sonnet|opus)-N-YYYYMMDD`
     )
   }
-
-  if (config.models.claude && !modelRegex.test(config.models.claude)) {
-    errors.push(
-      `Invalid model format for claude: ${config.models.claude}. Expected format: provider/model-name (e.g., openai/gpt-4o, anthropic/claude-sonnet-4) or legacy claude-(sonnet|opus)-N-YYYYMMDD`
-    )
-  }
-
-  // Validate phase-specific models if present
-  const phases: ModelPhase[] = [
-    'prd',
-    'prdToTasks',
-    'implement',
-    'review',
-    'finalize',
-    'agentsMd',
-    'extendPrd',
-  ]
-  for (const phase of phases) {
-    const model = config.models[phase]
+  for (const [phase, model] of Object.entries(config.claude.models ?? {})) {
     if (model && !modelRegex.test(model)) {
       errors.push(
-        `Invalid model format for phase ${phase}: ${model}. Expected format: provider/model-name (e.g., openai/gpt-4o, anthropic/claude-sonnet-4) or legacy claude-(sonnet|opus)-N-YYYYMMDD`
+        `Invalid model format for claude/${phase}: ${model}. Expected format: provider/model-name (e.g., openai/gpt-4o, anthropic/claude-sonnet-4) or legacy claude-(sonnet|opus)-N-YYYYMMDD`
+      )
+    }
+  }
+
+  // Validate opencode block
+  if (config.opencode.model && !modelRegex.test(config.opencode.model)) {
+    errors.push(
+      `Invalid model format for opencode: ${config.opencode.model}. Expected format: provider/model-name (e.g., openai/gpt-4o, anthropic/claude-sonnet-4) or legacy claude-(sonnet|opus)-N-YYYYMMDD`
+    )
+  }
+  for (const [phase, model] of Object.entries(config.opencode.models ?? {})) {
+    if (model && !modelRegex.test(model)) {
+      errors.push(
+        `Invalid model format for opencode/${phase}: ${model}. Expected format: provider/model-name (e.g., openai/gpt-4o, anthropic/claude-sonnet-4) or legacy claude-(sonnet|opus)-N-YYYYMMDD`
       )
     }
   }

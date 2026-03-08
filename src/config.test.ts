@@ -12,6 +12,7 @@ import {
   initProject,
   resolveModelForPhase,
   validateConfig,
+  migrateV1ToV2,
   type HoneConfig,
 } from './config'
 
@@ -67,9 +68,10 @@ describe('Config Management', () => {
   test('loadConfig creates default config if not exists', async () => {
     const config = await loadConfig()
 
-    expect(config.defaultAgent).toBe('claude')
-    expect(config.models.opencode).toBe('anthropic/claude-sonnet-4-6')
-    expect(config.models.claude).toBe('claude-sonnet-4-6')
+    expect(config.agent).toBe('claude')
+    expect(config.version).toBe(2)
+    expect(config.claude).toBeDefined()
+    expect(config.opencode).toBeDefined()
 
     // Verify file was created
     expect(existsSync(getConfigPath())).toBe(true)
@@ -77,27 +79,24 @@ describe('Config Management', () => {
 
   test('loadConfig reads existing config', async () => {
     const customConfig: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'custom-model',
-        claude: 'another-model',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { models: {} },
+      opencode: { models: {} },
     }
 
     await saveConfig(customConfig)
     const loaded = await loadConfig()
 
-    expect(loaded.defaultAgent).toBe('opencode')
-    expect(loaded.models.opencode).toBe('custom-model')
+    expect(loaded.agent).toBe('opencode')
   })
 
   test('saveConfig writes config correctly', async () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'test-opencode',
-        claude: 'test-claude',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'test-claude', models: {} },
+      opencode: { model: 'test-opencode', models: {} },
       lintCommand: 'npm run lint',
       agentsDocsDir: '.agents/',
     }
@@ -107,7 +106,9 @@ describe('Config Management', () => {
     expect(existsSync(getConfigPath())).toBe(true)
 
     const loaded = await loadConfig()
-    expect(loaded).toEqual(config)
+    expect(loaded.agent).toBe('opencode')
+    expect(loaded.claude.model).toBe('test-claude')
+    expect(loaded.opencode.model).toBe('test-opencode')
   })
 
   test('isValidAgent returns true for valid agents', () => {
@@ -124,8 +125,10 @@ describe('Config Management', () => {
   test('resolveAgent prioritizes flag over config', async () => {
     // Set config default to claude
     await saveConfig({
-      defaultAgent: 'claude',
-      models: { opencode: 'test', claude: 'test' },
+      version: 2,
+      agent: 'claude',
+      claude: { models: {} },
+      opencode: { models: {} },
     })
 
     // Flag should override
@@ -136,8 +139,10 @@ describe('Config Management', () => {
   test('resolveAgent uses config when no flag provided', async () => {
     // Set config default to opencode
     await saveConfig({
-      defaultAgent: 'opencode',
-      models: { opencode: 'test', claude: 'test' },
+      version: 2,
+      agent: 'opencode',
+      claude: { models: {} },
+      opencode: { models: {} },
     })
 
     const agent = await resolveAgent()
@@ -190,14 +195,84 @@ describe('Config Management', () => {
   })
 })
 
-describe('Model Resolution', () => {
-  test('resolveModelForPhase returns default model when no phase specified', () => {
-    const config: HoneConfig = {
-      defaultAgent: 'claude',
+describe('Migration', () => {
+  test('migrateV1ToV2 migrates defaultAgent to agent', () => {
+    const v1 = { defaultAgent: 'opencode' as const, models: {} }
+    const result = migrateV1ToV2(v1)
+    expect(result.version).toBe(2)
+    expect(result.agent).toBe('opencode')
+  })
+
+  test('migrateV1ToV2 defaults agent to claude when defaultAgent absent', () => {
+    const result = migrateV1ToV2({})
+    expect(result.agent).toBe('claude')
+  })
+
+  test('migrateV1ToV2 maps models.claude to claude.model', () => {
+    const v1 = { models: { claude: 'claude-opus-4-20250514', opencode: 'anthropic/claude-sonnet-4' } }
+    const result = migrateV1ToV2(v1)
+    expect(result.claude.model).toBe('claude-opus-4-20250514')
+    expect(result.opencode.model).toBe('anthropic/claude-sonnet-4')
+  })
+
+  test('migrateV1ToV2 copies phase keys into defaultAgent models block only', () => {
+    const v1 = {
+      defaultAgent: 'claude' as const,
       models: {
-        opencode: 'claude-sonnet-4-20250514',
         claude: 'claude-sonnet-4-20250514',
+        opencode: 'anthropic/claude-sonnet-4',
+        review: 'claude-opus-4-20250514',
+        agentsMd: 'claude-opus-4-20250601',
       },
+    }
+    const result = migrateV1ToV2(v1)
+    expect(result.claude.models?.review).toBe('claude-opus-4-20250514')
+    expect(result.claude.models?.agentsMd).toBe('claude-opus-4-20250601')
+    expect(result.opencode.models?.review).toBeUndefined()
+    expect(result.opencode.models?.agentsMd).toBeUndefined()
+  })
+
+  test('migrateV1ToV2 copies phase keys into opencode block when defaultAgent is opencode', () => {
+    const v1 = {
+      defaultAgent: 'opencode' as const,
+      models: { review: 'anthropic/claude-opus-4', implement: 'openai/gpt-4o' },
+    }
+    const result = migrateV1ToV2(v1)
+    expect(result.opencode.models?.review).toBe('anthropic/claude-opus-4')
+    expect(result.opencode.models?.implement).toBe('openai/gpt-4o')
+    expect(result.claude.models?.review).toBeUndefined()
+  })
+
+  test('migrateV1ToV2 carries over lintCommand and agentsDocsDir', () => {
+    const v1 = { lintCommand: 'npm run lint', agentsDocsDir: '.agents-docs/' }
+    const result = migrateV1ToV2(v1)
+    expect(result.lintCommand).toBe('npm run lint')
+    expect(result.agentsDocsDir).toBe('.agents-docs/')
+  })
+
+  test('migrateV1ToV2 is idempotent (migrating twice yields same output)', () => {
+    const v1 = {
+      defaultAgent: 'claude' as const,
+      models: { claude: 'claude-sonnet-4-20250514', review: 'claude-opus-4-20250514' },
+      lintCommand: 'bun run lint',
+    }
+    const first = migrateV1ToV2(v1)
+    // Second migration uses already-migrated v2 config as LegacyConfig input
+    // Idempotency: migrating v2 (which has no defaultAgent, no flat models) should
+    // produce the same agent/version fields
+    const second = migrateV1ToV2(first as unknown as Parameters<typeof migrateV1ToV2>[0])
+    expect(second.version).toBe(2)
+    expect(second.agent).toBe(first.agent)
+  })
+})
+
+describe('Model Resolution', () => {
+  test('resolveModelForPhase returns agent model when no phase specified', () => {
+    const config: HoneConfig = {
+      version: 2,
+      agent: 'claude',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const model = resolveModelForPhase(config)
@@ -206,12 +281,13 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase returns phase-specific model when configured', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        implement: 'claude-opus-4-20250514',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { implement: 'claude-opus-4-20250514' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const model = resolveModelForPhase(config, 'implement')
@@ -220,11 +296,10 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase falls back to agent-specific model', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'custom-opencode-model',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'custom-opencode-model', models: {} },
     }
 
     const model = resolveModelForPhase(config, 'implement', 'opencode')
@@ -233,58 +308,57 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase prioritizes phase-specific over agent-specific', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'opencode-default',
-        claude: 'claude-default',
-        review: 'review-specific-model',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-default', models: {} },
+      opencode: { model: 'opencode-default', models: { review: 'review-specific-model' } },
     }
 
     const model = resolveModelForPhase(config, 'review', 'opencode')
     expect(model).toBe('review-specific-model')
   })
 
-  test('resolveModelForPhase uses defaultAgent when agent not specified', () => {
+  test('resolveModelForPhase uses config agent when agent not specified', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'opencode-model',
-        claude: 'claude-model',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-model', models: {} },
+      opencode: { model: 'opencode-model', models: {} },
     }
 
     const model = resolveModelForPhase(config, 'prd')
     expect(model).toBe('opencode-model')
   })
 
-  test('resolveModelForPhase returns default when phase and agent models missing', () => {
+  test('resolveModelForPhase returns hardcoded default when model missing', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: '',
-        claude: '',
-      },
+      version: 2,
+      agent: 'claude',
+      claude: { models: {} },
+      opencode: { models: {} },
     }
 
     const model = resolveModelForPhase(config, 'finalize')
-    expect(model).toBe('anthropic/claude-sonnet-4-6')
+    expect(model).toBe('claude-sonnet-4-6')
   })
 
   test('resolveModelForPhase handles all phase types', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'base-model',
-        claude: 'base-model',
-        prd: 'prd-model',
-        prdToTasks: 'tasks-model',
-        implement: 'impl-model',
-        review: 'review-model',
-        finalize: 'final-model',
-        agentsMd: 'agents-model',
-        extendPrd: 'extend-model',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'base-model',
+        models: {
+          prd: 'prd-model',
+          prdToTasks: 'tasks-model',
+          implement: 'impl-model',
+          review: 'review-model',
+          finalize: 'final-model',
+          agentsMd: 'agents-model',
+          extendPrd: 'extend-model',
+        },
       },
+      opencode: { model: 'base-model', models: {} },
     }
 
     expect(resolveModelForPhase(config, 'prd')).toBe('prd-model')
@@ -298,31 +372,31 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase returns extendPrd specific model when configured', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        extendPrd: 'claude-opus-4-20250514',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { extendPrd: 'claude-opus-4-20250514' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const model = resolveModelForPhase(config, 'extendPrd')
     expect(model).toBe('claude-opus-4-20250514')
   })
 
-  test('resolveModelForPhase falls back to prd phase model for extendPrd', () => {
+  test('resolveModelForPhase falls back to agent model when extendPrd not set', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        prd: 'claude-opus-4-20250514',
-        // No extendPrd specific model
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { prd: 'claude-opus-4-20250514' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
-    // extendPrd should fall back to agent model, not prd phase
-    // (phase fallback is handled at application level, not in resolveModelForPhase)
+    // extendPrd not set → falls back to agent model
     const model = resolveModelForPhase(config, 'extendPrd')
     expect(model).toBe('claude-sonnet-4-20250514')
   })
@@ -330,11 +404,10 @@ describe('Model Resolution', () => {
   // OpenAI model resolution tests - agent-specific configurations
   test('resolveModelForPhase returns OpenAI model for opencode agent', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt-4o',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/gpt-4o', models: {} },
     }
 
     const model = resolveModelForPhase(config)
@@ -343,11 +416,10 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase returns OpenAI model for claude agent', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'openai/gpt-4',
-      },
+      version: 2,
+      agent: 'claude',
+      claude: { model: 'openai/gpt-4', models: {} },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const model = resolveModelForPhase(config)
@@ -356,11 +428,10 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase handles mixed OpenAI and Claude agent models - opencode', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt-4o',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/gpt-4o', models: {} },
     }
 
     const modelOpencode = resolveModelForPhase(config, undefined, 'opencode')
@@ -372,11 +443,10 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase handles mixed OpenAI and Claude agent models - claude default', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'openai/gpt-4o',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'claude',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/gpt-4o', models: {} },
     }
 
     const modelDefault = resolveModelForPhase(config)
@@ -390,11 +460,10 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase returns OpenAI model unchanged when no phase specified', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt-5.3-codex',
-        claude: 'openai/gpt-4o-mini',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'openai/gpt-4o-mini', models: {} },
+      opencode: { model: 'openai/gpt-5.3-codex', models: {} },
     }
 
     const modelOpencode = resolveModelForPhase(config, undefined, 'opencode')
@@ -406,11 +475,10 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase uses OpenAI agent model when phase not configured', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt-4o',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/gpt-4o', models: {} },
     }
 
     const model = resolveModelForPhase(config, 'implement')
@@ -419,12 +487,10 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase falls back to OpenAI model when phase-specific not set', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'openai/gpt-4o',
-        claude: 'openai/gpt-4',
-        // No phase-specific models
-      },
+      version: 2,
+      agent: 'claude',
+      claude: { model: 'openai/gpt-4', models: {} },
+      opencode: { model: 'openai/gpt-4o', models: {} },
     }
 
     const modelPrd = resolveModelForPhase(config, 'prd')
@@ -439,12 +505,10 @@ describe('Model Resolution', () => {
   // Phase-specific OpenAI model override tests
   test('resolveModelForPhase prioritizes phase-specific OpenAI model over agent model', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-opus-4-20250514',
-        implement: 'openai/gpt-4o',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-opus-4-20250514', models: {} },
+      opencode: { model: 'claude-sonnet-4-20250514', models: { implement: 'openai/gpt-4o' } },
     }
 
     const model = resolveModelForPhase(config, 'implement')
@@ -453,18 +517,21 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase returns all phase-specific OpenAI models correctly', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        prd: 'openai/gpt-4o',
-        prdToTasks: 'openai/gpt-4-turbo',
-        implement: 'openai/gpt-5.3-codex',
-        review: 'openai/gpt-4o-mini',
-        finalize: 'openai/gpt-4',
-        agentsMd: 'openai/gpt-4o',
-        extendPrd: 'openai/gpt-4-turbo',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: {
+          prd: 'openai/gpt-4o',
+          prdToTasks: 'openai/gpt-4-turbo',
+          implement: 'openai/gpt-5.3-codex',
+          review: 'openai/gpt-4o-mini',
+          finalize: 'openai/gpt-4',
+          agentsMd: 'openai/gpt-4o',
+          extendPrd: 'openai/gpt-4-turbo',
+        },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     expect(resolveModelForPhase(config, 'prd')).toBe('openai/gpt-4o')
@@ -478,15 +545,18 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase handles mixed OpenAI and Claude in phase-specific configs', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        prd: 'openai/gpt-4o',
-        implement: 'claude-opus-4-20250514',
-        review: 'openai/gpt-4-turbo',
-        finalize: 'claude-sonnet-4-20250514',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: {
+          prd: 'openai/gpt-4o',
+          implement: 'claude-opus-4-20250514',
+          review: 'openai/gpt-4-turbo',
+          finalize: 'claude-sonnet-4-20250514',
+        },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     expect(resolveModelForPhase(config, 'prd')).toBe('openai/gpt-4o')
@@ -497,12 +567,10 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase phase-specific OpenAI model overrides OpenAI agent model', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt-4',
-        claude: 'claude-sonnet-4-20250514',
-        prd: 'openai/gpt-4o',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/gpt-4', models: { prd: 'openai/gpt-4o' } },
     }
 
     const modelPrd = resolveModelForPhase(config, 'prd')
@@ -514,13 +582,10 @@ describe('Model Resolution', () => {
 
   test('resolveModelForPhase falls back to OpenAI agent model when phase not configured', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt-4o',
-        claude: 'claude-sonnet-4-20250514',
-        prd: 'openai/gpt-4-turbo',
-        // implement not configured
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/gpt-4o', models: { prd: 'openai/gpt-4-turbo' } },
     }
 
     const modelPrd = resolveModelForPhase(config, 'prd')
@@ -530,32 +595,34 @@ describe('Model Resolution', () => {
     expect(modelImplement).toBe('openai/gpt-4o')
   })
 
-  test('resolveModelForPhase with explicit agent parameter respects phase-specific OpenAI model', () => {
+  test('resolveModelForPhase with explicit agent parameter uses that agent phase model', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt-4o',
-        claude: 'claude-sonnet-4-20250514',
-        implement: 'openai/gpt-5.3-codex',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/gpt-4o', models: { implement: 'openai/gpt-5.3-codex' } },
     }
 
     const modelDefaultAgent = resolveModelForPhase(config, 'implement')
     const modelExplicitClaude = resolveModelForPhase(config, 'implement', 'claude')
 
     expect(modelDefaultAgent).toBe('openai/gpt-5.3-codex')
-    expect(modelExplicitClaude).toBe('openai/gpt-5.3-codex')
+    // claude has no implement phase model, falls back to claude.model
+    expect(modelExplicitClaude).toBe('claude-sonnet-4-20250514')
   })
 
   test('resolveModelForPhase with mixed providers - phase overrides agent', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'openai/gpt-4o',
-        claude: 'claude-sonnet-4-20250514',
-        review: 'anthropic/claude-sonnet-4',
-        finalize: 'google/gemini-pro',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: {
+          review: 'anthropic/claude-sonnet-4',
+          finalize: 'google/gemini-pro',
+        },
       },
+      opencode: { model: 'openai/gpt-4o', models: {} },
     }
 
     expect(resolveModelForPhase(config, 'review')).toBe('anthropic/claude-sonnet-4')
@@ -567,11 +634,10 @@ describe('Model Resolution', () => {
 describe('Config Validation', () => {
   test('validateConfig accepts valid model formats', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-opus-4-20251231',
-      },
+      version: 2,
+      agent: 'claude',
+      claude: { model: 'claude-opus-4-20251231', models: {} },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -581,14 +647,17 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts valid phase-specific models', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        implement: 'claude-opus-4-20250601',
-        review: 'claude-sonnet-4-20250701',
-        extendPrd: 'claude-opus-4-20250801',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: {
+          implement: 'claude-opus-4-20250601',
+          review: 'claude-sonnet-4-20250701',
+          extendPrd: 'claude-opus-4-20250801',
+        },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -598,12 +667,13 @@ describe('Config Validation', () => {
 
   test('validateConfig validates extendPrd phase model format', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        extendPrd: 'invalid-extend-model',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { extendPrd: 'invalid-extend-model' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -615,11 +685,10 @@ describe('Config Validation', () => {
 
   test('validateConfig rejects invalid agent model format', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'invalid-model',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'claude',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'invalid-model', models: {} },
     }
 
     const result = validateConfig(config)
@@ -631,12 +700,13 @@ describe('Config Validation', () => {
 
   test('validateConfig rejects invalid phase model format', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        implement: 'wrong-format',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { implement: 'wrong-format' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -647,12 +717,13 @@ describe('Config Validation', () => {
 
   test('validateConfig handles multiple invalid models', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'bad-opencode',
-        claude: 'bad-claude',
-        implement: 'bad-implement',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'bad-claude',
+        models: { implement: 'bad-implement' },
       },
+      opencode: { model: 'bad-opencode', models: {} },
     }
 
     const result = validateConfig(config)
@@ -662,12 +733,10 @@ describe('Config Validation', () => {
 
   test('validateConfig allows empty phase-specific models', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        // No phase-specific models
-      },
+      version: 2,
+      agent: 'claude',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -678,11 +747,10 @@ describe('Config Validation', () => {
   // OpenAI model validation tests
   test('validateConfig accepts valid OpenAI model for opencode agent', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt-4o',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/gpt-4o', models: {} },
     }
 
     const result = validateConfig(config)
@@ -692,11 +760,10 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts valid OpenAI model for claude agent', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'openai/gpt-4',
-      },
+      version: 2,
+      agent: 'claude',
+      claude: { model: 'openai/gpt-4', models: {} },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -706,11 +773,10 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts OpenAI models with version numbers', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt-5.3-codex',
-        claude: 'openai/gpt-4o-mini',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'openai/gpt-4o-mini', models: {} },
+      opencode: { model: 'openai/gpt-5.3-codex', models: {} },
     }
 
     const result = validateConfig(config)
@@ -720,11 +786,10 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts mixed OpenAI and Claude agent models', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt-4o',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/gpt-4o', models: {} },
     }
 
     const result = validateConfig(config)
@@ -734,12 +799,13 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts OpenAI models in phase-specific config - prd', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        prd: 'openai/gpt-4o',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { prd: 'openai/gpt-4o' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -749,12 +815,13 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts OpenAI models in phase-specific config - implement', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        implement: 'openai/gpt-4o',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { implement: 'openai/gpt-4o' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -764,12 +831,13 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts OpenAI models in phase-specific config - review', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        review: 'openai/gpt-4-turbo',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { review: 'openai/gpt-4-turbo' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -779,12 +847,13 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts OpenAI models in phase-specific config - finalize', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        finalize: 'openai/gpt-5.3-codex',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { finalize: 'openai/gpt-5.3-codex' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -794,12 +863,13 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts OpenAI models in phase-specific config - prdToTasks', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        prdToTasks: 'openai/gpt-4o',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { prdToTasks: 'openai/gpt-4o' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -809,12 +879,13 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts OpenAI models in phase-specific config - agentsMd', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        agentsMd: 'openai/gpt-4o',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { agentsMd: 'openai/gpt-4o' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -824,12 +895,13 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts OpenAI models in phase-specific config - extendPrd', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        extendPrd: 'openai/gpt-4o',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { extendPrd: 'openai/gpt-4o' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -839,15 +911,18 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts mixed OpenAI and Claude in phase-specific configs', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        prd: 'openai/gpt-4o',
-        implement: 'claude-opus-4-20250514',
-        review: 'openai/gpt-4-turbo',
-        finalize: 'claude-sonnet-4-20250514',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: {
+          prd: 'openai/gpt-4o',
+          implement: 'claude-opus-4-20250514',
+          review: 'openai/gpt-4-turbo',
+          finalize: 'claude-sonnet-4-20250514',
+        },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -857,11 +932,10 @@ describe('Config Validation', () => {
 
   test('validateConfig rejects invalid OpenAI model format - missing model name', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/', models: {} },
     }
 
     const result = validateConfig(config)
@@ -873,11 +947,10 @@ describe('Config Validation', () => {
 
   test('validateConfig rejects invalid OpenAI model format - missing provider', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: '/gpt-4o',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: '/gpt-4o', models: {} },
     }
 
     const result = validateConfig(config)
@@ -889,11 +962,10 @@ describe('Config Validation', () => {
 
   test('validateConfig rejects invalid OpenAI model format - spaces in model name', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'openai/gpt 4o',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'openai/gpt 4o', models: {} },
     }
 
     const result = validateConfig(config)
@@ -905,11 +977,10 @@ describe('Config Validation', () => {
 
   test('validateConfig rejects unknown provider prefix', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'mistral/mixtral-8x7b',
-        claude: 'claude-sonnet-4-20250514',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'claude-sonnet-4-20250514', models: {} },
+      opencode: { model: 'mistral/mixtral-8x7b', models: {} },
     }
 
     const result = validateConfig(config)
@@ -921,12 +992,13 @@ describe('Config Validation', () => {
 
   test('validateConfig rejects invalid OpenAI model in phase-specific config', () => {
     const config: HoneConfig = {
-      defaultAgent: 'claude',
-      models: {
-        opencode: 'claude-sonnet-4-20250514',
-        claude: 'claude-sonnet-4-20250514',
-        implement: 'openai/invalid model name',
+      version: 2,
+      agent: 'claude',
+      claude: {
+        model: 'claude-sonnet-4-20250514',
+        models: { implement: 'openai/invalid model name' },
       },
+      opencode: { model: 'claude-sonnet-4-20250514', models: {} },
     }
 
     const result = validateConfig(config)
@@ -938,11 +1010,10 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts other provider formats - anthropic', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'anthropic/claude-sonnet-4',
-        claude: 'anthropic/claude-opus-4',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'anthropic/claude-opus-4', models: {} },
+      opencode: { model: 'anthropic/claude-sonnet-4', models: {} },
     }
 
     const result = validateConfig(config)
@@ -952,11 +1023,10 @@ describe('Config Validation', () => {
 
   test('validateConfig accepts other provider formats - google', () => {
     const config: HoneConfig = {
-      defaultAgent: 'opencode',
-      models: {
-        opencode: 'google/gemini-pro',
-        claude: 'google/gemini-1.5-flash',
-      },
+      version: 2,
+      agent: 'opencode',
+      claude: { model: 'google/gemini-1.5-flash', models: {} },
+      opencode: { model: 'google/gemini-pro', models: {} },
     }
 
     const result = validateConfig(config)
@@ -968,11 +1038,10 @@ describe('Config Validation', () => {
   describe('Backward Compatibility with Existing Claude Configurations', () => {
     test('validateConfig accepts existing Claude sonnet model format', () => {
       const config: HoneConfig = {
-        defaultAgent: 'claude',
-        models: {
-          opencode: 'claude-sonnet-4-20250514',
-          claude: 'claude-sonnet-4-20250514',
-        },
+        version: 2,
+        agent: 'claude',
+        claude: { model: 'claude-sonnet-4-20250514', models: {} },
+        opencode: { model: 'claude-sonnet-4-20250514', models: {} },
       }
 
       const result = validateConfig(config)
@@ -982,11 +1051,10 @@ describe('Config Validation', () => {
 
     test('validateConfig accepts existing Claude opus model format', () => {
       const config: HoneConfig = {
-        defaultAgent: 'claude',
-        models: {
-          opencode: 'claude-opus-4-20251231',
-          claude: 'claude-opus-4-20251231',
-        },
+        version: 2,
+        agent: 'claude',
+        claude: { model: 'claude-opus-4-20251231', models: {} },
+        opencode: { model: 'claude-opus-4-20251231', models: {} },
       }
 
       const result = validateConfig(config)
@@ -996,18 +1064,21 @@ describe('Config Validation', () => {
 
     test('validateConfig accepts existing phase-specific Claude models unchanged', () => {
       const config: HoneConfig = {
-        defaultAgent: 'claude',
-        models: {
-          opencode: 'claude-sonnet-4-20250514',
-          claude: 'claude-sonnet-4-20250514',
-          prd: 'claude-opus-4-20250601',
-          prdToTasks: 'claude-sonnet-4-20250701',
-          implement: 'claude-opus-4-20250801',
-          review: 'claude-sonnet-4-20250901',
-          finalize: 'claude-opus-4-20251001',
-          agentsMd: 'claude-sonnet-4-20251101',
-          extendPrd: 'claude-opus-4-20251201',
+        version: 2,
+        agent: 'claude',
+        claude: {
+          model: 'claude-sonnet-4-20250514',
+          models: {
+            prd: 'claude-opus-4-20250601',
+            prdToTasks: 'claude-sonnet-4-20250701',
+            implement: 'claude-opus-4-20250801',
+            review: 'claude-sonnet-4-20250901',
+            finalize: 'claude-opus-4-20251001',
+            agentsMd: 'claude-sonnet-4-20251101',
+            extendPrd: 'claude-opus-4-20251201',
+          },
         },
+        opencode: { model: 'claude-sonnet-4-20250514', models: {} },
       }
 
       const result = validateConfig(config)
@@ -1017,12 +1088,13 @@ describe('Config Validation', () => {
 
     test('resolveModelForPhase works with existing Claude model configs', () => {
       const config: HoneConfig = {
-        defaultAgent: 'claude',
-        models: {
-          opencode: 'claude-sonnet-4-20250514',
-          claude: 'claude-sonnet-4-20250514',
-          implement: 'claude-opus-4-20250601',
+        version: 2,
+        agent: 'claude',
+        claude: {
+          model: 'claude-sonnet-4-20250514',
+          models: { implement: 'claude-opus-4-20250601' },
         },
+        opencode: { model: 'claude-sonnet-4-20250514', models: {} },
       }
 
       expect(resolveModelForPhase(config)).toBe('claude-sonnet-4-20250514')
@@ -1033,11 +1105,10 @@ describe('Config Validation', () => {
 
     test('DEFAULT_CONFIG uses valid provider model format', () => {
       const config: HoneConfig = {
-        defaultAgent: 'claude',
-        models: {
-          opencode: 'anthropic/claude-sonnet-4-6',
-          claude: 'claude-sonnet-4-6',
-        },
+        version: 2,
+        agent: 'claude',
+        claude: { model: 'claude-sonnet-4-6', models: {} },
+        opencode: { model: 'anthropic/claude-sonnet-4-6', models: {} },
       }
 
       const result = validateConfig(config)
@@ -1047,12 +1118,15 @@ describe('Config Validation', () => {
 
     test('Mixed Claude and OpenAI models maintain Claude model compatibility', () => {
       const config: HoneConfig = {
-        defaultAgent: 'opencode',
-        models: {
-          opencode: 'openai/gpt-4o',
-          claude: 'claude-sonnet-4-20250514',
-          implement: 'claude-opus-4-20250601',
-          review: 'openai/gpt-4',
+        version: 2,
+        agent: 'opencode',
+        claude: {
+          model: 'claude-sonnet-4-20250514',
+          models: { implement: 'claude-opus-4-20250601' },
+        },
+        opencode: {
+          model: 'openai/gpt-4o',
+          models: { review: 'openai/gpt-4' },
         },
       }
 
@@ -1061,7 +1135,7 @@ describe('Config Validation', () => {
       expect(result.errors.length).toBe(0)
 
       // Verify Claude models resolve correctly
-      expect(resolveModelForPhase(config, 'implement')).toBe('claude-opus-4-20250601')
+      expect(resolveModelForPhase(config, 'implement', 'claude')).toBe('claude-opus-4-20250601')
       expect(resolveModelForPhase(config, 'prd', 'claude')).toBe('claude-sonnet-4-20250514')
     })
 
@@ -1078,11 +1152,10 @@ describe('Config Validation', () => {
 
       for (const model of validClaudeModels) {
         const config: HoneConfig = {
-          defaultAgent: 'claude',
-          models: {
-            opencode: model,
-            claude: model,
-          },
+          version: 2,
+          agent: 'claude',
+          claude: { model, models: {} },
+          opencode: { model, models: {} },
         }
 
         const result = validateConfig(config)

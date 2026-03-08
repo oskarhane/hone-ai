@@ -48,17 +48,17 @@ See [@.agents/deployment.md](.agents/deployment.md) for detailed information.
 
 <!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->
 
-## Phase-Specific Model Configuration
+## Phase-Specific Model Configuration (v2 schema)
 
-- Config supports optional phase-specific model overrides: `prd`, `prdToTasks`, `extendPrd`, `implement`, `review`, `finalize`
-- Model resolution priority: phase-specific model > agent-specific model > default model
+- Config v2 uses agent-specific blocks: `claude: { model?, models: {} }` and `opencode: { model?, models: {} }`
+- Model resolution priority: phase model (in agent block) > agent model > hardcoded default
 - `resolveModelForPhase(config, phase?, agent?)` resolves correct model for any phase
-- Phase-specific models in config.models are optional - system falls back gracefully
-- Validation via `validateConfig()` ensures model names follow correct format
-- Model version availability depends on agent (check `opencode --help` or `claude --help` for supported versions)
-- All phases (implement/review/finalize) pass resolved model to `spawnAgent()`
-- PRD generation and task generation use `resolveModelForPhase()` for consistency
-- Adding new phases: update ModelPhase type, phases validation array, and add fallback logic if needed
+- Hardcoded defaults: `claude-sonnet-4-6` for claude, `anthropic/claude-sonnet-4-6` for opencode
+- v1 configs (no `version` field) auto-migrate via `migrateV1ToV2` on first `loadConfig()` call
+- Migration writes v2 back to disk; `loadConfigWithoutCreation` migrates in-memory only
+- `migrateV1ToV2` is exported so tests can call it directly; phase keys go into defaultAgent's models block only
+- `validateConfig()` iterates `config.claude.models` and `config.opencode.models` entries
+- Integration tests: use `resolveModelForPhase()` for model assertions (always returns string) rather than conditional `config.agent.model` checks
 
 ## CLI Command Implementation
 
