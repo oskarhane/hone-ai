@@ -172,7 +172,14 @@ Only output this marker if the task is fully complete and all feedback loops pas
  * Instructions for the review phase.
  */
 function getReviewInstructions(taskId?: string): string {
-  return `# REVIEW OBJECTIVE
+  return `# STARTED TASK CHECK
+
+Before beginning review, check the task YAML file referenced in CONTEXT FILES above for any task with \`status: in_progress\`.
+
+- If found: prioritize reviewing that task. Treat it as a strong hint, not a hard requirement.
+- If not found: proceed with default review behavior without error.
+
+# REVIEW OBJECTIVE
 
 Review the changes just made${taskId ? ` for task ${taskId}` : ''}.
 

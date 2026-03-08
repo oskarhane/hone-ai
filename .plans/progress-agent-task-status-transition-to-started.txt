@@ -31,3 +31,21 @@ Key Decisions:
 - Test validates the instruction added in task-001 is present in the generated prompt
 
 Next Task: task-003
+
+================================================================================
+TASK-003/004/005: Add started task check, prioritization, and fallback to review prompt
+Date: 2026-03-08T18:30:00.000Z
+================================================================================
+
+Summary:
+Added STARTED TASK CHECK section to getReviewInstructions() using structured bullet format. Fixed critical bug: original impl used `status: started` (invalid value) — corrected to `status: in_progress`. Single instruction block covers check (003), prioritization hint (004), and fallback (005).
+
+Files Changed:
+- src/prompt.ts (modified: replaced dense paragraph with structured bullet list, fixed started→in_progress)
+
+Key Decisions:
+- Used bullet list format per review suggestion for agent parseability
+- Marked tasks 004/005 completed since combined block satisfies all their acceptance criteria
+- Valid Task status values: pending | in_progress | completed | failed | cancelled (no "started")
+
+Next Task: task-006
