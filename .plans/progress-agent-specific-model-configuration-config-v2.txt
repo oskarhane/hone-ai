@@ -91,3 +91,20 @@ Key Decisions:
 - README content was already complete and met all acceptance criteria
 
 Next Task: task-014 (update CLI help output for v2 config)
+
+================================================================================
+TASK-014: Update CLI help output to reflect v2 config keys and options
+Date: 2026-03-08T13:00:00.000Z
+================================================================================
+
+Summary:
+Audited CLI help text in src/index.ts. Applied one fix: replaced internal function
+name `loadConfig()` with user-facing `hone` in v1→v2 upgrade note.
+
+Files Changed:
+- src/index.ts (modified: line 76, `loadConfig() auto-migrates` → `hone auto-migrates`)
+
+Key Decisions:
+- All other help text was already v2-accurate; only one minor wording fix needed
+
+Next Task: All tasks complete

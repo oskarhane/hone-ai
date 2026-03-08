@@ -47,23 +47,33 @@ Extended PRD Workflow:
   # Reference URLs for external specifications  
   hone extend-prd .plans/prd-payment.md "Integrate Stripe API from https://docs.stripe.com/api"
 
-Model Configuration:
+Model Configuration (v2):
   Configure models in .plans/hone.config.yml:
-  
-  models:
-    opencode: anthropic/claude-sonnet-4-6     # Default for opencode agent
-    claude: claude-sonnet-4-6                # Default for claude agent
-    prd: anthropic/claude-sonnet-4-6         # Override for PRD generation (optional)
-    prdToTasks: anthropic/claude-opus-4-5    # Override for task generation (optional)
-    implement: anthropic/claude-opus-4-5     # Override for implementation (optional)
-    review: anthropic/claude-sonnet-4-6      # Override for review (optional)
-    finalize: anthropic/claude-sonnet-4-6    # Override for finalization (optional)
-    agentsMd: anthropic/claude-sonnet-4-6    # Override for AGENTS.md generation (optional)
-  agentsDocsDir: '.agents/'                  # Directory for AGENTS.md detail files (default: '.agents/')
-  
-  Phase-specific models are optional and override agent-specific models.
+
+  version: 2
+  agent: claude                              # Default agent (claude or opencode)
+  claude:
+    model: claude-sonnet-4-6                # Default model for claude agent (optional)
+    models:
+      prd: claude-opus-4-6                  # Override for PRD generation (optional)
+      prdToTasks: claude-opus-4-6           # Override for task generation (optional)
+      implement: claude-opus-4-6            # Override for implementation (optional)
+      review: claude-sonnet-4-6             # Override for review (optional)
+      finalize: claude-sonnet-4-6           # Override for finalization (optional)
+      agentsMd: claude-sonnet-4-6           # Override for AGENTS.md generation (optional)
+      extendPrd: claude-sonnet-4-6          # Override for PRD extension (optional)
+  opencode:
+    model: anthropic/claude-sonnet-4-6      # Default model for opencode agent (optional)
+    models:
+      prd: anthropic/claude-opus-4-6        # Phase overrides follow same pattern
+  agentsDocsDir: '.agents/'                 # Directory for AGENTS.md detail files (default: '.agents/')
+
+  Model resolution: phase model > agent model > hardcoded default.
+  Phase keys: prd, prdToTasks, implement, review, finalize, agentsMd, extendPrd.
   Use agentsDocsDir: '.agents-docs' to preserve old directory name.
   Check available models: opencode --help or claude --help
+
+  Upgrading from v1: hone auto-migrates v1 configs to v2 on first load.
 `
   )
 

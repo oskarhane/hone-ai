@@ -220,7 +220,7 @@ tasks:
     title: "Update CLI help output to reflect v2 config keys and options"
     description: |
       Audit all CLI commands and flags to ensure help text accurately reflects any new config keys, options, or behaviors introduced by the v2 agent-specific model configuration. Update help strings or usage descriptions where they reference model configuration.
-    status: pending
+    status: completed
     dependencies:
       - task-011
     acceptance_criteria:
@@ -228,4 +228,4 @@ tasks:
       - "No help text references stale v1-only config keys without noting v2 equivalents"
       - "Any new flags or config keys introduced in tasks 001-011 are surfaced in help output"
       - "Help text is consistent with the README documentation added in task-012"
-    completed_at: null
+    completed_at: 2026-03-08T13:00:00.000Z
