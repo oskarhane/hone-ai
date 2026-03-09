@@ -1,0 +1,59 @@
+feature: hone-skill-command-install-hone-skill-into-claude
+prd: ./prd-hone-skill-command-install-hone-skill-into-claude-.md
+created_at: Mon Mar 09 2026 00:00:00 GMT+0100 (Central European Standard Time)
+updated_at: 2026-03-09T00:00:00.000Z
+
+tasks:
+  - id: task-001
+    title: "Create skills/hone/SKILL.md"
+    description: |
+      Create the skill file at skills/hone/SKILL.md relative to the repo root. The file should contain meaningful skill instructions for using hone within Claude Code, generated from the README and CLI --help info (using the skill-creator skill as suggested in the PRD).
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "File exists at skills/hone/SKILL.md relative to repo root"
+      - "File contains meaningful skill instructions for using hone within Claude Code"
+    completed_at: null
+
+  - id: task-002
+    title: "Create src/skill.ts module with printSkill()"
+    description: |
+      Create src/skill.ts that exports a printSkill() async function. Use import { readFile } from 'fs/promises' and resolve path via import.meta.dir + '/../skills/hone/SKILL.md'. Because bun build --compile does not bundle assets, embed the skill file contents as a TypeScript string constant as a fallback: try reading from filesystem first, catch ENOENT and fall back to the embedded constant. On unrecoverable error print a clear message to stderr and exit with code 1. Print installation instructions (referencing ~/.claude/skills/hone/SKILL.md) and file contents to stdout.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "src/skill.ts exports a printSkill() async function"
+      - "Function prints full SKILL.md contents to stdout"
+      - "Function prints installation instructions referencing ~/.claude/skills/hone/SKILL.md to stdout"
+      - "Function exits with code 1 and clear error message if file missing and no embedded fallback"
+      - "Uses import { readFile } from 'fs/promises'"
+    completed_at: null
+
+  - id: task-003
+    title: "Register hone skill command in src/index.ts"
+    description: |
+      Add a skill command to the Commander.js program in src/index.ts following existing patterns. The action should import and call printSkill from ./skill. No arguments or options required. Description should be 'Print hone skill installation instructions and skill file contents'.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "hone skill appears in hone --help output"
+      - "Command action calls printSkill() from ./skill"
+      - "Uses dynamic import pattern consistent with other commands"
+      - "Error handling wraps action in try/catch, logs to stderr, exits 1 on failure"
+    completed_at: null
+
+  - id: task-004
+    title: "Write unit tests for src/skill.ts"
+    description: |
+      Create src/skill.test.ts using bun:test. Test happy path: mock readFile to return fake skill content and assert stdout output contains both the file content and the installation instructions string '~/.claude/skills/hone/SKILL.md'. Test missing-file error path: mock readFile to throw an ENOENT error and assert process.exit(1) is called and stderr contains a clear error message. Follow patterns from existing test files.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "Happy path test: stdout includes SKILL.md content and installation instructions"
+      - "Error path test: process.exit(1) called when file unreadable and embedded fallback absent"
+      - "Tests pass with bun test"
+      - "File is src/skill.test.ts"
+    completed_at: null
