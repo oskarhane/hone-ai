@@ -323,6 +323,23 @@ lintCommand: bun run lint
 
 After auto-migration, the updated v2 config is written back to disk.
 
+## Claude Code Permissions
+
+To allow Claude Code to run without prompting for every action, add permissions to `.claude/settings.json` (project-level) or `.claude/settings.local.json` (personal, gitignored):
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Bash(git *)"
+    ]
+  }
+}
+```
+
 ## How It Works
 
 hone breaks feature development into 3 phases:
