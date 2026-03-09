@@ -163,7 +163,10 @@ At the end, output on a single line:
 TASK_COMPLETED: <task-id>
 
 This allows hone to track which task you completed.
-Only output this marker if the task is fully complete and all feedback loops pass.`
+Only output this marker if the task is fully complete and all feedback loops pass.
+
+YOU CAN ONLY PICK A SINGLE TASK TO WORK ON!
+`
 
   return instructions
 }
