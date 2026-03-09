@@ -140,3 +140,11 @@ opencode:
 - Bun runtime
 - Claude Code (`claude`) or OpenCode (`opencode`) CLI installed
 - Git-initialized project
+
+## Installation
+
+To install this skill in Claude Code, run:
+
+```bash
+hone skill | tail -n +5 | tee ~/.claude/skills/hone/SKILL.md > /dev/null && echo "✓ Installed hone skill to ~/.claude/skills/hone/SKILL.md"
+```
