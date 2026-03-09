@@ -19,7 +19,7 @@ tasks:
     title: "Create src/skill.ts module with printSkill()"
     description: |
       Create src/skill.ts that exports a printSkill() async function. Use import { readFile } from 'fs/promises' and resolve path via import.meta.dir + '/../skills/hone/SKILL.md'. Because bun build --compile does not bundle assets, embed the skill file contents as a TypeScript string constant as a fallback: try reading from filesystem first, catch ENOENT and fall back to the embedded constant. On unrecoverable error print a clear message to stderr and exit with code 1. Print installation instructions (referencing ~/.claude/skills/hone/SKILL.md) and file contents to stdout.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -28,13 +28,13 @@ tasks:
       - "Function prints installation instructions referencing ~/.claude/skills/hone/SKILL.md to stdout"
       - "Function exits with code 1 and clear error message if file missing and no embedded fallback"
       - "Uses import { readFile } from 'fs/promises'"
-    completed_at: null
+    completed_at: "2026-03-09T00:00:00.000Z"
 
   - id: task-003
     title: "Register hone skill command in src/index.ts"
     description: |
       Add a skill command to the Commander.js program in src/index.ts following existing patterns. The action should import and call printSkill from ./skill. No arguments or options required. Description should be 'Print hone skill installation instructions and skill file contents'.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
@@ -42,7 +42,7 @@ tasks:
       - "Command action calls printSkill() from ./skill"
       - "Uses dynamic import pattern consistent with other commands"
       - "Error handling wraps action in try/catch, logs to stderr, exits 1 on failure"
-    completed_at: null
+    completed_at: "2026-03-09T00:00:00.000Z"
 
   - id: task-004
     title: "Write unit tests for src/skill.ts"

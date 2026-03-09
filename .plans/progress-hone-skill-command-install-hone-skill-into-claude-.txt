@@ -34,3 +34,22 @@ Key Decisions:
 - Non-ENOENT errors (e.g. EACCES) correctly exit with code 1
 
 Next Task: task-003
+
+================================================================================
+TASK-003: Register hone skill command in src/index.ts
+Date: 2026-03-09T00:00:00.000Z
+================================================================================
+
+Summary:
+Added `hone skill` command to Commander.js program in src/index.ts. Dynamically imports and calls printSkill() from ./skill module with error handling consistent with other commands.
+
+Files Changed:
+- src/index.ts (modified - added skill command registration)
+- .plans/tasks-hone-skill-command-install-hone-skill-into-claude-.yml (modified - marked task-003 completed)
+
+Key Decisions:
+- Used extensionless dynamic import (`./skill`) consistent with other commands in index.ts
+- Outer try/catch provides defense-in-depth; printSkill() handles its own process.exit(1) internally
+- Review feedback was all low priority; no changes needed
+
+Next Task: task-004

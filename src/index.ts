@@ -281,6 +281,19 @@ program
   })
 
 program
+  .command('skill')
+  .description('Print hone skill installation instructions and skill file contents')
+  .action(async () => {
+    try {
+      const { printSkill } = await import('./skill')
+      await printSkill()
+    } catch (error) {
+      console.error('\n✗ Error printing skill:', error instanceof Error ? error.message : error)
+      process.exit(1)
+    }
+  })
+
+program
   .command('prune')
   .description('Move completed PRDs and their associated files to .plans/archive/')
   .option('--dry-run', 'Preview operations without executing moves')
