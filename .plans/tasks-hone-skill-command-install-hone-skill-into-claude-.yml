@@ -57,3 +57,15 @@ tasks:
       - "Tests pass with bun test"
       - "File is src/skill.test.ts"
     completed_at: "2026-03-09T00:00:00.000Z"
+
+  - id: task-005
+    title: "Add skill command to README and CLI help output"
+    description: |
+      Add a brief description of the skill command to the README and update the CLI help output to include the new command.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "README updated with skill command description"
+      - "CLI help output includes skill command"
+    completed_at: null
