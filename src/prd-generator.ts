@@ -329,7 +329,9 @@ Context:
 ${agentsContent ? `\n- Project Documentation (AGENTS.md):\n${agentsContent}` : ''}${qaHistory ? `\n- Q&A Session:\n${qaHistory}` : ''}
 
 Write a complete, detailed PRD following the structure above. Use the codebase analysis and project
-documentation to inform technical decisions and ensure the PRD aligns with the existing project patterns.`
+documentation to inform technical decisions and ensure the PRD aligns with the existing project patterns.
+
+DO NOT IMPLEMENT ANYTHING, JUST PRODUCE THE PRD`
 
   try {
     const response = await client.messages.create({
