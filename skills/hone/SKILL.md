@@ -146,5 +146,5 @@ opencode:
 To install this skill in Claude Code, run:
 
 ```bash
-hone skill | tail -n +5 | tee ~/.claude/skills/hone/SKILL.md > /dev/null && echo "✓ Installed hone skill to ~/.claude/skills/hone/SKILL.md"
+mkdir -p ~/.claude/skills/hone && hone skill | tail -n +5 > ~/.claude/skills/hone/SKILL.md && echo "✓ Installed hone skill"
 ```
