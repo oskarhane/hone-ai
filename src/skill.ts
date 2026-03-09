@@ -158,11 +158,13 @@ export async function printSkill(): Promise<void> {
       if (!EMBEDDED_SKILL) {
         process.stderr.write('Error: skill file not found and no embedded fallback available\n')
         process.exit(1)
+        return
       }
       skillContent = EMBEDDED_SKILL
     } else {
       process.stderr.write(`Error: failed to read skill file: ${err instanceof Error ? err.message : String(err)}\n`)
       process.exit(1)
+      return
     }
   }
 

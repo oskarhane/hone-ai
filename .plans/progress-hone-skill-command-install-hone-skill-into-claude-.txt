@@ -53,3 +53,22 @@ Key Decisions:
 - Review feedback was all low priority; no changes needed
 
 Next Task: task-004
+
+================================================================================
+TASK-004: Write unit tests for src/skill.ts
+Date: 2026-03-09T00:00:00.000Z
+================================================================================
+
+Summary:
+Created src/skill.test.ts with 3 tests covering happy path, ENOENT fallback, and non-ENOENT error. Applied low-priority review feedback: tightened stderr assertion to match actual error message, added explicit `return` after `process.exit(1)` calls in skill.ts for TypeScript correctness.
+
+Files Changed:
+- src/skill.test.ts (created - unit tests for printSkill())
+- src/skill.ts (modified - added return after process.exit(1) calls)
+
+Key Decisions:
+- Used spyOn for process.stdout/stderr/exit; mock.module for fs/promises
+- Tightened stderr assertion: toContain('failed to read skill file') instead of loose 'Error' check
+- Added return after process.exit(1) for correctness even though unreachable in production
+
+Next Task: All tasks complete

@@ -48,7 +48,7 @@ tasks:
     title: "Write unit tests for src/skill.ts"
     description: |
       Create src/skill.test.ts using bun:test. Test happy path: mock readFile to return fake skill content and assert stdout output contains both the file content and the installation instructions string '~/.claude/skills/hone/SKILL.md'. Test missing-file error path: mock readFile to throw an ENOENT error and assert process.exit(1) is called and stderr contains a clear error message. Follow patterns from existing test files.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
@@ -56,4 +56,4 @@ tasks:
       - "Error path test: process.exit(1) called when file unreadable and embedded fallback absent"
       - "Tests pass with bun test"
       - "File is src/skill.test.ts"
-    completed_at: null
+    completed_at: "2026-03-09T00:00:00.000Z"
