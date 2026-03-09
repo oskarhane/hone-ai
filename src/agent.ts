@@ -74,7 +74,7 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
   return new Promise((resolve, reject) => {
     const child: ChildProcess = spawn(command, args, {
       cwd: workingDir,
-      stdio: ['inherit', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'],
     })
 
     let stdout = ''
@@ -119,7 +119,7 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
       }, timeout)
     }
 
-    // Handle SIGINT (ctrl+c) and SIGTERM to kill child process
+    // Handle SIGINT (ctrl+c) and SIGTERM to kill child process and exit
     const handleSignal = (signal: NodeJS.Signals) => {
       if (!isKilled && child.pid) {
         isKilled = true
@@ -134,6 +134,8 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
           // Fallback to killing just the child
           child.kill(signal)
         }
+        // Exit the parent process so the run loop doesn't continue
+        process.exit(130)
       }
     }
 
