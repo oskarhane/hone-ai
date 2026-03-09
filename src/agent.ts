@@ -118,7 +118,9 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
               if (json.type === 'assistant' && json.message?.content) {
                 for (const block of json.message.content) {
                   if (block.type === 'text' && block.text) {
-                    const content = block.text
+                    // Add spacing after punctuation when followed by capital letter for readability
+                    let content = block.text
+                    content = content.replace(/([.!?:])([A-Z])/g, '$1 $2')
                     if (!silent) {
                       process.stdout.write(content)
                     }
