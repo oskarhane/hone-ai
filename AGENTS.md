@@ -1,4 +1,5 @@
 <!-- BEGIN GENERATED: AGENTS-MD -->
+
 # AGENTS.md
 
 Learnings and patterns for future agents working on this project.
@@ -42,11 +43,28 @@ See [@.agents/deployment.md](.agents/deployment.md) for detailed information.
 
 ---
 
-*This AGENTS.md was generated using agent-based project discovery.*
-*Detailed information is available in the .agents/ directory.*
+_This AGENTS.md was generated using agent-based project discovery._
+_Detailed information is available in the .agents/ directory._
+
 <!-- END GENERATED: AGENTS-MD -->
 
 <!-- PRESERVED CONTENT FROM PREVIOUS VERSION -->
+
+## Claude Agent Configuration
+
+### Streaming Output
+
+The claude agent uses `claude -p --output-format stream-json --verbose` to enable realtime streaming output. This is critical for providing feedback during long-running tasks.
+
+**Why stream-json**:
+
+- The default `claude -p` mode provides NO output until the entire response is complete
+- For long-running tasks, this creates the appearance of hanging with no feedback
+- The `stream-json` format emits JSON events as the agent processes, providing immediate feedback
+
+**Implementation**: The agent spawning code in `src/agent.ts` parses the stream-json format and extracts text content from `assistant` message events, writing them to stdout in real-time.
+
+**File references**: The `@filename` syntax works correctly with `stream-json` format. The claude CLI reads the files and includes their content in the context automatically.
 
 ## Phase-Specific Model Configuration (v2 schema)
 

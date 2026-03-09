@@ -10,6 +10,7 @@ dist
 hone-*
 xloop
 xloop.map
+index.js.map
 
 # code coverage
 coverage

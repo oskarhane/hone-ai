@@ -16,6 +16,7 @@
   "license": "MIT",
   "files": [
     "src/",
+    "skills/",
     "README.md",
     "package.json"
   ],
@@ -40,7 +41,9 @@
     "build:macos": "bun build --compile --minify --sourcemap --target=bun-darwin-arm64 ./src/index.ts --outfile hone-macos",
     "format:yaml": "prettier --write \"**/*.yml\" \"**/*.yaml\"",
     "lint:yaml": "yamllint -c .yamllint.yml **/*.yml **/*.yaml",
-    "check:yaml": "bun run lint:yaml && prettier --check \"**/*.yml\" \"**/*.yaml\""
+    "check:yaml": "bun run lint:yaml && prettier --check \"**/*.yml\" \"**/*.yaml\"",
+    "generate:skill": "bun run scripts/generate-skill-content.ts",
+    "prepublishOnly": "bun run generate:skill"
   },
   "devDependencies": {
     "@types/bun": "latest",

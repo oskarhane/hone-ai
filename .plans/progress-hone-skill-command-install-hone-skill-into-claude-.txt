@@ -1,0 +1,74 @@
+================================================================================
+TASK-001: Create skills/hone/SKILL.md
+Date: 2026-03-09T00:00:00.000Z
+================================================================================
+
+Summary:
+Created skills/hone/SKILL.md with comprehensive hone skill instructions covering all CLI commands, configuration, workflow phases, and usage patterns for Claude Code integration.
+
+Files Changed:
+- skills/hone/SKILL.md (created - skill instructions for hone CLI tool)
+- .plans/tasks-hone-skill-command-install-hone-skill-into-claude-.yml (modified - marked task-001 completed)
+
+Key Decisions:
+- Embedded full CLI help output coverage for all commands (run, init, prd, tasks, implement, etc.)
+- Included config file structure with model configuration examples
+- Review feedback (low priority only): SKILL.md references `hone skill` command that doesn't exist yet (task-003), and model IDs may go stale over time
+
+Next Task: task-002
+
+================================================================================
+TASK-002: Create src/skill.ts module with printSkill()
+Date: 2026-03-09T00:00:00.000Z
+================================================================================
+
+Summary:
+Created src/skill.ts exporting printSkill() async function. Reads SKILL.md from filesystem, falls back to embedded constant on ENOENT, exits with code 1 on other errors. Prints installation instructions and file contents to stdout.
+
+Files Changed:
+- src/skill.ts (created - printSkill() async function with embedded fallback)
+
+Key Decisions:
+- Used join() from 'path' for path construction (idiomatic with rest of codebase)
+- EMBEDDED_SKILL constant always truthy; added comment explaining dead-branch safeguard
+- Non-ENOENT errors (e.g. EACCES) correctly exit with code 1
+
+Next Task: task-003
+
+================================================================================
+TASK-003: Register hone skill command in src/index.ts
+Date: 2026-03-09T00:00:00.000Z
+================================================================================
+
+Summary:
+Added `hone skill` command to Commander.js program in src/index.ts. Dynamically imports and calls printSkill() from ./skill module with error handling consistent with other commands.
+
+Files Changed:
+- src/index.ts (modified - added skill command registration)
+- .plans/tasks-hone-skill-command-install-hone-skill-into-claude-.yml (modified - marked task-003 completed)
+
+Key Decisions:
+- Used extensionless dynamic import (`./skill`) consistent with other commands in index.ts
+- Outer try/catch provides defense-in-depth; printSkill() handles its own process.exit(1) internally
+- Review feedback was all low priority; no changes needed
+
+Next Task: task-004
+
+================================================================================
+TASK-004: Write unit tests for src/skill.ts
+Date: 2026-03-09T00:00:00.000Z
+================================================================================
+
+Summary:
+Created src/skill.test.ts with 3 tests covering happy path, ENOENT fallback, and non-ENOENT error. Applied low-priority review feedback: tightened stderr assertion to match actual error message, added explicit `return` after `process.exit(1)` calls in skill.ts for TypeScript correctness.
+
+Files Changed:
+- src/skill.test.ts (created - unit tests for printSkill())
+- src/skill.ts (modified - added return after process.exit(1) calls)
+
+Key Decisions:
+- Used spyOn for process.stdout/stderr/exit; mock.module for fs/promises
+- Tightened stderr assertion: toContain('failed to read skill file') instead of loose 'Error' check
+- Added return after process.exit(1) for correctness even though unreachable in production
+
+Next Task: All tasks complete
