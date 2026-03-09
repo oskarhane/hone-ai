@@ -8,12 +8,12 @@ tasks:
     title: "Create skills/hone/SKILL.md"
     description: |
       Create the skill file at skills/hone/SKILL.md relative to the repo root. The file should contain meaningful skill instructions for using hone within Claude Code, generated from the README and CLI --help info (using the skill-creator skill as suggested in the PRD).
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "File exists at skills/hone/SKILL.md relative to repo root"
       - "File contains meaningful skill instructions for using hone within Claude Code"
-    completed_at: null
+    completed_at: "2026-03-09T00:00:00.000Z"
 
   - id: task-002
     title: "Create src/skill.ts module with printSkill()"
