@@ -67,8 +67,15 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
     }
   }
 
-  // Log command being executed
-  const cmdString = `${command} ${args.slice(0, -1).join(' ')} "<prompt>"`
+  // Log command being executed (replace the prompt value with "<prompt>" for readability)
+  const displayArgs = args.map((a, i) => {
+    // For claude: prompt follows '-p'; for opencode: prompt is last arg
+    if (agent === 'opencode' ? i === args.length - 1 : args[i - 1] === '-p') {
+      return '"<prompt>"'
+    }
+    return a
+  })
+  const cmdString = `${command} ${displayArgs.join(' ')}`
   logVerbose(`[Agent] Command: ${cmdString}`)
 
   return new Promise((resolve, reject) => {
