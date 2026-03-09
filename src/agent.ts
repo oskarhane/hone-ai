@@ -62,6 +62,8 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
     args.push(prompt)
   } else {
     args.push('-p')
+    args.push('--output-format', 'stream-json')
+    args.push('--verbose')
     if (modelArg) {
       args.push('--model', modelArg)
     }
@@ -78,11 +80,16 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
   })
   const cmdString = `${command} ${displayArgs.join(' ')}`
   logVerbose(`[Agent] Command: ${cmdString}`)
+  logVerbose(`[Agent] Prompt length: ${prompt.length} characters`)
+  logVerbose(`[Agent] Prompt preview: ${prompt.substring(0, 200)}...`)
 
   return new Promise((resolve, reject) => {
+    logVerbose(`[Agent] Args: ${JSON.stringify(args.slice(0, -1))} + <prompt>`)
+
     const child: ChildProcess = spawn(command, args, {
       cwd: workingDir,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: process.env,
     })
 
     let stdout = ''
@@ -92,24 +99,67 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
 
     // Stream stdout to console and capture
     if (child.stdout) {
+      let buffer = ''
       child.stdout.on('data', (data: Buffer) => {
         const text = data.toString()
-        if (!silent) {
-          process.stdout.write(text)
+        logVerbose(`[Agent] stdout data: ${text.length} bytes`)
+
+        // For claude with stream-json, parse and extract content
+        if (agent === 'claude') {
+          buffer += text
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || '' // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            if (!line.trim()) continue
+            try {
+              const json = JSON.parse(line)
+              // Extract content from stream-json format
+              if (json.type === 'assistant' && json.message?.content) {
+                for (const block of json.message.content) {
+                  if (block.type === 'text' && block.text) {
+                    const content = block.text
+                    if (!silent) {
+                      process.stdout.write(content)
+                    }
+                    stdout += content
+                  }
+                }
+              } else if (json.type === 'result') {
+                // Final result message
+                logVerbose(`[Agent] Stream complete: ${json.subtype}`)
+              } else if (json.type === 'system') {
+                // Initial system message
+                logVerbose(`[Agent] Stream initialized`)
+              }
+            } catch (e) {
+              logVerboseError(`[Agent] Failed to parse stream JSON: ${line}`)
+            }
+          }
+        } else {
+          // For opencode, output text directly
+          if (!silent) {
+            process.stdout.write(text)
+          }
+          stdout += text
         }
-        stdout += text
       })
+    } else {
+      logVerboseError('[Agent] No stdout stream available')
     }
 
     // Stream stderr to console and capture
     if (child.stderr) {
       child.stderr.on('data', (data: Buffer) => {
         const text = data.toString()
+        logVerbose(`[Agent] stderr data: ${text.length} bytes`)
         if (!silent) {
           process.stderr.write(text)
         }
         stderr += text
       })
+    } else {
+      logVerboseError('[Agent] No stderr stream available')
     }
 
     // Set up timeout if specified
@@ -212,7 +262,7 @@ export async function isAgentAvailable(agent: AgentType): Promise<boolean> {
   const command = agent === 'opencode' ? 'opencode' : 'claude'
 
   return new Promise(resolve => {
-    const child = spawn(command === 'opencode' ? 'which' : 'which', [command], {
+    const child = spawn('which', [command], {
       stdio: 'ignore',
     })
 
