@@ -71,4 +71,22 @@ Key Decisions:
 - Tightened stderr assertion: toContain('failed to read skill file') instead of loose 'Error' check
 - Added return after process.exit(1) for correctness even though unreachable in production
 
+Next Task: task-005
+
+================================================================================
+TASK-005: Add skill command to README and CLI help output
+Date: 2026-03-09T00:00:00.000Z
+================================================================================
+
+Summary:
+README already had skill command documented at the time of review (added during task-003 implementation). CLI help output includes skill command via Commander.js registration in task-003. Review confirmed LGTM with no issues.
+
+Files Changed:
+- README.md (already updated with skill command section)
+- .plans/tasks-hone-skill-command-install-hone-skill-into-claude-.yml (modified - marked task-005 completed)
+
+Key Decisions:
+- No code changes needed; README and CLI help were already correct from prior tasks
+- Review feedback: no issues found
+
 Next Task: All tasks complete

@@ -62,10 +62,10 @@ tasks:
     title: "Add skill command to README and CLI help output"
     description: |
       Add a brief description of the skill command to the README and update the CLI help output to include the new command.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
       - "README updated with skill command description"
       - "CLI help output includes skill command"
-    completed_at: null
+    completed_at: "2026-03-09T00:00:00.000Z"

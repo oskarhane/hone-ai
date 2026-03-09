@@ -214,6 +214,14 @@ hone prune                                 # Archive completed PRDs to .plans/ar
 hone prune --dry-run                       # Preview what would be archived
 ```
 
+### Install hone skill for Claude Code
+
+```bash
+hone skill                                 # Print skill installation instructions
+```
+
+Copy the output to `~/.claude/skills/hone/SKILL.md` to give Claude Code built-in knowledge of all hone commands and workflows.
+
 ### Advanced options
 
 ```bash
