@@ -49,7 +49,7 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
 
   // Build command and args based on agent type
   // opencode: opencode run [--model <provider>/<model>] "prompt text"
-  // claude: claude -p "prompt text" [--model <model>]
+  // claude: claude -p [--model <model>] "prompt text"
   const command = agent === 'opencode' ? 'opencode' : 'claude'
   const args: string[] = []
   const modelArg = buildModelArg(agent, model)
@@ -61,16 +61,17 @@ export async function spawnAgent(options: SpawnAgentOptions): Promise<SpawnAgent
     }
     args.push(prompt)
   } else {
-    args.push('-p', prompt)
+    args.push('-p')
     if (modelArg) {
       args.push('--model', modelArg)
     }
+    args.push(prompt)
   }
 
   // Log command being executed (replace the prompt value with "<prompt>" for readability)
   const displayArgs = args.map((a, i) => {
-    // For claude: prompt follows '-p'; for opencode: prompt is last arg
-    if (agent === 'opencode' ? i === args.length - 1 : args[i - 1] === '-p') {
+    // For both agents: prompt is last arg
+    if (i === args.length - 1) {
       return '"<prompt>"'
     }
     return a
