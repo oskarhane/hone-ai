@@ -1,0 +1,17 @@
+{
+  "name": "hone-ai",
+  "owner": {
+    "name": "Oskar Hane"
+  },
+  "metadata": {
+    "description": "AI Coding Agent Orchestrator plugins"
+  },
+  "plugins": [
+    {
+      "name": "hone",
+      "source": "./claude-plugin",
+      "description": "AI Coding Agent Orchestrator - PRD to tasks to implementation loop",
+      "keywords": ["ai", "agents", "orchestrator", "prd", "tasks"]
+    }
+  ]
+}
