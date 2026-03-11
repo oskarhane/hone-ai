@@ -7,7 +7,7 @@ dist
 *.tgz
 
 # build output
-hone-*
+/hone-*
 xloop
 xloop.map
 index.js.map
