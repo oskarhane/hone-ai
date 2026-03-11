@@ -7,12 +7,12 @@ Execute the hone task implementation loop.
 
 ## Step 1: Parse arguments
 
-`$ARGUMENTS` contains: `<tasks-file> -i <N> [--skip review]`
+`$ARGUMENTS` is free-form text like: `.plans/tasks-feature.yml -i 5 --skip review`
 
-Extract:
-- `tasks-file`: path to the task YAML file (e.g., `.plans/tasks-feature.yml`)
-- `N`: number of iterations (from `-i` flag)
-- `skip_review`: whether `--skip` or `--skip review` was passed
+Extract these values (be flexible with format — users may use `-i 5`, `-i=5`, `--iterations 5`, etc.):
+- `tasks-file`: the `.plans/tasks-*.yml` path (usually the first argument)
+- `N`: number of iterations (from `-i`, `--iterations`, or similar)
+- `skip_review`: whether any form of skip was requested (`--skip`, `--skip review`, `--skip=review`, `skip review`, etc.)
 
 Validate the tasks file exists. Extract feature name from filename: `tasks-<feature>.yml` -> `<feature>`.
 

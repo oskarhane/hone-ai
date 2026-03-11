@@ -5,9 +5,9 @@ description: Generate AGENTS.md project documentation with feedback instructions
 
 Generate AGENTS.md documentation for this project:
 
-1. Check `$ARGUMENTS` for `--overwrite` flag.
+1. Check `$ARGUMENTS` for overwrite intent (look for `--overwrite`, `overwrite`, `force`, `regenerate`, etc.).
 
-2. If `AGENTS.md` already exists and `--overwrite` was NOT passed:
+2. If `AGENTS.md` already exists and overwrite was NOT requested:
    - Report: "AGENTS.md already exists. Use --overwrite to replace."
    - Stop.
 
@@ -85,7 +85,7 @@ _This AGENTS.md was generated using agent-based project discovery._
    - `.agents/architecture.md` - Architecture patterns
    - `.agents/deployment.md` - Deployment strategy
 
-7. If `AGENTS.md` exists and `--overwrite` was passed:
+7. If `AGENTS.md` exists and overwrite was requested:
    - Preserve any content OUTSIDE the `<!-- BEGIN GENERATED -->` / `<!-- END GENERATED -->` markers
    - Only replace content between the markers
 

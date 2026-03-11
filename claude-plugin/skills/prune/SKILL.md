@@ -5,7 +5,7 @@ description: Archive completed PRDs and their associated files (tasks, progress)
 
 Archive completed PRDs to `.plans/archive/`:
 
-1. Parse `$ARGUMENTS` for `--dry-run` flag.
+1. Parse `$ARGUMENTS` — check if the user requested a dry run (look for `--dry-run`, `dry-run`, `dry run`, `preview`, etc.).
 
 2. Find all `prd-*.md` files in `.plans/` (not in archive/).
 
@@ -29,6 +29,7 @@ Archive completed PRDs to `.plans/archive/`:
 
 6. If NOT dry-run:
    - Create `.plans/archive/` directory if it doesn't exist
+   - Before moving any files, check for conflicts: verify none of the destination files already exist in `.plans/archive/` (prd, tasks, progress for each feature). If any conflicts found, list them and stop without moving anything.
    - For each completed PRD, move these files (if they exist) to `.plans/archive/`:
      - `.plans/prd-<feature>.md`
      - `.plans/tasks-<feature>.yml`
