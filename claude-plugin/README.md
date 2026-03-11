@@ -5,10 +5,18 @@ AI Coding Agent Orchestrator as a native Claude Code plugin. Run the full hone w
 ## Install
 
 ```bash
-# From the hone-ai repo
-claude plugin install ./claude-plugin
+claude plugin install github:oskarhane/hone-ai/claude-plugin
+```
 
-# Or test locally during development
+To update to the latest version:
+
+```bash
+claude plugin update hone
+```
+
+To test locally during development:
+
+```bash
 claude --plugin-dir ./claude-plugin
 ```
 
