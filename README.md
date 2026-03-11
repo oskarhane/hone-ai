@@ -16,6 +16,24 @@ It's a surprisingly powerful process.
 
 ## Quick Start
 
+### Option A: Claude Code Plugin (Recommended)
+
+If you use [Claude Code](https://docs.anthropic.com/claude/docs/claude-code), install hone as a native plugin — no CLI needed:
+
+```bash
+claude plugin install github:oskarhane/hone-ai/claude-plugin
+```
+
+Then use `/hone:prd`, `/hone:run`, etc. directly in Claude Code. See [claude-plugin/README.md](claude-plugin/README.md) for all available skills.
+
+To update:
+
+```bash
+claude plugin update hone
+```
+
+### Option B: CLI
+
 1. **Install hone**
 
    ```bash
