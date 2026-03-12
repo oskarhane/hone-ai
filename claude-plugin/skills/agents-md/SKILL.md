@@ -1,5 +1,4 @@
 ---
-name: agents-md
 description: Generate AGENTS.md project documentation with feedback instructions, architecture, and conventions. Use when starting a new project or updating project docs.
 ---
 

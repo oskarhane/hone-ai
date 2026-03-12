@@ -1,5 +1,4 @@
 ---
-name: run
 description: Execute the hone implement/review/finalize loop. Claude directly implements tasks from a task file, reviews changes, and commits. Each iteration runs in a forked agent context.
 ---
 

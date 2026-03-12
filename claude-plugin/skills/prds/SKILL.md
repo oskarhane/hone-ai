@@ -1,5 +1,4 @@
 ---
-name: prds
 description: List all PRDs in .plans/ directory with their status and associated task files.
 ---
 

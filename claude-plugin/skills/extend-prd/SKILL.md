@@ -1,5 +1,4 @@
 ---
-name: extend-prd
 description: Add new requirements to an existing PRD with interactive refinement and task generation. Supports file paths and URLs in requirement description.
 ---
 

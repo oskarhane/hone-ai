@@ -1,5 +1,4 @@
 ---
-name: prd
 description: Generate a Product Requirements Document (PRD) from a feature description. Analyzes the codebase, asks clarifying questions, then produces a structured PRD in .plans/. Use when planning a new feature.
 ---
 

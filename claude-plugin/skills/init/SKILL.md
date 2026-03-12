@@ -1,5 +1,4 @@
 ---
-name: init
 description: Initialize hone in the current project directory. Creates .plans/ directory and hone.config.yml with default configuration.
 ---
 

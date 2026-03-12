@@ -1,5 +1,4 @@
 ---
-name: prd-to-tasks
 description: Generate a task breakdown YAML from a PRD file. Creates an ordered list of implementable tasks with dependencies and acceptance criteria. Use after creating or reviewing a PRD.
 ---
 
