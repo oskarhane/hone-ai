@@ -31,6 +31,7 @@ Check for:
 10. Is the code efficient?
 11. Are we following best practices and conventions for the rest of the codebase?
 12. Is the implementation the most efficient way to solve the problem?
+13. Is the implementation re-using existing code or libraries?
 
 # GIT DIFF
 
