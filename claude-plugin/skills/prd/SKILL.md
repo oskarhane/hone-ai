@@ -13,7 +13,7 @@ Create `.plans/` directory if it doesn't exist.
 Read and analyze:
 - `package.json` (project name, description, dependencies, scripts, devDependencies)
 - Directory structure: check for `src/`, `lib/`, `components/`, `utils/`, `test/`, `__tests__/`
-- Config files: `tsconfig.json`, `jest.config.*`, `vitest.config.*`, `.eslintrc*`, `tailwind.config.*`, `next.config.*`, `vite.config.*`, `docker-compose.yml`, `Dockerfile`
+- Config files: `tsconfig.json`, `Makefile`, `vitest.config.*`, `.eslintrc*`, `next.config.*`, `vite.config.*`, `docker-compose.yml`, `Dockerfile`, `pyproject.toml`
 - `README.md` for project context
 - `AGENTS.md` if it exists (for project conventions and patterns)
 - Existing PRDs in `.plans/` for context on ongoing work
