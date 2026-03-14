@@ -55,7 +55,7 @@ tasks:
       format from package.json. Remove dependencies (commander, ai, js-yaml) and
       devDependencies except prettier. Keep name, version, description, author,
       license, repository, bugs, homepage, type. Regenerate lockfile with bun install.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -64,7 +64,7 @@ tasks:
       - "devDependencies contains only prettier"
       - "scripts contains only format"
       - "bun install succeeds and new bun.lock is generated"
-    completed_at: null
+    completed_at: 2026-03-14T15:00:00Z
 
   - id: task-005
     title: "Remove GitHub workflows for npm publish and binary releases"

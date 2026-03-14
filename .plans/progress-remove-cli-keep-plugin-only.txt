@@ -60,3 +60,21 @@ Key Decisions:
 - No feedback loops needed for deletion-only task
 
 Next Task: task-004
+
+================================================================================
+TASK-004: Strip package.json to metadata + prettier only
+Date: 2026-03-14T15:00:00Z
+================================================================================
+
+Summary:
+Stripped package.json to metadata fields + prettier-only devDep + single format script.
+
+Files Changed:
+- package.json (stripped: removed bin, module, files, keywords, peerDependencies, dependencies, all scripts except format)
+- bun.lock (regenerated with prettier-only deps)
+
+Key Decisions:
+- Format script updated to target md/yml/yaml instead of TS files
+- New bun.lock regenerated successfully with single dependency
+
+Next Task: task-005
