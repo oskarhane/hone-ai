@@ -14,7 +14,7 @@
   "homepage": "https://github.com/oskarhane/hone-ai#readme",
   "type": "module",
   "scripts": {
-    "format": "prettier --write \"**/*.md\" \"**/*.yml\" \"**/*.yaml\""
+    "format": "prettier --write \"**/*.md\" \"**/*.yml\""
   },
   "devDependencies": {
     "prettier": "^3.8.1"
