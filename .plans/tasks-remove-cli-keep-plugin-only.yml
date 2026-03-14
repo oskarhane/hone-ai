@@ -117,14 +117,14 @@ tasks:
       hone CLI command examples, binary download info, build-from-source instructions.
       Keep plugin installation (Option A) as the only method. Update the common
       workflow section to show plugin slash commands instead of CLI commands.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "No npm/bun install instructions for hone-ai CLI"
       - "No hone CLI command examples (hone prd, hone run, etc.)"
       - "Plugin install via /plugin marketplace is the only install method"
       - "Workflow examples use /hone:prd, /hone:run slash commands"
-    completed_at: null
+    completed_at: 2026-03-14T19:00:00Z
 
   - id: task-009
     title: "Regenerate AGENTS.md for plugin-only project"

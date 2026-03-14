@@ -132,3 +132,23 @@ Key Decisions:
 - Kept node_modules, .env*, .idea, .DS_Store, .cache
 
 Next Task: task-008
+
+================================================================================
+TASK-008: Update README.md to plugin-only documentation
+Date: 2026-03-14T19:00:00Z
+================================================================================
+
+Summary:
+Rewrote README.md: removed all CLI refs, made plugin the only install method, updated all examples to slash commands.
+
+Files Changed:
+- README.md (rewritten: removed Option B/CLI, npm/bun install, binary downloads, build from source, CLI commands section, verbose mode, prerequisites, contributing build steps; added skills table from plugin README; all examples now use /hone:* slash commands)
+
+Key Decisions:
+- Kept Why section, Concepts section, file structure, configuration, permissions, troubleshooting
+- Added skills reference table (workflow + info) from claude-plugin/README.md
+- Fixed typo: AGENT.md -> AGENTS.md in implementation loop section
+- Simplified Contributing to link to claude-plugin/README.md
+- Removed Configuration section details (v1->v2 migration, phase models) since CLI config no longer applies
+
+Next Task: task-009
