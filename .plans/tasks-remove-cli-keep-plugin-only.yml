@@ -26,7 +26,7 @@ tasks:
       Delete CLI/TS build config files that are no longer needed: bun.lock,
       tsconfig.json, .yamllint.yml, .editorconfig. Keep .prettierrc.yml and
       .prettierignore for markdown formatting.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "bun.lock does not exist"
@@ -34,7 +34,7 @@ tasks:
       - ".yamllint.yml does not exist"
       - ".editorconfig does not exist"
       - ".prettierrc.yml and .prettierignore still exist"
-    completed_at: null
+    completed_at: 2026-03-14T13:30:00Z
 
   - id: task-003
     title: "Remove .agents/ directory"

@@ -19,3 +19,23 @@ Key Decisions:
 - No feedback loops run since all test/build commands depend on deleted src/
 
 Next Task: task-002
+
+================================================================================
+TASK-002: Remove bun.lock, tsconfig.json, .yamllint.yml, .editorconfig
+Date: 2026-03-14T13:30:00Z
+================================================================================
+
+Summary:
+Deleted 4 CLI/TS build config files no longer needed.
+
+Files Changed:
+- bun.lock (deleted)
+- tsconfig.json (deleted)
+- .yamllint.yml (deleted)
+- .editorconfig (deleted)
+
+Key Decisions:
+- .prettierrc.yml and .prettierignore preserved for markdown formatting
+- No feedback loops run since test/build commands depend on deleted src/
+
+Next Task: task-003
