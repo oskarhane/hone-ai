@@ -72,13 +72,13 @@ tasks:
       Delete .github/workflows/publish-npm-manual.yml, release-major.yml, and
       release-minor.yml. These workflows build binaries and publish to npm,
       neither of which applies to the plugin-only model.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "publish-npm-manual.yml does not exist"
       - "release-major.yml does not exist"
       - "release-minor.yml does not exist"
-    completed_at: null
+    completed_at: 2026-03-14T16:00:00Z
 
   - id: task-006
     title: "Remove or simplify ci.yml workflow"

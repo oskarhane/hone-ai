@@ -78,3 +78,22 @@ Key Decisions:
 - New bun.lock regenerated successfully with single dependency
 
 Next Task: task-005
+
+================================================================================
+TASK-005: Remove GitHub workflows for npm publish and binary releases
+Date: 2026-03-14T16:00:00Z
+================================================================================
+
+Summary:
+Deleted 3 GitHub Actions workflows for npm publish and binary releases.
+
+Files Changed:
+- .github/workflows/publish-npm-manual.yml (deleted)
+- .github/workflows/release-major.yml (deleted)
+- .github/workflows/release-minor.yml (deleted)
+
+Key Decisions:
+- ci.yml preserved (will be updated in task-006)
+- No feedback loops needed for deletion-only task
+
+Next Task: task-006
