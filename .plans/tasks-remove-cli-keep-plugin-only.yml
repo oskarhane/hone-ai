@@ -102,13 +102,13 @@ tasks:
       test-agents-md-cli-integration, test-workspace-prune-integration,
       test-atomic-operations, .test-*). Keep entries still relevant (node_modules,
       .env, .DS_Store, etc.).
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - ".gitignore has no /hone-*, xloop, index.js.map entries"
       - ".gitignore has no integration test directory entries"
       - "node_modules and .env entries still present"
-    completed_at: null
+    completed_at: 2026-03-14T18:00:00Z
 
   - id: task-008
     title: "Update README.md to plugin-only documentation"

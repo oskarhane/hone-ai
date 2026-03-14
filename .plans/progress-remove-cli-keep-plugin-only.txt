@@ -115,3 +115,20 @@ Key Decisions:
 - Uses npx prettier --check with same patterns as package.json format script
 
 Next Task: task-007
+
+================================================================================
+TASK-007: Update .gitignore to remove CLI artifact entries
+Date: 2026-03-14T18:00:00Z
+================================================================================
+
+Summary:
+Stripped .gitignore of all CLI artifact and integration test entries.
+
+Files Changed:
+- .gitignore (removed: /hone-*, xloop, xloop.map, index.js.map, *.tgz, out, dist, coverage, *.lcov, logs, *.tsbuildinfo, .eslintcache, integration test dirs)
+
+Key Decisions:
+- Also removed build output (out, dist), coverage, logs, TS cache entries as no longer relevant
+- Kept node_modules, .env*, .idea, .DS_Store, .cache
+
+Next Task: task-008
