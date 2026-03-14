@@ -4,6 +4,9 @@ description: Execute the hone implement/review/finalize loop. Claude directly im
 
 Execute the hone task implementation loop.
 
+## Pre-step
+If you're on the git main/master/trunk branch or a feature branch that's unrelated to this feature, ask the user if they want you to create a new git branch (suggest a good name) for this feature.
+
 ## Step 1: Parse arguments
 
 `$ARGUMENTS` is free-form text like: `.plans/tasks-feature.yml -i 5 --skip review`
