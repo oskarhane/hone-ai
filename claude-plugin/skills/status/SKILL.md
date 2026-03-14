@@ -7,11 +7,12 @@ Show the status of all incomplete task lists:
 1. Use Glob to find all `tasks-*.yml` files in `.plans/` directory.
 
 2. For each task file found, read it and parse the YAML content. The schema is:
+
    ```yaml
    feature: <feature-name>
    tasks:
      - id: task-001
-       title: "..."
+       title: '...'
        status: pending|in_progress|completed|failed|cancelled
        dependencies:
          - task-000
@@ -27,6 +28,7 @@ Show the status of all incomplete task lists:
    - If no task has all deps satisfied, show "(waiting for dependencies)"
 
 5. Display results. For each incomplete task file:
+
    ```
    .plans/<filename>
      Feature: <feature>

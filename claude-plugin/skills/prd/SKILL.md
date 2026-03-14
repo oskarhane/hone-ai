@@ -11,6 +11,7 @@ Create `.plans/` directory if it doesn't exist.
 ## Step 2: Analyze the codebase
 
 Read and analyze:
+
 - `package.json` (project name, description, dependencies, scripts, devDependencies)
 - Directory structure: check for `src/`, `lib/`, `components/`, `utils/`, `test/`, `__tests__/`
 - Config files: `tsconfig.json`, `Makefile`, `vitest.config.*`, `.eslintrc*`, `next.config.*`, `vite.config.*`, `docker-compose.yml`, `Dockerfile`, `pyproject.toml`
@@ -23,9 +24,11 @@ Summarize findings concisely (languages, frameworks, testing, build tools, proje
 ## Step 3: Process references in description
 
 If `$ARGUMENTS` contains file paths (e.g., `./docs/spec.md`, `src/component.js`):
+
 - Read those files and incorporate their content as context
 
 If `$ARGUMENTS` contains URLs (e.g., `https://example.com/api-docs`):
+
 - Fetch those URLs and incorporate their content as context
 
 If any reference fails to load, note it and ask the user about it.
@@ -33,6 +36,7 @@ If any reference fails to load, note it and ask the user about it.
 ## Step 4: Ask clarifying questions
 
 Ask up to 5 clarifying questions, one at a time. Each question should:
+
 - Be specific and focused
 - Help clarify requirements, scope, UX, technical approach, or edge cases
 - NOT ask about things already answerable from the codebase analysis
@@ -49,34 +53,43 @@ Write a comprehensive PRD following this exact template:
 # PRD: <Feature Name>
 
 ## Overview
+
 Brief description of the feature and its purpose.
 
 ## Goals
+
 What this feature aims to achieve.
 
 ## Non-Goals
+
 What is explicitly out of scope.
 
 ## Requirements
 
 ### Functional Requirements
+
 - REQ-F-001: <requirement>
 - REQ-F-002: <requirement>
 
 ### Non-Functional Requirements
+
 - REQ-NF-001: <requirement>
 
 ## Technical Considerations
+
 Architecture decisions, integration points, potential challenges.
 
 ## Acceptance Criteria
+
 - [ ] Criterion 1
 - [ ] Criterion 2
 
 ## Out of Scope
+
 Items explicitly not included in this feature.
 
 ## Open Questions
+
 Any unresolved questions.
 ```
 
@@ -85,6 +98,7 @@ Use the codebase analysis and Q&A answers to make the PRD specific and actionabl
 ## Step 6: Save the PRD
 
 Slugify the feature name:
+
 - Lowercase
 - Replace spaces with hyphens
 - Remove non-alphanumeric characters (except hyphens)
@@ -97,6 +111,7 @@ Write to `.plans/prd-<slug>.md`.
 ## Step 7: Next steps
 
 Tell the user:
+
 ```
 Saved to .plans/prd-<slug>.md
 

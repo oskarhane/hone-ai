@@ -1,15 +1,18 @@
 # PRD: Remove CLI, Keep Plugin Only
 
 ## Overview
+
 Remove the standalone CLI version of hone-ai entirely and keep only the Claude Code plugin as the sole distribution method. This includes removing all TypeScript source code, build tooling, npm publishing, binary releases, and CLI-related documentation.
 
 ## Goals
+
 - Single distribution channel: Claude Code plugin marketplace only
 - Remove all CLI-related code, config, dependencies, and workflows
 - Update all documentation to reflect plugin-only usage
 - Simplify the project to just the plugin directory contents
 
 ## Non-Goals
+
 - Rewriting or changing plugin skill behavior
 - Adding new plugin features
 - Changing the plugin's internal structure
@@ -17,6 +20,7 @@ Remove the standalone CLI version of hone-ai entirely and keep only the Claude C
 ## Requirements
 
 ### Functional Requirements
+
 - REQ-F-001: Remove `src/` directory entirely (CLI entry point, all TS modules, all tests)
 - REQ-F-002: Remove `scripts/` directory (generate-skill-content.ts)
 - REQ-F-003: Remove `skills/` directory (generated skill content for npm, not the plugin skills)
@@ -33,16 +37,19 @@ Remove the standalone CLI version of hone-ai entirely and keep only the Claude C
 - REQ-F-015: Remove `.agents/` directory if it contains CLI-specific agent configs
 
 ### Non-Functional Requirements
+
 - REQ-NF-001: The plugin in `claude-plugin/` must remain fully functional and unchanged
 - REQ-NF-002: `hone.config.yml` in project roots (user projects) should continue to work with the plugin
 
 ## Technical Considerations
+
 - The `claude-plugin/` directory is the sole deliverable — verify its contents are self-contained
 - The plugin is published via the Claude Code plugin marketplace, not npm
 - The `.plans/` directory and `hone.config.yml` stay in repo root (dogfooding)
 - `package.json` kept but stripped to metadata + prettier dep only
 
 ## Acceptance Criteria
+
 - [ ] No `src/`, `scripts/`, `skills/`, `bun.lock`, `tsconfig.json` exist
 - [ ] No compiled binaries in repo
 - [ ] No npm publish or binary release workflows
@@ -52,9 +59,11 @@ Remove the standalone CLI version of hone-ai entirely and keep only the Claude C
 - [ ] CI workflow either removed or simplified to plugin-relevant checks only
 
 ## Out of Scope
+
 - Plugin feature changes or additions
 - Plugin marketplace publishing process changes
 - Changes to how the plugin skills work internally
 
 ## Open Questions
+
 None — all resolved.

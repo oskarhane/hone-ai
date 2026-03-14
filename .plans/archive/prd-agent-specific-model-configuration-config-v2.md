@@ -20,6 +20,7 @@ Restructure `hone.config.yml` to support per-agent model configs instead of a fl
 - Changing agent types (still `claude` | `opencode`)
 
 ## Requirements
+
 ### Functional Requirements
 
 - **REQ-F-001**: Config v2 schema — top-level `version: 2`, `agent: <default-agent>`, and agent-specific blocks `claude: { models: { <phase>: <model> } }` and `opencode: { models: { <phase>: <model> } }`
@@ -42,6 +43,7 @@ Restructure `hone.config.yml` to support per-agent model configs instead of a fl
 - **REQ-NF-001**: Migration is transparent — no user interaction required, no breaking failures
 - **REQ-NF-002**: All existing tests remain passing after changes; new tests cover migration and v2 resolution
 - **REQ-NF-003**: YAML output remains human-readable with logical grouping by agent
+
 ## Technical Considerations
 
 ### New Config Schema (v2)
@@ -67,6 +69,7 @@ agentsDocsDir: .agents/
 ### Example migration of `.plans/hone.config.yml`
 
 Current v1:
+
 ```yaml
 defaultAgent: openode
 models:
@@ -77,6 +80,7 @@ models:
 ```
 
 Migrated v2 (phase overrides go only into `claude` block since `defaultAgent: claude`):
+
 ```yaml
 version: 2
 agent: claude
@@ -102,7 +106,7 @@ export interface AgentModelConfig {
 
 export interface HoneConfig {
   version: 2
-  agent: AgentType          // replaces defaultAgent
+  agent: AgentType // replaces defaultAgent
   claude: AgentModelConfig
   opencode: AgentModelConfig
   lintCommand?: string
@@ -120,8 +124,13 @@ interface LegacyConfig {
   models?: {
     claude?: string
     opencode?: string
-    prd?: string; prdToTasks?: string; implement?: string
-    review?: string; finalize?: string; agentsMd?: string; extendPrd?: string
+    prd?: string
+    prdToTasks?: string
+    implement?: string
+    review?: string
+    finalize?: string
+    agentsMd?: string
+    extendPrd?: string
   }
   lintCommand?: string
   agentsDocsDir?: string

@@ -17,6 +17,7 @@ List all PRDs and their status:
    - If no task file: "no tasks generated"
 
 3. Display results:
+
    ```
    PRDs in .plans/
 

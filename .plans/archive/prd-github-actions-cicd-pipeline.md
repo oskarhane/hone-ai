@@ -3,9 +3,11 @@ I'll create a comprehensive PRD for adding GitHub Actions workflows to the hone-
 # PRD: GitHub Actions CI/CD Pipeline
 
 ## Overview
+
 Implement comprehensive GitHub Actions workflows for the hone-ai project to automate testing, type checking, building, and releasing processes. This includes PR validation workflows and automated release management with artifact distribution.
 
 ## Goals
+
 - Automate code quality validation on PRs and master commits
 - Streamline release process with version management
 - Distribute pre-built binaries for end users
@@ -13,6 +15,7 @@ Implement comprehensive GitHub Actions workflows for the hone-ai project to auto
 - Reduce manual overhead for maintainers
 
 ## Non-Goals
+
 - Multi-platform builds (Windows/Linux) - focusing on macOS only
 - Complex release approval workflows
 - Automated deployment to package registries
@@ -21,8 +24,9 @@ Implement comprehensive GitHub Actions workflows for the hone-ai project to auto
 ## Requirements
 
 ### Functional Requirements
+
 - REQ-F-001: Run tests using `bun test` on all PRs and master commits
-- REQ-F-002: Execute type checking on all PRs and master commits  
+- REQ-F-002: Execute type checking on all PRs and master commits
 - REQ-F-003: Validate builds using `bun run build` on all PRs and master commits
 - REQ-F-004: Create GitHub releases with automatic version bumping
 - REQ-F-005: Build and attach macOS standalone binary to releases
@@ -31,6 +35,7 @@ Implement comprehensive GitHub Actions workflows for the hone-ai project to auto
 - REQ-F-008: Generate release notes from commit history
 
 ### Non-Functional Requirements
+
 - REQ-NF-001: CI workflows must complete within 10 minutes
 - REQ-NF-002: Release workflows must be idempotent and safe to re-run
 - REQ-NF-003: Binary artifacts must be properly tagged with version numbers
@@ -39,24 +44,28 @@ Implement comprehensive GitHub Actions workflows for the hone-ai project to auto
 ## Technical Considerations
 
 **Architecture Decisions:**
+
 - Use Bun runtime environment in GitHub Actions (actions/setup-bun)
 - Store workflows in `.github/workflows/` directory
 - Separate CI workflow from release workflows for modularity
 - Use GitHub's built-in release functionality for artifact management
 
 **Integration Points:**
+
 - package.json version field for semantic versioning
 - Git tags for release tracking
 - GitHub Releases API for artifact attachment
 - Bun build system for binary compilation
 
 **Potential Challenges:**
+
 - Bun compatibility with GitHub Actions runners
 - Binary size and upload time constraints
 - Version collision handling in concurrent releases
 - Proper cleanup of build artifacts
 
 ## Acceptance Criteria
+
 - [ ] CI workflow triggers on pull requests targeting master
 - [ ] CI workflow triggers on commits to master branch
 - [ ] All three validation steps (test, typecheck, build) run in CI
@@ -70,6 +79,7 @@ Implement comprehensive GitHub Actions workflows for the hone-ai project to auto
 - [ ] Workflows use appropriate Bun action for consistent runtime
 
 ## Out of Scope
+
 - Windows and Linux binary builds
 - Automated patch version releases
 - Complex branching strategies (gitflow, etc.)
@@ -79,6 +89,7 @@ Implement comprehensive GitHub Actions workflows for the hone-ai project to auto
 - Notification systems for release status
 
 ## Open Questions
+
 - Should pre-release versions (alpha/beta) be supported? -no
 - How should release notes be formatted - conventional commits or simple changelog? - simple changelog
 - Should there be any approval gates before major version releases? -yes, manual confirmation

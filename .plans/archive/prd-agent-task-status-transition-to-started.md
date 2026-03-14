@@ -20,6 +20,7 @@ When the implement phase agent picks up a task from the task file, it should imm
 - No rollback / reset of `started` status if the implement phase fails.
 
 ## Requirements
+
 ### Functional Requirements
 
 - **REQ-F-001**: The implement-phase prompt MUST instruct the agent to update the picked task's `status` from `pending` to `in_progress` in the task YAML file immediately after selecting it, before beginning exploration or implementation.
@@ -37,6 +38,7 @@ When the implement phase agent picks up a task from the task file, it should imm
 - **REQ-NF-001**: The change is prompt-only; no TypeScript source changes outside `src/prompt.ts`.
 - **REQ-NF-002**: Existing tests for `prompt.ts` must continue to pass; a new test asserting `in_progress` appears in the implement prompt snapshot is added.
 - **REQ-NF-003**: The instruction must be unambiguous and placed early in the implement phase section so agents don't skip it.
+
 ## Technical Considerations
 
 - The `Task.status` type in `src/prds.ts:11` already includes `'in_progress'`, so no type changes are needed.
