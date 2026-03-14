@@ -7,15 +7,10 @@ on:
     branches: [master]
 
 jobs:
-  test:
-    name: Test & Validation
+  format-check:
+    name: Format Check
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    strategy:
-      fail-fast: true
-    env:
-      CI: true
-      BUN_INSTALL_CACHE_DIR: ~/.bun/install/cache
+    timeout-minutes: 5
 
     steps:
       - name: Checkout code
@@ -26,65 +21,13 @@ jobs:
         with:
           bun-version: "1.2.21"
 
-      - name: Cache Bun dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
       - name: Install dependencies
-        run: |
-          echo "📦 Installing dependencies..."
-          bun install --frozen-lockfile || {
-            echo "❌ Dependency installation failed"
-            echo "ℹ️  Check network connectivity and lockfile integrity"
-            exit 1
-          }
-          echo "✅ Dependencies installed successfully"
+        run: bun install --frozen-lockfile
         timeout-minutes: 2
 
-      - name: Run type checking
+      - name: Check formatting
         run: |
-          echo "🔍 Running TypeScript type checking..."
-          bun run tsc --noEmit || {
-            echo "❌ Type checking failed"
-            echo "ℹ️  Fix TypeScript errors before proceeding"
+          npx prettier --check "**/*.md" "**/*.yml" "**/*.yaml" || {
+            echo "Formatting check failed. Run 'bun run format' to fix."
             exit 1
           }
-          echo "✅ Type checking passed"
-        timeout-minutes: 3
-
-      - name: Run tests
-        run: |
-          echo "🧪 Running test suite..."
-          bun test || {
-            echo "❌ Tests failed"
-            echo "ℹ️  Check test failures above and fix before proceeding"
-            exit 1
-          }
-          echo "✅ All tests passed"
-        timeout-minutes: 5
-
-      - name: Build validation
-        run: |
-          echo "🔨 Validating build process..."
-          bun run build || {
-            echo "❌ Build failed"
-            echo "ℹ️  Check build errors above and fix compilation issues"
-            exit 1
-          }
-          if [ ! -f "./hone-linux" ] || [ ! -f "./hone-macos" ]; then
-            echo "❌ Build completed but binaries not found"
-            echo "ℹ️  Expected: hone-linux and hone-macos"
-            ls -la ./hone* 2>/dev/null || echo "No hone binaries found"
-            exit 1
-          fi
-          echo "✅ Build validation successful"
-          echo "Linux binary: $(du -h ./hone-linux | cut -f1)"
-          echo "macOS binary: $(du -h ./hone-macos | cut -f1)"
-          # Clean up build artifacts to conserve disk space
-          rm -f ./hone-linux ./hone-macos ./hone-linux.map ./hone-macos.map
-          echo "🧹 Build artifacts cleaned up"
-        timeout-minutes: 3

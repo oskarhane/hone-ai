@@ -86,13 +86,13 @@ tasks:
       The current CI runs TypeScript type checking, bun tests, and binary build
       validation — none of which apply anymore. Either remove ci.yml entirely or
       replace with a minimal workflow (e.g., prettier format check on md/yml files).
-    status: pending
+    status: completed
     dependencies:
       - task-004
     acceptance_criteria:
       - "ci.yml no longer runs tsc, bun test, or binary builds"
       - "If kept, ci.yml validates only what remains (e.g., prettier check)"
-    completed_at: null
+    completed_at: 2026-03-14T17:00:00Z
 
   - id: task-007
     title: "Update .gitignore to remove CLI artifact entries"

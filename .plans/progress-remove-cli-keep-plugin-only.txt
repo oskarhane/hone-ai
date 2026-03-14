@@ -97,3 +97,21 @@ Key Decisions:
 - No feedback loops needed for deletion-only task
 
 Next Task: task-006
+
+================================================================================
+TASK-006: Remove or simplify ci.yml workflow
+Date: 2026-03-14T17:00:00Z
+================================================================================
+
+Summary:
+Replaced CI workflow: removed tsc, bun test, binary build steps; now runs prettier format check only.
+
+Files Changed:
+- .github/workflows/ci.yml (rewritten: single format-check job with prettier --check)
+
+Key Decisions:
+- Kept ci.yml rather than deleting it; format checking is still useful
+- Removed cache step, env vars, strategy matrix (unnecessary for single prettier check)
+- Uses npx prettier --check with same patterns as package.json format script
+
+Next Task: task-007
