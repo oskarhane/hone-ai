@@ -39,3 +39,24 @@ Key Decisions:
 - No feedback loops run since test/build commands depend on deleted src/
 
 Next Task: task-003
+
+================================================================================
+TASK-003: Remove .agents/ directory
+Date: 2026-03-14T14:00:00Z
+================================================================================
+
+Summary:
+Deleted .agents/ dir with CLI-specific agent documentation files.
+
+Files Changed:
+- .agents/architecture.md (deleted)
+- .agents/build.md (deleted)
+- .agents/deployment.md (deleted)
+- .agents/languages.md (deleted)
+- .agents/testing.md (deleted)
+
+Key Decisions:
+- claude-plugin/agents/ preserved and unchanged
+- No feedback loops needed for deletion-only task
+
+Next Task: task-004

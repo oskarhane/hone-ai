@@ -41,12 +41,12 @@ tasks:
     description: |
       Delete the .agents/ directory which contains CLI-specific agent configs
       that are no longer needed with the plugin-only distribution.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - ".agents/ directory does not exist"
       - "claude-plugin/agents/ still exists and is unchanged"
-    completed_at: null
+    completed_at: 2026-03-14T14:00:00Z
 
   - id: task-004
     title: "Strip package.json to metadata + prettier only"
