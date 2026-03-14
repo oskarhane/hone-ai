@@ -5,6 +5,7 @@ description: Execute the hone implement/review/finalize loop. Claude directly im
 Execute the hone task implementation loop.
 
 ## Pre-step
+
 If you're on the git main/master/trunk branch or a feature branch that's unrelated to this feature, ask the user if they want you to create a new git branch (suggest a good name) for this feature.
 
 ## Step 1: Parse arguments
@@ -12,6 +13,7 @@ If you're on the git main/master/trunk branch or a feature branch that's unrelat
 `$ARGUMENTS` is free-form text like: `.plans/tasks-feature.yml -i 5 --skip review`
 
 Extract these values (be flexible with format — users may use `-i 5`, `-i=5`, `--iterations 5`, etc.):
+
 - `tasks-file`: the `.plans/tasks-*.yml` path (usually the first argument)
 - `N`: number of iterations (from `-i`, `--iterations`, or similar)
 - `skip_review`: whether any form of skip was requested (`--skip`, `--skip review`, `--skip=review`, `skip review`, etc.)
@@ -25,6 +27,7 @@ For each iteration from 1 to N, launch a **forked Agent** (using the Agent tool)
 If the Agent output contains `<promise>COMPLETE</promise>`, all tasks are done — stop iterating early.
 
 After all iterations complete, report:
+
 ```
 Completed <actual> iterations (of <N> requested)
 ```
@@ -35,7 +38,7 @@ The Agent prompt MUST include the tasks file path, feature name, whether to skip
 
 ---
 
-```
+````
 # HONE: ITERATION <i> of <N>
 
 Feature: <feature>
@@ -207,7 +210,7 @@ At the end, output on a single line:
 FINALIZED: <task-id>
 
 Only output this marker AFTER you have successfully created the git commit.
-```
+````
 
 ---
 

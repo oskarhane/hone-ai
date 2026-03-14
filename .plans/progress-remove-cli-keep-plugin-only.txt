@@ -1,0 +1,174 @@
+================================================================================
+TASK-001: Remove src/, scripts/, skills/ directories and compiled binaries
+Date: 2026-03-14T13:00:00Z
+================================================================================
+
+Summary:
+Deleted src/, scripts/, skills/ dirs and hone-linux, hone-macos, index.js.map binaries.
+
+Files Changed:
+- src/ (deleted - 37 TS files: CLI entry point, all modules, all tests)
+- scripts/ (deleted - generate-skill-content.ts)
+- skills/ (deleted - generated npm skill content)
+- hone-linux (deleted - compiled binary)
+- hone-macos (deleted - compiled binary)
+- index.js.map (deleted - source map)
+
+Key Decisions:
+- claude-plugin/skills/ preserved as required
+- No feedback loops run since all test/build commands depend on deleted src/
+
+Next Task: task-002
+
+================================================================================
+TASK-002: Remove bun.lock, tsconfig.json, .yamllint.yml, .editorconfig
+Date: 2026-03-14T13:30:00Z
+================================================================================
+
+Summary:
+Deleted 4 CLI/TS build config files no longer needed.
+
+Files Changed:
+- bun.lock (deleted)
+- tsconfig.json (deleted)
+- .yamllint.yml (deleted)
+- .editorconfig (deleted)
+
+Key Decisions:
+- .prettierrc.yml and .prettierignore preserved for markdown formatting
+- No feedback loops run since test/build commands depend on deleted src/
+
+Next Task: task-003
+
+================================================================================
+TASK-003: Remove .agents/ directory
+Date: 2026-03-14T14:00:00Z
+================================================================================
+
+Summary:
+Deleted .agents/ dir with CLI-specific agent documentation files.
+
+Files Changed:
+- .agents/architecture.md (deleted)
+- .agents/build.md (deleted)
+- .agents/deployment.md (deleted)
+- .agents/languages.md (deleted)
+- .agents/testing.md (deleted)
+
+Key Decisions:
+- claude-plugin/agents/ preserved and unchanged
+- No feedback loops needed for deletion-only task
+
+Next Task: task-004
+
+================================================================================
+TASK-004: Strip package.json to metadata + prettier only
+Date: 2026-03-14T15:00:00Z
+================================================================================
+
+Summary:
+Stripped package.json to metadata fields + prettier-only devDep + single format script.
+
+Files Changed:
+- package.json (stripped: removed bin, module, files, keywords, peerDependencies, dependencies, all scripts except format)
+- bun.lock (regenerated with prettier-only deps)
+
+Key Decisions:
+- Format script updated to target md/yml/yaml instead of TS files
+- New bun.lock regenerated successfully with single dependency
+
+Next Task: task-005
+
+================================================================================
+TASK-005: Remove GitHub workflows for npm publish and binary releases
+Date: 2026-03-14T16:00:00Z
+================================================================================
+
+Summary:
+Deleted 3 GitHub Actions workflows for npm publish and binary releases.
+
+Files Changed:
+- .github/workflows/publish-npm-manual.yml (deleted)
+- .github/workflows/release-major.yml (deleted)
+- .github/workflows/release-minor.yml (deleted)
+
+Key Decisions:
+- ci.yml preserved (will be updated in task-006)
+- No feedback loops needed for deletion-only task
+
+Next Task: task-006
+
+================================================================================
+TASK-006: Remove or simplify ci.yml workflow
+Date: 2026-03-14T17:00:00Z
+================================================================================
+
+Summary:
+Replaced CI workflow: removed tsc, bun test, binary build steps; now runs prettier format check only.
+
+Files Changed:
+- .github/workflows/ci.yml (rewritten: single format-check job with prettier --check)
+
+Key Decisions:
+- Kept ci.yml rather than deleting it; format checking is still useful
+- Removed cache step, env vars, strategy matrix (unnecessary for single prettier check)
+- Uses npx prettier --check with same patterns as package.json format script
+
+Next Task: task-007
+
+================================================================================
+TASK-007: Update .gitignore to remove CLI artifact entries
+Date: 2026-03-14T18:00:00Z
+================================================================================
+
+Summary:
+Stripped .gitignore of all CLI artifact and integration test entries.
+
+Files Changed:
+- .gitignore (removed: /hone-*, xloop, xloop.map, index.js.map, *.tgz, out, dist, coverage, *.lcov, logs, *.tsbuildinfo, .eslintcache, integration test dirs)
+
+Key Decisions:
+- Also removed build output (out, dist), coverage, logs, TS cache entries as no longer relevant
+- Kept node_modules, .env*, .idea, .DS_Store, .cache
+
+Next Task: task-008
+
+================================================================================
+TASK-008: Update README.md to plugin-only documentation
+Date: 2026-03-14T19:00:00Z
+================================================================================
+
+Summary:
+Rewrote README.md: removed all CLI refs, made plugin the only install method, updated all examples to slash commands.
+
+Files Changed:
+- README.md (rewritten: removed Option B/CLI, npm/bun install, binary downloads, build from source, CLI commands section, verbose mode, prerequisites, contributing build steps; added skills table from plugin README; all examples now use /hone:* slash commands)
+
+Key Decisions:
+- Kept Why section, Concepts section, file structure, configuration, permissions, troubleshooting
+- Added skills reference table (workflow + info) from claude-plugin/README.md
+- Fixed typo: AGENT.md -> AGENTS.md in implementation loop section
+- Simplified Contributing to link to claude-plugin/README.md
+- Removed Configuration section details (v1->v2 migration, phase models) since CLI config no longer applies
+
+Next Task: task-009
+
+================================================================================
+TASK-009: Regenerate AGENTS.md for plugin-only project
+Date: 2026-03-14T20:00:00Z
+================================================================================
+
+Summary:
+Rewrote AGENTS.md from scratch for plugin-only project. Removed all CLI/TS content.
+
+Files Changed:
+- AGENTS.md (rewritten: removed all CLI, TypeScript, build, test, deployment, and .agents/ references; now describes plugin structure, skills, agents, config, and formatting)
+
+Key Decisions:
+- Single feedback command: `bun run format` (no build/test/lint)
+- Included full project structure tree showing claude-plugin/ layout
+- Listed all 9 skills grouped by workflow vs info
+- Documented hone-reviewer agent and its role
+- Kept concise; no legacy learnings carried over (all were CLI-specific)
+
+All tasks complete.
