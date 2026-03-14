@@ -77,9 +77,9 @@ All skills are invoked via `/hone:<skill-name>`.
 
 | Skill          | Description                                     |
 | -------------- | ----------------------------------------------- |
-| `/hone:status` | Show incomplete task lists with progress         |
-| `/hone:prds`   | List all PRDs with status                        |
-| `/hone:prune`  | Archive completed PRDs (`--dry-run` to preview)  |
+| `/hone:status` | Show incomplete task lists with progress        |
+| `/hone:prds`   | List all PRDs with status                       |
+| `/hone:prune`  | Archive completed PRDs (`--dry-run` to preview) |
 
 ## Concepts
 

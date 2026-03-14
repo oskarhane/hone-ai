@@ -133,7 +133,7 @@ tasks:
       it to reflect the new plugin-only project structure. The new AGENTS.md should
       describe the claude-plugin/ directory, skills, agents, and markdown-based
       project layout.
-    status: pending
+    status: completed
     dependencies:
       - task-001
       - task-004
@@ -142,4 +142,4 @@ tasks:
       - "AGENTS.md exists and describes the plugin-only project"
       - "No references to src/, CLI commands, or TypeScript modules"
       - "Documents claude-plugin/ structure, skills, and agents"
-    completed_at: null
+    completed_at: 2026-03-14T20:00:00Z
