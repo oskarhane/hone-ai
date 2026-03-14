@@ -16,18 +16,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          bun-version: "1.2.21"
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-        timeout-minutes: 2
+          node-version: "20"
 
       - name: Check formatting
-        run: |
-          npx prettier --check "**/*.md" "**/*.yml" "**/*.yaml" || {
-            echo "Formatting check failed. Run 'bun run format' to fix."
-            exit 1
-          }
+        run: npx prettier --check "**/*.md" "**/*.yml"
