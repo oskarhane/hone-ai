@@ -29,6 +29,7 @@ The tool maintains its state in a `.plans/` directory within the project, tracki
 ## User Personas
 
 **Primary: Solo Developer / Small Team Lead**
+
 - Wants to delegate implementation of well-defined features to AI
 - Values oversight and the ability to review AI work
 - Prefers CLI-based workflows integrated with existing tooling
@@ -40,12 +41,14 @@ The tool maintains its state in a `.plans/` directory within the project, tracki
 ### 1. CLI Framework & Configuration
 
 #### 1.1 CLI Setup
+
 - **REQ-1.1.1**: CLI command shall be named `xloop`
 - **REQ-1.1.2**: Built with Bun.js runtime
 - **REQ-1.1.3**: Use AI-SDK for all AI-related operations
 - **REQ-1.1.4**: Anthropic API key loaded from `.env` file (`ANTHROPIC_API_KEY`)
 
 #### 1.2 Configuration File
+
 - **REQ-1.2.1**: Configuration stored in `.plans/xloop.config.json`
 - **REQ-1.2.2**: Configurable settings:
   - `defaultAgent`: `"claude"` | `"opencode"` (default: `"claude"`)
@@ -56,6 +59,7 @@ The tool maintains its state in a `.plans/` directory within the project, tracki
 - **REQ-1.2.3**: Config file auto-created with defaults on first run if not present
 
 #### 1.3 Global Flags
+
 - **REQ-1.3.1**: `--agent <opencode|claude>` — Override default agent for this invocation
 - **REQ-1.3.2**: `--help` — Display usage information
 - **REQ-1.3.3**: `--version` — Display version number
@@ -65,17 +69,19 @@ The tool maintains its state in a `.plans/` directory within the project, tracki
 ### 2. Directory Structure & State Management
 
 #### 2.1 Plans Directory
+
 - **REQ-2.1.1**: All xloop state stored in `.plans/` directory at project root
 - **REQ-2.1.2**: Directory auto-created if not present
 - **REQ-2.1.3**: Should be committed to version control (not gitignored)
 
 #### 2.2 File Naming Conventions
-| File Type | Pattern | Example |
-|-----------|---------|---------|
-| PRD | `prd-<feature-name>.md` | `prd-delete-button.md` |
-| Task List | `tasks-<feature-name>.yml` | `tasks-delete-button.yml` |
+
+| File Type    | Pattern                       | Example                      |
+| ------------ | ----------------------------- | ---------------------------- |
+| PRD          | `prd-<feature-name>.md`       | `prd-delete-button.md`       |
+| Task List    | `tasks-<feature-name>.yml`    | `tasks-delete-button.yml`    |
 | Progress Log | `progress-<feature-name>.txt` | `progress-delete-button.txt` |
-| Config | `xloop.config.json` | `xloop.config.json` |
+| Config       | `xloop.config.json`           | `xloop.config.json`          |
 
 - **REQ-2.2.1**: Feature names derived from PRD content, slugified (lowercase, hyphens, no special chars)
 - **REQ-2.2.2**: Feature name limited to 50 characters
@@ -85,6 +91,7 @@ The tool maintains its state in a `.plans/` directory within the project, tracki
 ### 3. Command: `--prds` (List PRDs)
 
 #### 3.1 Functionality
+
 - **REQ-3.1.1**: List all PRD files in `.plans/` directory
 - **REQ-3.1.2**: For each PRD, display:
   - PRD filename
@@ -96,6 +103,7 @@ The tool maintains its state in a `.plans/` directory within the project, tracki
   - `completed`: All tasks have status `completed`
 
 #### 3.2 Output Format
+
 ```
 PRDs in .plans/
 
@@ -117,6 +125,7 @@ PRDs in .plans/
 ### 4. Command: `--status` (Task Status)
 
 #### 4.1 Functionality
+
 - **REQ-4.1.1**: List all task files with uncompleted tasks
 - **REQ-4.1.2**: Exclude fully completed task files from output
 - **REQ-4.1.3**: For each task file, display:
@@ -125,6 +134,7 @@ PRDs in .plans/
   - Next task to be worked on (based on dependencies)
 
 #### 4.2 Output Format
+
 ```
 Active Task Lists:
 
@@ -144,6 +154,7 @@ No incomplete task lists? Run xloop --prd "your feature" to start!
 ### 5. Command: `--prd <text>` (Generate PRD)
 
 #### 5.1 Functionality
+
 - **REQ-5.1.1**: Accept feature description as text argument
 - **REQ-5.1.2**: Analyze current codebase to understand:
   - Project structure and architecture
@@ -156,44 +167,55 @@ No incomplete task lists? Run xloop --prd "your feature" to start!
 - **REQ-5.1.6**: Save final PRD to `.plans/prd-<feature-name>.md`
 
 #### 5.2 PRD Document Structure
+
 Generated PRDs shall contain these sections:
 
 ```markdown
 # PRD: <Feature Name>
 
 ## Overview
+
 Brief description of the feature and its purpose.
 
 ## Goals
+
 What this feature aims to achieve.
 
 ## Non-Goals
+
 What is explicitly out of scope.
 
 ## Requirements
 
 ### Functional Requirements
+
 - REQ-F-001: ...
 - REQ-F-002: ...
 
 ### Non-Functional Requirements
+
 - REQ-NF-001: ...
 
 ## Technical Considerations
+
 Architecture decisions, integration points, potential challenges.
 
 ## Acceptance Criteria
+
 - [ ] Criterion 1
 - [ ] Criterion 2
 
 ## Out of Scope
+
 Items explicitly not included in this feature.
 
 ## Open Questions
+
 Any unresolved questions (populated during interactive session).
 ```
 
 #### 5.3 Interactive Flow
+
 ```
 $ xloop --prd "I want to add a delete button to the user profile"
 
@@ -223,12 +245,14 @@ Generating PRD...
 ### 6. Command: `--prd-to-tasks <prd-file>` (Generate Task List)
 
 #### 6.1 Functionality
+
 - **REQ-6.1.1**: Accept path to PRD file as argument
 - **REQ-6.1.2**: Parse PRD and generate ordered task list
 - **REQ-6.1.3**: Tasks ordered by dependency (prerequisite tasks first)
 - **REQ-6.1.4**: Save to `.plans/tasks-<feature-name>.yml`
 
 #### 6.2 Task Schema
+
 ```yaml
 feature: delete-user-account
 prd: prd-delete-user-account.md
@@ -237,12 +261,12 @@ updated_at: 2025-01-28T10:30:00Z
 
 tasks:
   - id: task-001
-    title: "Create DeleteAccountModal component"
+    title: 'Create DeleteAccountModal component'
     description: |
       Create a new modal component that displays a confirmation dialog
       for account deletion. Should include a text input that requires
       the user to type "DELETE" to enable the confirm button.
-    status: pending  # pending | in_progress | completed | failed
+    status: pending # pending | in_progress | completed | failed
     dependencies: []
     acceptance_criteria:
       - Modal renders with warning message
@@ -250,9 +274,9 @@ tasks:
       - Confirm button disabled until validation passes
       - Cancel button closes modal without action
     completed_at: null
-    
+
   - id: task-002
-    title: "Add delete account API endpoint"
+    title: 'Add delete account API endpoint'
     description: |
       Create POST /api/user/delete endpoint that initiates soft delete.
       Should set deleted_at timestamp and schedule hard delete for 30 days.
@@ -266,7 +290,7 @@ tasks:
     completed_at: null
 
   - id: task-003
-    title: "Integrate DeleteAccountModal into ProfileSettings"
+    title: 'Integrate DeleteAccountModal into ProfileSettings'
     description: |
       Add "Delete Account" button to profile settings page that opens
       the DeleteAccountModal. Wire up the confirmation to call the API.
@@ -283,6 +307,7 @@ tasks:
 ```
 
 #### 6.3 Output
+
 ```
 $ xloop --prd-to-tasks .plans/prd-delete-user-account.md
 
@@ -307,10 +332,12 @@ Task Overview:
 ### 7. Command: `--do <tasks-file>` (Execute Tasks)
 
 #### 7.1 Flags
+
 - **REQ-7.1.1**: `--iterations <n>` or `-i <n>` — Number of tasks to attempt (required)
 - **REQ-7.1.2**: `--skip=review` — Skip the review phase for faster iteration (optional)
 
 #### 7.2 Architecture Overview
+
 xloop acts as a thin orchestration layer. For each iteration, it invokes the underlying agent (opencode/claude) up to 3 times with different prompts. The agent handles all file operations, task updates, and git commits.
 
 #### 7.3 Iteration Workflow — Three Agent Invocations
@@ -372,7 +399,9 @@ xloop acts as a thin orchestration layer. For each iteration, it invokes the und
 ```
 
 #### 7.4 xloop Responsibilities (Minimal)
+
 xloop itself only needs to:
+
 1. Parse CLI arguments
 2. Read the context files (AGENTS.md, tasks file, progress file)
 3. Construct and send prompts to the agent
@@ -383,18 +412,22 @@ xloop itself only needs to:
 The agent handles: task selection, implementation, file updates, and git commits.
 
 #### 7.5 Task File Manual Editing
+
 - **REQ-7.5.1**: Users may manually edit task files to add, remove, or reorder tasks
 - **REQ-7.5.2**: Agent must handle task files that have been modified externally
 - **REQ-7.5.3**: Manual edits should preserve YAML schema compliance
 
 #### 7.6 Failure Handling
+
 - **REQ-7.6.1**: If a task fails (agent cannot complete, tests fail, etc.), immediately exit
 - **REQ-7.6.2**: Do not mark failed task as completed
 - **REQ-7.6.3**: Display error message with details
 - **REQ-7.6.4**: On next `--do` invocation, same task will be selected (no resume logic needed)
 
 #### 7.7 Progress File Format
+
 `.plans/progress-<feature-name>.txt` (updated by agent in Invocation 3):
+
 ```
 ================================================================================
 ITERATION 1 - task-001: Create DeleteAccountModal component
@@ -424,6 +457,7 @@ Date: 2025-01-28T11:02:00Z
 ```
 
 #### 7.8 AGENTS.md Updates (by agent)
+
 - **REQ-7.8.1**: Located at project root `/AGENTS.md`
 - **REQ-7.8.2**: Created by agent if doesn't exist
 - **REQ-7.8.3**: Agent decides if anything useful for future agents was learned
@@ -435,6 +469,7 @@ Date: 2025-01-28T11:02:00Z
 - **REQ-7.8.5**: Append under fitting heading, or create new heading if none fits
 
 Example AGENTS.md entry:
+
 ```markdown
 ## Modal Components
 
@@ -449,6 +484,7 @@ generation. Forgetting this step will cause CI to fail.
 ```
 
 #### 7.9 Output During Execution
+
 ```
 $ xloop --do .plans/tasks-delete-user-account.yml -i 3
 
@@ -509,10 +545,12 @@ Committing...
 ### 8. Agent Integration
 
 #### 8.1 Supported Agents
+
 - **REQ-8.1.1**: `claude` — Claude Code CLI
 - **REQ-8.1.2**: `opencode` — opencode CLI
 
 #### 8.2 Agent Invocation
+
 - **REQ-8.2.1**: Agents spawned as subprocesses
 - **REQ-8.2.2**: Agent output streamed to console in real-time
 - **REQ-8.2.3**: Agent receives structured prompt with:
@@ -522,6 +560,7 @@ Committing...
   - Review feedback (during refactor pass)
 
 #### 8.3 Agent Selection Priority
+
 1. `--agent` flag (if provided)
 2. `defaultAgent` in config file
 3. Fallback: `claude`
@@ -531,12 +570,14 @@ Committing...
 ### 9. AI-SDK Integration
 
 #### 9.1 Usage
+
 - **REQ-9.1.1**: Use AI-SDK for non-agent AI operations:
   - PRD generation and refinement (`--prd`)
   - Task list generation (`--prd-to-tasks`)
 - **REQ-9.1.2**: The `--do` command uses the underlying agents (opencode/claude) directly, not AI-SDK
 
 #### 9.2 Model Configuration
+
 - **REQ-9.2.1**: Models configurable per operation type in config
 - **REQ-9.2.2**: All models must be Anthropic models
 - **REQ-9.2.3**: API key from `ANTHROPIC_API_KEY` environment variable
@@ -546,18 +587,20 @@ Committing...
 ### 10. Error Handling
 
 #### 10.1 Common Errors
-| Error | Behavior |
-|-------|----------|
-| Missing API key | Exit with message directing to .env setup |
-| Invalid PRD path | Exit with "File not found" message |
-| Invalid tasks path | Exit with "File not found" message |
-| Agent not found | Exit with installation instructions |
-| Git not initialized | Exit with "Please initialize git first" |
-| No uncommitted changes | Skip commit step (not an error) |
-| Task failure | Exit immediately with error details |
-| Network error | Retry 3 times with exponential backoff, then exit |
+
+| Error                  | Behavior                                          |
+| ---------------------- | ------------------------------------------------- |
+| Missing API key        | Exit with message directing to .env setup         |
+| Invalid PRD path       | Exit with "File not found" message                |
+| Invalid tasks path     | Exit with "File not found" message                |
+| Agent not found        | Exit with installation instructions               |
+| Git not initialized    | Exit with "Please initialize git first"           |
+| No uncommitted changes | Skip commit step (not an error)                   |
+| Task failure           | Exit immediately with error details               |
+| Network error          | Retry 3 times with exponential backoff, then exit |
 
 #### 10.2 Error Output Format
+
 ```
 ✗ Error: ANTHROPIC_API_KEY not found
 
@@ -572,6 +615,7 @@ Get your API key at: https://console.anthropic.com/
 ## Technical Considerations
 
 ### Dependencies
+
 - **Runtime**: Bun.js (latest stable)
 - **AI**: AI-SDK with Anthropic provider
 - **CLI Parsing**: Commander.js or similar
@@ -580,11 +624,13 @@ Get your API key at: https://console.anthropic.com/
 - **Git**: simple-git or shell commands
 
 ### File System
+
 - All paths relative to project root (where xloop is invoked)
 - `.plans/` directory created automatically
 - File operations should be atomic where possible
 
 ### Subprocess Management
+
 - Agent subprocesses inherit current working directory
 - stdout/stderr streamed to console
 - Exit codes checked for success/failure
@@ -594,6 +640,7 @@ Get your API key at: https://console.anthropic.com/
 ## Acceptance Criteria
 
 ### CLI Foundation
+
 - [ ] `xloop --help` displays usage information
 - [ ] `xloop --version` displays version
 - [ ] `xloop` with no args shows help
@@ -601,12 +648,14 @@ Get your API key at: https://console.anthropic.com/
 - [ ] Config file created with defaults on first use
 
 ### PRD Management
+
 - [ ] `xloop --prds` lists all PRDs with status
 - [ ] `xloop --prd "text"` generates PRD interactively
 - [ ] PRD includes all required sections
 - [ ] Codebase analysis informs PRD content
 
 ### Task Management
+
 - [ ] `xloop --status` shows incomplete task lists
 - [ ] `xloop --prd-to-tasks <file>` generates tasks
 - [ ] Tasks have correct schema with all fields
@@ -614,6 +663,7 @@ Get your API key at: https://console.anthropic.com/
 - [ ] Manual task file editing supported
 
 ### Execution
+
 - [ ] `xloop --do <file> -i <n>` executes n iterations
 - [ ] Each iteration invokes agent 3 times (implement → review → finalize)
 - [ ] `--skip=review` reduces to 2 invocations (implement → finalize)
@@ -622,6 +672,7 @@ Get your API key at: https://console.anthropic.com/
 - [ ] Failures exit immediately
 
 ### Agent Integration
+
 - [ ] `--agent` flag overrides default
 - [ ] Both opencode and claude agents supported
 - [ ] Agent output streams in real-time

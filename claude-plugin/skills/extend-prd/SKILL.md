@@ -24,9 +24,11 @@ Extract the feature name from the filename: `prd-<feature>.md` -> `<feature>`.
 ## Step 3: Process references
 
 If the requirement description contains file paths (e.g., `./docs/spec.md`):
+
 - Read those files and use as context
 
 If the requirement description contains URLs (e.g., `https://docs.stripe.com/api`):
+
 - Fetch those URLs and use as context
 
 If references fail to load, ask the user about their intended content.
@@ -35,6 +37,7 @@ If references fail to load, ask the user about their intended content.
 
 Ask up to 3 clarifying questions about the new requirement, one at a time.
 Focus on:
+
 - Scope of the new requirement relative to existing PRD
 - Integration with existing requirements
 - Edge cases specific to the addition
@@ -61,6 +64,7 @@ Read the existing PRD and update it:
 ## Step 6: Update or create tasks
 
 If `.plans/tasks-<feature>.yml` exists:
+
 - Read it and find the highest existing task ID number
 - Generate new tasks for the new requirements only
 - New task IDs continue from the highest existing (e.g., if task-005 exists, new tasks start at task-006)
@@ -69,6 +73,7 @@ If `.plans/tasks-<feature>.yml` exists:
 - Write the updated file
 
 If no task file exists, tell the user:
+
 ```
 PRD updated. Generate tasks with:
 /hone:prd-to-tasks .plans/prd-<feature>.md
@@ -82,6 +87,7 @@ Added <N> new requirements (REQ-F-XXX through REQ-F-YYY)
 ```
 
 If tasks were updated:
+
 ```
 Added <N> new tasks (task-XXX through task-YYY) to .plans/tasks-<feature>.yml
 ```

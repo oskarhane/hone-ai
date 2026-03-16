@@ -1,9 +1,11 @@
 # PRD: Replace Direct Anthropic Communication with Agent-Based LLM Communication
 
 ## Overview
+
 This feature replaces all direct Anthropic API calls in the codebase with agent-based communication, while maintaining model selection capabilities through phase-specific configuration. The system will route LLM requests through existing agent services instead of making direct API calls to Anthropic, enabling better abstraction and supporting multiple LLM providers through the agent layer.
 
 ## Goals
+
 - Eliminate direct Anthropic API calls throughout the codebase
 - Route all LLM communication through existing agent services
 - Maintain model selection functionality with phase-specific configurations
@@ -12,6 +14,7 @@ This feature replaces all direct Anthropic API calls in the codebase with agent-
 - Preserve existing chat functionality and user experience
 
 ## Non-Goals
+
 - Creating new agent services (will use existing ones)
 - Changing the user interface for model selection
 - Modifying agent service implementations
@@ -21,6 +24,7 @@ This feature replaces all direct Anthropic API calls in the codebase with agent-
 ## Requirements
 
 ### Functional Requirements
+
 - REQ-F-001: Replace all direct Anthropic API calls with agent service calls
 - REQ-F-002: Implement phase-specific model configuration (prd, prd-to-tasks, implement, review, finalize)
 - REQ-F-003: Maintain default model configuration (Claude Sonnet) for non-phase-specific operations
@@ -31,6 +35,7 @@ This feature replaces all direct Anthropic API calls in the codebase with agent-
 - REQ-F-008: Configure model settings in existing config file following current conventions
 
 ### Non-Functional Requirements
+
 - REQ-NF-001: Response latency should remain comparable to direct API calls
 - REQ-NF-002: System should handle agent service failures gracefully
 - REQ-NF-003: Configuration changes should not require application restart
@@ -40,6 +45,7 @@ This feature replaces all direct Anthropic API calls in the codebase with agent-
 ## Technical Considerations
 
 ### Architecture Decisions
+
 - Identify and map all current Anthropic API endpoints being used directly
 - Route chat completions through appropriate agent services
 - Implement configuration layer for phase-specific model selection
@@ -47,12 +53,14 @@ This feature replaces all direct Anthropic API calls in the codebase with agent-
 - Preserve streaming functionality through agent abstraction
 
 ### Integration Points
+
 - Chat service integration with agent services
 - Configuration service for phase-specific model settings
 - Error handling integration with agent service responses
 - Logging integration for agent service calls
 
 ### Potential Challenges
+
 - Agent service interface compatibility with existing chat flows
 - Streaming response handling through agent layer
 - Error mapping between agent services and current error handling
@@ -60,6 +68,7 @@ This feature replaces all direct Anthropic API calls in the codebase with agent-
 - Performance impact of additional abstraction layer
 
 ## Acceptance Criteria
+
 - [ ] All direct Anthropic API calls are removed from the codebase
 - [ ] Chat functionality works seamlessly through agent services
 - [ ] Phase-specific model configurations are implemented and functional
@@ -73,6 +82,7 @@ This feature replaces all direct Anthropic API calls in the codebase with agent-
 - [ ] Unused dependencies removed from dependency config
 
 ## Out of Scope
+
 - Creating new agent service implementations
 - Modifying existing agent service APIs or interfaces
 - Adding support for new LLM providers not already supported by agents
@@ -82,6 +92,7 @@ This feature replaces all direct Anthropic API calls in the codebase with agent-
 - Authentication/authorization changes for agent services
 
 ## Open Questions
+
 1. Which specific agent service should be used for different types of LLM requests (chat vs. code generation vs. review)? The agent service is selected via --agent. The model should b sonnet by default, but surface errors to users, if any.
 2. How should model availability validation work when an agent doesn't support a configured model? Surface error to user.
 3. Should there be fallback logic if a phase-specific model fails or is unavailable?

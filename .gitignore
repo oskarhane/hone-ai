@@ -1,25 +1,8 @@
 # dependencies (bun install)
 node_modules
 
-# output
-out
-dist
-*.tgz
-
-# build output
-/hone-*
-xloop
-xloop.map
-index.js.map
-
-# code coverage
-coverage
-*.lcov
-
-# logs
-logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+# caches
+.cache
 
 # dotenv environment variable files
 .env
@@ -28,21 +11,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.production.local
 .env.local
 
-# caches
-.eslintcache
-.cache
-*.tsbuildinfo
-
 # IntelliJ based IDEs
 .idea
 
 # Finder (MacOS) folder config
 .DS_Store
-
-# integration test directories
-test-cli-integration
-.plans-test
-test-agents-md-cli-integration
-test-workspace-prune-integration
-test-atomic-operations
-.test-*

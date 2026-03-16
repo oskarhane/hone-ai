@@ -8,7 +8,7 @@ tasks:
     title: "Update TypeScript interfaces for v2 config schema"
     description: |
       Add AgentModelConfig interface and update HoneConfig to v2 shape in config.ts. Add LegacyConfig interface for migration input typing. Export AgentModelConfig so tests can reference it.
-      
+
     status: completed
     dependencies: []
     acceptance_criteria:
@@ -23,7 +23,7 @@ tasks:
     title: "Update DEFAULT_CONFIG and hardcoded model constants"
     description: |
       Replace the flat DEFAULT_CONFIG with a v2-shaped constant using the new HoneConfig interface. Define HARDCODED_DEFAULTS for claude and opencode as named constants so they can be reused in resolution and tests.
-      
+
     status: completed
     dependencies:
       - task-001
@@ -39,7 +39,7 @@ tasks:
     title: "Implement migrateV1ToV2 function"
     description: |
       Write a pure migrateV1ToV2(v1: LegacyConfig): HoneConfig function in config.ts. Phase keys from v1.models are copied only into the defaultAgent's models block; bare agent strings (claude, opencode) go into their respective model fields.
-      
+
     status: completed
     dependencies:
       - task-001
@@ -57,7 +57,7 @@ tasks:
     title: "Update loadConfig to detect v1 and auto-migrate"
     description: |
       In loadConfig(), after reading YAML, check for absence of version field to detect v1. If v1, call migrateV1ToV2 and write the migrated config back to disk before returning it. Also update loadConfigWithoutCreation() similarly.
-      
+
     status: completed
     dependencies:
       - task-003
@@ -73,7 +73,7 @@ tasks:
     title: "Update resolveModelForPhase for v2 lookup"
     description: |
       Change the internal lookup in resolveModelForPhase to read config[resolvedAgent].models[phase]. Remove all shared phase-key logic. Fall back directly to hardcoded default for the agent (no agent-level model field fallback in the chain).
-      
+
     status: completed
     dependencies:
       - task-002
@@ -89,7 +89,7 @@ tasks:
     title: "Update validateConfig for v2 agent-specific blocks"
     description: |
       Rewrite validateConfig to iterate over config.claude.models and config.opencode.models entries, validating each with the existing regex. Remove all references to the old flat config.models structure.
-      
+
     status: completed
     dependencies:
       - task-001
@@ -105,7 +105,7 @@ tasks:
     title: "Update resolveAgentWithoutConfigCreation and resolveAgent for v2"
     description: |
       Update resolveAgentWithoutConfigCreation to read config.agent instead of config.defaultAgent. Update resolveAgent similarly. Both should continue to work correctly after v2 migration.
-      
+
     status: completed
     dependencies:
       - task-004
@@ -121,7 +121,7 @@ tasks:
     title: "Update saveConfig and initProject for v2 format"
     description: |
       Ensure saveConfig always serializes in v2 YAML format with logical agent grouping. Update initProject to write DEFAULT_CONFIG (now v2) for new projects.
-      
+
     status: completed
     dependencies:
       - task-002
@@ -137,7 +137,7 @@ tasks:
     title: "Rewrite config.test.ts for v2 schema"
     description: |
       Update all test fixtures from v1 HoneConfig shape to v2 shape. Rewrite Model Resolution and Config Validation describe blocks to use agent-nested models. Add new tests for migrateV1ToV2 covering all migration rules and idempotency.
-      
+
     status: completed
     dependencies:
       - task-003
@@ -158,7 +158,7 @@ tasks:
     title: "Update .plans/hone.config.yml to v2 format"
     description: |
       Manually migrate the repo's own .plans/hone.config.yml from v1 to v2 format following the migration rules. Phase keys (review, agentsMd) go into the claude block since defaultAgent is claude.
-      
+
     status: completed
     dependencies:
       - task-003
@@ -175,7 +175,7 @@ tasks:
     title: "Run full test suite and fix any regressions"
     description: |
       Run bun test and bun run tsc --noEmit to verify no regressions across all test files. Fix any type errors or test failures caused by the HoneConfig shape change in files outside config.ts.
-      
+
     status: completed
     dependencies:
       - task-009

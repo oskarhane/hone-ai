@@ -25,6 +25,7 @@ Analyze the PRD and break it down into implementable tasks. Each task must have:
 - **completed_at**: Always `null` for new tasks
 
 Order tasks by implementation priority:
+
 1. Dependencies and infrastructure first
 2. Core abstractions and architectural decisions
 3. Integration points between modules
@@ -45,31 +46,32 @@ updated_at: <ISO-8601-datetime>
 
 tasks:
   - id: task-001
-    title: "<title>"
+    title: '<title>'
     description: |
       <description text>
     status: pending
     dependencies: []
     acceptance_criteria:
-      - "<criterion 1>"
-      - "<criterion 2>"
-      - "<criterion 3>"
+      - '<criterion 1>'
+      - '<criterion 2>'
+      - '<criterion 3>'
     completed_at: null
 
   - id: task-002
-    title: "<title>"
+    title: '<title>'
     description: |
       <description text>
     status: pending
     dependencies:
       - task-001
     acceptance_criteria:
-      - "<criterion 1>"
-      - "<criterion 2>"
+      - '<criterion 1>'
+      - '<criterion 2>'
     completed_at: null
 ```
 
 IMPORTANT formatting rules:
+
 - Use `|` for multi-line description blocks
 - Quote titles and acceptance criteria strings with double quotes
 - Use `[]` for empty dependencies arrays

@@ -19,6 +19,7 @@ Review the changes just made for quality, correctness, and adherence to project 
 # REVIEW CHECKLIST
 
 Check for:
+
 1. Correctness - Does the implementation match requirements?
 2. Tests - Are there adequate tests? Do they pass?
 3. Security - Any security concerns or vulnerabilities?
@@ -36,6 +37,7 @@ Check for:
 # GIT DIFF
 
 Use git diff to see what changed:
+
 - `git diff HEAD` - see unstaged changes
 - `git diff --staged` - see staged changes
 - `git log -1 -p` - see last commit if already committed
@@ -45,6 +47,7 @@ Use git diff to see what changed:
 Provide specific, actionable feedback. If everything looks good, say "LGTM" (Looks Good To Me).
 
 Structure your feedback as:
+
 - **Issue**: Description of the problem
 - **Suggestion**: How to fix it
 - **Priority**: critical | high | medium | low

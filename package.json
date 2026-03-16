@@ -2,24 +2,8 @@
   "name": "hone-ai",
   "version": "0.25.0",
   "description": "AI coding agent orchestrator - orchestrate AI agents to implement features based on PRDs",
-  "keywords": [
-    "ai",
-    "agent",
-    "orchestrator",
-    "automation",
-    "prd",
-    "development",
-    "claude",
-    "opencode"
-  ],
   "author": "Oskar Hane <oskar.hane@gmail.com>",
   "license": "MIT",
-  "files": [
-    "src/",
-    "skills/",
-    "README.md",
-    "package.json"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/oskarhane/hone-ai.git"
@@ -28,35 +12,11 @@
     "url": "https://github.com/oskarhane/hone-ai/issues"
   },
   "homepage": "https://github.com/oskarhane/hone-ai#readme",
-  "module": "src/index.ts",
   "type": "module",
-  "bin": {
-    "hone": "src/index.ts"
-  },
   "scripts": {
-    "test": "bun test",
-    "build": "bun run build:linux && bun run build:macos",
-    "format": "prettier --write \"**/*.ts\"",
-    "build:linux": "bun build --compile --minify --sourcemap --target=bun-linux-x64 ./src/index.ts --outfile hone-linux",
-    "build:macos": "bun build --compile --minify --sourcemap --target=bun-darwin-arm64 ./src/index.ts --outfile hone-macos",
-    "format:yaml": "prettier --write \"**/*.yml\" \"**/*.yaml\"",
-    "lint:yaml": "yamllint -c .yamllint.yml **/*.yml **/*.yaml",
-    "check:yaml": "bun run lint:yaml && prettier --check \"**/*.yml\" \"**/*.yaml\"",
-    "generate:skill": "bun run scripts/generate-skill-content.ts",
-    "prepublishOnly": "bun run generate:skill"
+    "format": "prettier --write \"**/*.md\" \"**/*.yml\""
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "@types/js-yaml": "^4.0.9",
-    "prettier": "^3.8.1",
-    "yaml-lint": "^1.7.0"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "ai": "^6.0.57",
-    "commander": "^14.0.2",
-    "js-yaml": "^4.1.1"
+    "prettier": "^3.8.1"
   }
 }

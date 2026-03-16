@@ -15,6 +15,7 @@ Archive completed PRDs to `.plans/archive/`:
    - If all tasks done, this PRD is eligible for archiving
 
 4. If no completed PRDs found:
+
    ```
    No completed PRDs found to archive.
    Complete some tasks with: /hone:run <task-file> -i <N>
