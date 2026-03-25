@@ -1,5 +1,14 @@
 {
   "name": "hone",
-  "version": "1.2.0",
-  "description": "AI Coding Agent Orchestrator - PRD to tasks to implementation loop"
+  "version": "1.3.0",
+  "description": "AI Coding Agent - PRD to tasks to implementation loop",
+  "author": {
+    "name": "Oskar Hane",
+    "email": "oskar.hane@gmail.com",
+    "url": "https://github.com/oskarhane"
+  },
+  "homepage": "https://github.com/oskarhane/hone-ai",
+  "repository": "https://github.com/oskarhane/hone-ai",
+  "license": "MIT",
+  "keywords": ["ai", "agent", "orchestrator", "automation", "prd", "development", "claude"]
 }
