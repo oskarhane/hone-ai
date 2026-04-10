@@ -9,8 +9,10 @@ Execute the hone task implementation loop.
 If you're on the git main/master/trunk branch or a feature branch that's unrelated to this feature, ask the user if they want you to create a new git branch (suggest a good name) for this feature.
 
 Check if the PRD file (`.plans/prd-<feature>.md`) and tasks file (`<tasks-file>`) have uncommitted changes or are untracked. If so, commit them before starting any iteration:
+
 - `git add .plans/prd-<feature>.md <tasks-file>`
 - `git commit -m "<feature>: add PRD and tasks"`
+
 Skip this if both files are already tracked and committed with no changes.
 
 ## Step 1: Parse arguments
