@@ -53,3 +53,22 @@ Key Decisions:
   explicit init step needed since /hone:prd creates .plans/ on demand.
 
 Next Task: task-004
+
+================================================================================
+TASK-004: Remove Configuration section and /hone:init refs from top-level README.md
+Date: 2026-04-17T09:15:00Z
+================================================================================
+
+Summary:
+Removed /hone:init row from Skills Workflow table, dropped hone.config.yml
+from File Structure, and deleted entire Configuration section from top-level
+README.md. Mirrors task-003 treatment of plugin README.
+
+Files Changed:
+- README.md (modified — 3 removals)
+
+Key Decisions:
+- No explicit first-time setup redirect needed; README already guided users
+  through /hone:agents-md → /hone:prd. No additional transition edits.
+
+Next Task: task-005

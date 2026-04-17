@@ -66,7 +66,6 @@ All skills are invoked via `/hone:<skill-name>`.
 
 | Skill                | Description                            | Example                                                |
 | -------------------- | -------------------------------------- | ------------------------------------------------------ |
-| `/hone:init`         | Initialize hone in current directory   | `/hone:init`                                           |
 | `/hone:agents-md`    | Generate AGENTS.md project docs        | `/hone:agents-md --overwrite`                          |
 | `/hone:prd`          | Generate PRD from feature description  | `/hone:prd "Add user authentication"`                  |
 | `/hone:prd-to-tasks` | Generate task YAML from PRD            | `/hone:prd-to-tasks .plans/prd-user-auth.md`           |
@@ -208,27 +207,11 @@ PRDs are eligible for archiving when all tasks have status `completed` or `cance
 ```
 project-root/
 ├── .plans/
-│   ├── hone.config.yml            # Configuration
 │   ├── prd-<feature>.md           # Requirements
 │   ├── tasks-<feature>.yml        # Task breakdown
 │   ├── progress-<feature>.txt     # Development log
 │   └── archive/                   # Archived completed features
 └── AGENTS.md                      # AI learning notes and feedback commands
-```
-
-## Configuration
-
-Edit `.plans/hone.config.yml`:
-
-```yaml
-version: 2
-agent: claude
-claude:
-  models: {}
-opencode:
-  models: {}
-agentsDocsDir: '.agents/'
-lintCommand: 'npm run lint' # Optional extra lint command
 ```
 
 ## Claude Code Permissions

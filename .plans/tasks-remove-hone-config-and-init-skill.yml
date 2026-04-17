@@ -57,7 +57,7 @@ tasks:
       Edit the top-level `README.md` to drop the Configuration section (currently lines 211, 221-231)
       and remove any references to `/hone:init`. Apply the same treatment as the plugin README:
       redirect first-time setup language to `/hone:prd`. Minimal transition edits only.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -65,7 +65,7 @@ tasks:
       - "Top-level README.md has no /hone:init references"
       - "First-time setup instructions point to /hone:prd instead of /hone:init"
       - "rg 'hone\\.config|lintCommand|hone:init' README.md returns zero hits"
-    completed_at: null
+    completed_at: 2026-04-17T09:15:00Z
 
   - id: task-005
     title: "Bump plugin version 1.4.0 -> 1.5.0"
