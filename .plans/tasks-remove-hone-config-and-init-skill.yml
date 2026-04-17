@@ -41,7 +41,7 @@ tasks:
       and remove any references to `/hone:init`. Where init was described as a first-time setup
       step, redirect users to `/hone:prd` (which creates `.plans/` on demand). Keep surrounding
       structure intact; tweak transitions only as needed.
-    status: pending
+    status: completed
     dependencies:
       - task-001
     acceptance_criteria:
@@ -49,7 +49,7 @@ tasks:
       - "claude-plugin/README.md has no /hone:init references"
       - "First-time setup instructions point to /hone:prd instead of /hone:init"
       - "rg 'hone\\.config|lintCommand|hone:init' claude-plugin/README.md returns zero hits"
-    completed_at: null
+    completed_at: 2026-04-17T09:00:00Z
 
   - id: task-004
     title: "Remove Configuration section and /hone:init refs from top-level README.md"

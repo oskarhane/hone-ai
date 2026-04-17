@@ -31,7 +31,6 @@ All skills are invoked via `/hone:<skill-name>`.
 
 | Skill                | Description                            | Example                                                |
 | -------------------- | -------------------------------------- | ------------------------------------------------------ |
-| `/hone:init`         | Initialize hone in current directory   | `/hone:init`                                           |
 | `/hone:agents-md`    | Generate AGENTS.md project docs        | `/hone:agents-md --overwrite`                          |
 | `/hone:prd`          | Generate PRD from feature description  | `/hone:prd "Add user authentication"`                  |
 | `/hone:prd-to-tasks` | Generate task YAML from PRD            | `/hone:prd-to-tasks .plans/prd-user-auth.md`           |
@@ -49,7 +48,6 @@ All skills are invoked via `/hone:<skill-name>`.
 ## Common Workflow
 
 ```
-/hone:init
 /hone:agents-md
 /hone:prd "Add user login with email and password"
 # Review .plans/prd-user-login.md
@@ -71,25 +69,9 @@ Unlike the hone CLI (which spawns `claude -p` as subprocesses), this plugin runs
 
 ```
 .plans/
-├── hone.config.yml          # Configuration
 ├── prd-<feature>.md         # PRD documents
 ├── tasks-<feature>.yml      # Task breakdowns
 ├── progress-<feature>.txt   # Development logs
 └── archive/                 # Completed features
 AGENTS.md                    # Project docs and feedback commands
-```
-
-## Configuration
-
-Edit `.plans/hone.config.yml`:
-
-```yaml
-version: 2
-agent: claude
-claude:
-  models: {}
-opencode:
-  models: {}
-agentsDocsDir: '.agents/'
-lintCommand: 'npm run lint' # Optional extra lint command
 ```

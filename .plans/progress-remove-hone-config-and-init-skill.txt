@@ -34,3 +34,22 @@ Key Decisions:
 - No replacement for lintCommand fallback; AGENTS.md is authoritative.
 
 Next Task: task-003
+
+================================================================================
+TASK-003: Remove Configuration section and /hone:init refs from claude-plugin/README.md
+Date: 2026-04-17T09:00:00Z
+================================================================================
+
+Summary:
+Removed /hone:init row from Skills workflow table, dropped /hone:init from
+Common Workflow snippet, removed hone.config.yml entry from File Structure,
+and deleted the entire Configuration section from claude-plugin/README.md.
+
+Files Changed:
+- claude-plugin/README.md (modified — 3 small removals + deleted Configuration section)
+
+Key Decisions:
+- First-time setup now flows directly into /hone:agents-md → /hone:prd; no
+  explicit init step needed since /hone:prd creates .plans/ on demand.
+
+Next Task: task-004
