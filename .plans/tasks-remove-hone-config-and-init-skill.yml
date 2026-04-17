@@ -1,0 +1,86 @@
+feature: remove-hone-config-and-init-skill
+prd: ./prd-remove-hone-config-and-init-skill.md
+created_at: 2026-04-17T08:18:22Z
+updated_at: 2026-04-17T08:18:22Z
+
+tasks:
+  - id: task-001
+    title: "Delete the /hone:init skill directory"
+    description: |
+      Remove the entire `claude-plugin/skills/init/` directory so `/hone:init` is no longer offered.
+      The skill's only remaining action was `mkdir .plans/`, which `/hone:prd` already does itself
+      (claude-plugin/skills/prd/SKILL.md:9). No replacement is needed.
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "claude-plugin/skills/init/ directory no longer exists"
+      - "No files remain under claude-plugin/skills/init/"
+      - "git status shows only the deletion of the init skill files"
+    completed_at: 2026-04-17T08:30:00Z
+
+  - id: task-002
+    title: "Remove hone.config.yml references from /hone:run skill"
+    description: |
+      Edit `claude-plugin/skills/run/SKILL.md` to drop the two references to `.plans/hone.config.yml`.
+      Remove the CONTEXT FILES bullet (currently line 63) and the `lintCommand` fallback sentence
+      (currently line 105: "If AGENTS.md has no feedback instructions and .plans/hone.config.yml
+      has a lintCommand, run that."). AGENTS.md becomes the sole source of feedback commands.
+    status: completed
+    dependencies: []
+    acceptance_criteria:
+      - "claude-plugin/skills/run/SKILL.md no longer mentions hone.config.yml"
+      - "claude-plugin/skills/run/SKILL.md no longer mentions lintCommand"
+      - "The surrounding CONTEXT FILES and FEEDBACK LOOPS sections still read cleanly after removal"
+      - "rg 'hone\\.config|lintCommand' claude-plugin/skills/run/SKILL.md returns zero hits"
+    completed_at: 2026-04-17T08:45:00Z
+
+  - id: task-003
+    title: "Remove Configuration section and /hone:init refs from claude-plugin/README.md"
+    description: |
+      Edit `claude-plugin/README.md` to drop the Configuration section (currently lines 74, 84-95)
+      and remove any references to `/hone:init`. Where init was described as a first-time setup
+      step, redirect users to `/hone:prd` (which creates `.plans/` on demand). Keep surrounding
+      structure intact; tweak transitions only as needed.
+    status: completed
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "claude-plugin/README.md has no Configuration section"
+      - "claude-plugin/README.md has no /hone:init references"
+      - "First-time setup instructions point to /hone:prd instead of /hone:init"
+      - "rg 'hone\\.config|lintCommand|hone:init' claude-plugin/README.md returns zero hits"
+    completed_at: 2026-04-17T09:00:00Z
+
+  - id: task-004
+    title: "Remove Configuration section and /hone:init refs from top-level README.md"
+    description: |
+      Edit the top-level `README.md` to drop the Configuration section (currently lines 211, 221-231)
+      and remove any references to `/hone:init`. Apply the same treatment as the plugin README:
+      redirect first-time setup language to `/hone:prd`. Minimal transition edits only.
+    status: completed
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Top-level README.md has no Configuration section"
+      - "Top-level README.md has no /hone:init references"
+      - "First-time setup instructions point to /hone:prd instead of /hone:init"
+      - "rg 'hone\\.config|lintCommand|hone:init' README.md returns zero hits"
+    completed_at: 2026-04-17T09:15:00Z
+
+  - id: task-005
+    title: "Bump plugin version 1.4.0 -> 1.5.0"
+    description: |
+      Update the `version` field in `claude-plugin/.claude-plugin/plugin.json` from `1.4.0` to
+      `1.5.0`. This is a minor bump because the lintCommand fallback removal is a behavioral
+      change (users relying on it must move the command into AGENTS.md).
+    status: completed
+    dependencies:
+      - task-001
+      - task-002
+      - task-003
+      - task-004
+    acceptance_criteria:
+      - "claude-plugin/.claude-plugin/plugin.json shows version 1.5.0"
+      - "No other fields in plugin.json are changed"
+      - "JSON remains valid and properly formatted"
+    completed_at: 2026-04-17T09:30:00Z

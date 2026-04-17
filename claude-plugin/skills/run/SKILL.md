@@ -60,7 +60,6 @@ Read the following files before doing anything else:
 - <tasks-file> (the task YAML file — this is your source of truth for tasks)
 - .plans/progress-<feature>.txt (development log — read if it exists)
 - AGENTS.md (CRITICAL: contains feedback commands for this project — test, build, lint, format)
-- .plans/hone.config.yml (if exists, check for lintCommand)
 
 ## TASK SELECTION
 
@@ -101,8 +100,6 @@ Run feedback loops ONLY when the task implementation is complete.
 
 IMPORTANT: Get the feedback commands from AGENTS.md — they are project-specific.
 Look for the "Feedback Instructions" section which lists TEST COMMANDS, BUILD COMMANDS, LINT COMMANDS, and FORMAT COMMANDS. Run these commands.
-
-If AGENTS.md has no feedback instructions and .plans/hone.config.yml has a lintCommand, run that.
 
 If CLI or script, run them and verify output.
 
