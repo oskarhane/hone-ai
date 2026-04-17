@@ -73,7 +73,7 @@ tasks:
       Update the `version` field in `claude-plugin/.claude-plugin/plugin.json` from `1.4.0` to
       `1.5.0`. This is a minor bump because the lintCommand fallback removal is a behavioral
       change (users relying on it must move the command into AGENTS.md).
-    status: pending
+    status: completed
     dependencies:
       - task-001
       - task-002
@@ -83,4 +83,4 @@ tasks:
       - "claude-plugin/.claude-plugin/plugin.json shows version 1.5.0"
       - "No other fields in plugin.json are changed"
       - "JSON remains valid and properly formatted"
-    completed_at: null
+    completed_at: 2026-04-17T09:30:00Z

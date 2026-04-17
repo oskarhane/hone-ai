@@ -72,3 +72,22 @@ Key Decisions:
   through /hone:agents-md → /hone:prd. No additional transition edits.
 
 Next Task: task-005
+
+================================================================================
+TASK-005: Bump plugin version 1.4.0 -> 1.5.0
+Date: 2026-04-17T09:30:00Z
+================================================================================
+
+Summary:
+Bumped claude-plugin/.claude-plugin/plugin.json version from 1.4.0 to 1.5.0.
+Minor bump reflects behavioral change: lintCommand fallback removed, AGENTS.md
+now sole source of feedback commands.
+
+Files Changed:
+- claude-plugin/.claude-plugin/plugin.json (modified — version bump only)
+
+Key Decisions:
+- Minor (not patch) because lintCommand fallback removal breaks users relying
+  on it.
+
+Next Task: All tasks complete
