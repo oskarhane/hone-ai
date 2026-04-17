@@ -15,3 +15,22 @@ Key Decisions:
 - No replacement skill; /hone:prd covers .plans/ creation.
 
 Next Task: task-002
+
+================================================================================
+TASK-002: Remove hone.config.yml references from /hone:run skill
+Date: 2026-04-17T08:45:00Z
+================================================================================
+
+Summary:
+Removed two references to .plans/hone.config.yml from
+claude-plugin/skills/run/SKILL.md: the CONTEXT FILES bullet and the lintCommand
+fallback sentence in FEEDBACK LOOPS. AGENTS.md is now the sole source of
+feedback commands.
+
+Files Changed:
+- claude-plugin/skills/run/SKILL.md (modified — deleted two lines)
+
+Key Decisions:
+- No replacement for lintCommand fallback; AGENTS.md is authoritative.
+
+Next Task: task-003

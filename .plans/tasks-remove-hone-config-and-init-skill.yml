@@ -25,14 +25,14 @@ tasks:
       Remove the CONTEXT FILES bullet (currently line 63) and the `lintCommand` fallback sentence
       (currently line 105: "If AGENTS.md has no feedback instructions and .plans/hone.config.yml
       has a lintCommand, run that."). AGENTS.md becomes the sole source of feedback commands.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "claude-plugin/skills/run/SKILL.md no longer mentions hone.config.yml"
       - "claude-plugin/skills/run/SKILL.md no longer mentions lintCommand"
       - "The surrounding CONTEXT FILES and FEEDBACK LOOPS sections still read cleanly after removal"
       - "rg 'hone\\.config|lintCommand' claude-plugin/skills/run/SKILL.md returns zero hits"
-    completed_at: null
+    completed_at: 2026-04-17T08:45:00Z
 
   - id: task-003
     title: "Remove Configuration section and /hone:init refs from claude-plugin/README.md"
