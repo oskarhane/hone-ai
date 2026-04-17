@@ -10,13 +10,13 @@ tasks:
       Remove the entire `claude-plugin/skills/init/` directory so `/hone:init` is no longer offered.
       The skill's only remaining action was `mkdir .plans/`, which `/hone:prd` already does itself
       (claude-plugin/skills/prd/SKILL.md:9). No replacement is needed.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "claude-plugin/skills/init/ directory no longer exists"
       - "No files remain under claude-plugin/skills/init/"
       - "git status shows only the deletion of the init skill files"
-    completed_at: null
+    completed_at: 2026-04-17T08:30:00Z
 
   - id: task-002
     title: "Remove hone.config.yml references from /hone:run skill"

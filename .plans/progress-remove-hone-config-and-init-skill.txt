@@ -1,0 +1,17 @@
+================================================================================
+TASK-001: Delete the /hone:init skill directory
+Date: 2026-04-17T08:30:00Z
+================================================================================
+
+Summary:
+Deleted claude-plugin/skills/init/ directory. The /hone:init skill only did
+mkdir .plans/ + created hone.config.yml; /hone:prd handles .plans/ creation,
+and config is going away.
+
+Files Changed:
+- claude-plugin/skills/init/SKILL.md (deleted)
+
+Key Decisions:
+- No replacement skill; /hone:prd covers .plans/ creation.
+
+Next Task: task-002
