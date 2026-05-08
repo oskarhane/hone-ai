@@ -169,29 +169,19 @@ Read the following files again (they may have changed during implementation):
 4. **Update Progress File**
    - Append to .plans/progress-<feature>.txt with this format:
      ```
-     ================================================================================
-     TASK-XXX: <task-title>
-     Date: <ISO-8601-datetime>
-     ================================================================================
-
-     Summary:
-     <concise summary of what was done>
-
-     Files Changed:
-     - file1.ts (created/modified/deleted with brief description)
-     - file2.ts (...)
-
-     Key Decisions:
-     - Decision 1
-     - Decision 2
-
-     Next Task: <next-task-id> or "All tasks complete"
+     ## TASK-XXX — <ISO-8601-datetime>
+     <1–2 sentence summary>
+     Files: +new.ts, ~mod.ts, -del.ts
+     Decisions: <only if non-obvious; one short bullet or inline; omit line if none>
      ```
+   - Files line uses status markers: `+` new, `~` modified, `-` deleted; for renames use `>old=>new`. Comma-separated paths only — no per-file prose.
+   - Be dense. No filler. Skip the Decisions line entirely if nothing non-obvious.
 
-5. **Update AGENTS.md file**
-   - Add useful learnings and gotchas under appropriate heading
-   - Be terse — only add truly useful info that future agents need
-   - Don't duplicate existing info
+5. **Update AGENTS.md (rare)**
+   - Default: do NOT edit AGENTS.md. Most tasks add nothing.
+   - Only add a note if it is BOTH (a) non-obvious from the code, and (b) applicable to ANY future task in this repo (not just this feature).
+   - One terse line per note. No prose paragraphs. No task-specific context.
+   - If unsure whether it qualifies, skip it.
 
 6. **Git Commit** (REQUIRED — DO NOT SKIP THIS STEP)
    - You MUST create a git commit for this task to be considered complete
