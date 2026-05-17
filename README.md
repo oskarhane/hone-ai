@@ -34,29 +34,36 @@ That's it! You're ready to use hone.
 ## Common Workflow
 
 ```
-# 1. Generate project documentation (if no AGENTS.md exists). A one time thing.
-/hone:agents-md
+# 1. Enter plan mode in Claude Code (shift+tab) and describe the feature.
+#    Iterate on the plan until you're happy. When Claude Code asks to start
+#    implementing, instead reply in free text something like:
+#    "don't implement — exit plan mode and pass this plan to /hone:prd"
 
-# 2. Create a PRD from your feature description
-/hone:prd "Add user login with email and password"
+# 2. Manually review the generated PRD
+#    Edit .plans/prd-<feature>.md as needed
 
-# 3. Manually review the generated PRD
-#    Edit .plans/prd-user-login.md as needed
+# 3. Generate tasks from the PRD
+/hone:prd-to-tasks .plans/prd-<feature>.md
 
-# 4. Generate tasks from the PRD
-/hone:prd-to-tasks .plans/prd-user-login.md
+# 4. (Optional) Extend PRD with additional requirements
+/hone:extend-prd .plans/prd-<feature>.md "Add two-factor authentication"
 
-# 5. (Optional) Extend PRD with additional requirements
-/hone:extend-prd .plans/prd-user-login.md "Add two-factor authentication"
+# 5. Implement the feature
+/hone:run .plans/tasks-<feature>.yml -i 10
 
-# 6. Implement the feature
-/hone:run .plans/tasks-user-login.yml -i 10
-
-# 7. Archive completed features (optional)
+# 6. Archive completed features (optional)
 /hone:prune
 ```
 
 hone will implement the feature, run tests, and commit changes automatically.
+
+### One-time setup: AGENTS.md
+
+If your project doesn't already have an `AGENTS.md`, generate one before running the workflow above. This is a one-time thing per project.
+
+```
+/hone:agents-md
+```
 
 ## Skills
 
