@@ -4,14 +4,23 @@ description: Execute the hone implement/review/finalize loop. Claude directly im
 
 Execute the hone task implementation loop.
 
+## VCS detection (run once at start)
+
+Determine two facts and reuse them for the whole loop:
+
+1. **VCS in use.** Default to `git`. If you detect a different VCS in the repo root (e.g. a `.jj/`, `.hg/`, `.sl/` directory, or another clear signal), use that VCS instead. For any non-git VCS, substitute the equivalent stage / commit / log / check-ignore commands — do not run `git` commands.
+2. **`PLANS_IGNORED`.** Run the VCS's ignore-check against `.plans/` (for git: `git check-ignore -q .plans/`; for others, the equivalent). Set `PLANS_IGNORED=true` if ignored, otherwise `false`.
+
+These two facts gate every commit step below.
+
 ## Pre-step
 
-If you're on the git main/master/trunk branch or a feature branch that's unrelated to this feature, ask the user if they want you to create a new git branch (suggest a good name) for this feature.
+If you're on the VCS main/master/trunk branch or a feature branch that's unrelated to this feature, ask the user if they want you to create a new branch (suggest a good name) for this feature.
 
-Check if the PRD file (`.plans/prd-<feature>.md`) and tasks file (`<tasks-file>`) have uncommitted changes or are untracked. If so, commit them before starting any iteration:
+Check if the PRD file (`.plans/prd-<feature>.md`) and tasks file (`<tasks-file>`) have uncommitted changes or are untracked. Commit them before starting any iteration:
 
-- `git add .plans/prd-<feature>.md <tasks-file>`
-- `git commit -m "<feature>: add PRD and tasks"`
+- If `PLANS_IGNORED=true`: skip this commit entirely — the planning files are intentionally untracked.
+- Otherwise, using the detected VCS, stage `.plans/prd-<feature>.md` and `<tasks-file>` and commit with message `<feature>: add PRD and tasks`. For git this is `git add … && git commit -m …`; for other VCSes, use the equivalent.
 
 Skip this if both files are already tracked and committed with no changes.
 
@@ -183,20 +192,18 @@ Read the following files again (they may have changed during implementation):
    - One terse line per note. No prose paragraphs. No task-specific context.
    - If unsure whether it qualifies, skip it.
 
-6. **Git Commit** (REQUIRED — DO NOT SKIP THIS STEP)
-   - You MUST create a git commit for this task to be considered complete
-   - Stage all changes using: `git add <files>`
-     * Task file (.plans/tasks-<feature>.yml)
-     * Progress file (.plans/progress-<feature>.txt)
-     * All code changes
-     * AGENTS.md (if you updated it)
-   - Commit with format: `<feature>-<task-id>: <descriptive message>`
-   - Example: `git commit -m "user-auth-task-003: add password hashing with bcrypt"`
-   - Verify commit succeeded by checking `git log -1` shows your commit
-   - DO NOT push to remote
+6. **Commit** (REQUIRED unless there is nothing committable)
+   - Use the VCS detected in the preamble. For git, use `git add` / `git commit` / `git log -1`. For any other VCS, substitute the equivalent stage / commit / log commands.
+   - Determine the file set:
+     * Always include: all code changes, and AGENTS.md (if you updated it).
+     * If `PLANS_IGNORED=false`: also include the task file (`.plans/tasks-<feature>.yml`) and progress file (`.plans/progress-<feature>.txt`).
+     * If `PLANS_IGNORED=true`: do NOT stage anything under `.plans/` — those files are intentionally untracked. Commit only code (+ AGENTS.md if changed).
+   - Commit message format: `<feature>-<task-id>: <descriptive message>`
+   - Example: `<feature>-task-003: add password hashing with bcrypt`
+   - Verify the commit succeeded (git: `git log -1`; others: equivalent).
+   - DO NOT push to remote.
 
-CRITICAL: The git commit is NOT optional. Without it, your work will not be properly tracked.
-If you cannot commit (e.g., no changes to commit), that indicates a problem — investigate and fix it.
+CRITICAL: A commit is required whenever there are committable changes. The only valid reasons to skip are (a) `PLANS_IGNORED=true` AND the task produced no code/AGENTS.md changes, or (b) no changes exist at all — both indicate something is off; investigate.
 
 ## FINALIZE OUTPUT
 

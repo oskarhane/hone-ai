@@ -55,7 +55,7 @@ That's it! You're ready to use hone.
 /hone:prune
 ```
 
-hone will implement the feature, run tests, and commit changes automatically.
+hone will implement the feature, run tests, and commit changes automatically when the project is version-controlled (git by default; other VCS like jj/hg/sl are detected and used in their place). If `.plans/` is ignored by VCS, hone skips committing those files but still commits code changes.
 
 ### One-time setup: AGENTS.md
 
