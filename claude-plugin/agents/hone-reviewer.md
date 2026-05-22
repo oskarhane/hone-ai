@@ -33,6 +33,7 @@ Check for:
 11. Are we following best practices and conventions for the rest of the codebase?
 12. Is the implementation the most efficient way to solve the problem?
 13. Is the implementation re-using existing code or libraries?
+14. Unnecessary code comments - flag any comment that restates what the code does, references the task/PR/caller, or could be removed without confusing a future reader. Real gotchas, hidden constraints, and workarounds are fine; everything else is noise. Rate removal of unnecessary comments as **high** priority.
 
 # GIT DIFF
 

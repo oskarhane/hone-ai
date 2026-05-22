@@ -103,6 +103,23 @@ Then, find a way to break it into a smaller chunk and only do that chunk (i.e. c
 IMPORTANT: Do NOT run tests or feedback loops during exploration or incremental development.
 Only run feedback loops AFTER you have fully completed implementing the task.
 
+## CODE COMMENT POLICY
+
+Default to writing NO comments. Well-named identifiers already explain what code does.
+
+Only write a comment when it captures a real gotcha or exception that a future reader could not infer from the code itself:
+- a hidden constraint or invariant
+- a workaround for a specific bug or upstream quirk
+- behavior that would genuinely surprise a careful reader
+
+Do NOT write comments that:
+- restate what the code does ("// loop over users")
+- reference the current task, PR, or caller ("// added for task-003", "// used by X")
+- explain obvious type/parameter intent already conveyed by names
+- narrate intermediate steps
+
+If removing the comment would not confuse a future reader, do not write it. When in doubt, leave it out.
+
 ## FEEDBACK LOOPS
 
 Run feedback loops ONLY when the task implementation is complete.
