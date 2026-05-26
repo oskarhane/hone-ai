@@ -40,6 +40,8 @@ Validate the tasks file exists. Extract feature name from filename: `tasks-<feat
 
 For each iteration from 1 to N, launch a **forked Agent** (using the Agent tool) with the full prompt below. Each iteration gets a fresh context to prevent bloat.
 
+**Parallelize when safe.** Before launching, scan the task list for pending tasks that are mutually independent — no shared dependencies, no overlapping files or modules, no conflicting commits. When you find a group of independent tasks, launch their iteration Agents **in parallel** (multiple Agent tool calls in a single message), one Agent per task, with each Agent's prompt naming the specific task it owns so they don't pick the same one. Fall back to sequential launching whenever tasks touch overlapping code, share dependencies, or you can't confidently rule out conflicts — correctness over speed.
+
 If the Agent output contains `<promise>COMPLETE</promise>`, all tasks are done — stop iterating early.
 
 After all iterations complete, report:
