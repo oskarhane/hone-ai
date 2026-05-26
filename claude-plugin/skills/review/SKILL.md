@@ -134,12 +134,18 @@ If unmet, leave explicit, actionable feedback and push for cleaner decomposition
 
 ## Closing Output
 
-After the audit, end with this single line, substituting the resolved tasks-file path (not a placeholder):
+End the audit based on what you found:
 
-```
-Run /hone:fix <resolved-tasks-file> the above blocking issues
-```
+- **If there are blocking issues** (anything under Approval Bar / Presumptive blockers, or priority 1–3 findings that warrant fixing), print this single line with the resolved tasks-file path (not a placeholder):
 
-Example: `Run /hone:fix .plans/tasks-user-auth.yml the above blocking issues`
+  ```
+  Run /hone:fix <resolved-tasks-file> the above blocking issues
+  ```
 
-The phrase `the above blocking issues` is intentional — `/hone:fix` resolves it as a back-reference to the audit you just printed.
+  Example: `Run /hone:fix .plans/tasks-user-auth.yml the above blocking issues`. The phrase `the above blocking issues` is intentional — `/hone:fix` resolves it as a back-reference to the audit you just printed.
+
+- **If there are no blocking issues**, do NOT suggest `/hone:fix`. Print a short, warm closing line, e.g.:
+
+  ```
+  Nothing blocking. Branch looks clean.
+  ```
