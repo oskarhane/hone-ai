@@ -51,7 +51,13 @@ That's it! You're ready to use hone.
 # 5. Implement the feature
 /hone:run .plans/tasks-<feature>.yml -i 10
 
-# 6. Archive completed features (optional)
+# 6. Strict end-of-feature audit of the branch (chat output)
+/hone:review
+
+# 7. Convert the review findings into tasks and run them
+/hone:fix .plans/tasks-<feature>.yml the above blocking issues
+
+# 8. Archive completed features (optional)
 /hone:prune
 ```
 
@@ -78,6 +84,8 @@ All skills are invoked via `/hone:<skill-name>`.
 | `/hone:prd-to-tasks` | Generate task YAML from PRD            | `/hone:prd-to-tasks .plans/prd-user-auth.md`           |
 | `/hone:extend-prd`   | Add requirements to existing PRD       | `/hone:extend-prd .plans/prd-user-auth.md "Add OAuth"` |
 | `/hone:run`          | Execute implement/review/finalize loop | `/hone:run .plans/tasks-user-auth.yml -i 5`            |
+| `/hone:review`       | Strict end-of-feature audit of the branch | `/hone:review`                                      |
+| `/hone:fix`          | Turn supplied issues (or "the above" from a prior review) into tasks and run them | `/hone:fix .plans/tasks-user-auth.yml the above blocking issues` |
 
 ### Info
 
@@ -148,6 +156,8 @@ hone breaks feature development into 3 phases:
 3. **Finalize** — AI applies feedback, updates docs, and commits changes
 
 Each `/hone:run` iteration executes this cycle. Unlike external CLI tools, the plugin runs everything natively inside Claude Code — no subprocess overhead.
+
+After all tasks complete, `/hone:review` audits the whole branch; `/hone:fix` reads findings from the conversation (the review output, or any review-like discussion), lets you pick which become new tasks, then drives the same iteration loop on them.
 
 ### File and URL References in PRDs
 

@@ -46,6 +46,7 @@ After all iterations complete, report:
 
 ```
 Completed <actual> iterations (of <N> requested)
+Next: /hone:review for a strict end-of-feature audit of the branch.
 ```
 
 ## Full Agent Prompt for Each Iteration

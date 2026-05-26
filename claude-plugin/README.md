@@ -1,6 +1,6 @@
 # hone - Claude Code Plugin
 
-AI Coding Agent Orchestrator as a native Claude Code plugin. Run the full hone workflow (PRD → tasks → implementation) directly inside Claude Code without spawning external processes.
+AI Coding Agent Orchestrator as a native Claude Code plugin. Run the full hone workflow (PRD → tasks → run → review → fix) directly inside Claude Code without spawning external processes.
 
 ## Install
 
@@ -36,6 +36,8 @@ All skills are invoked via `/hone:<skill-name>`.
 | `/hone:prd-to-tasks` | Generate task YAML from PRD            | `/hone:prd-to-tasks .plans/prd-user-auth.md`           |
 | `/hone:extend-prd`   | Add requirements to existing PRD       | `/hone:extend-prd .plans/prd-user-auth.md "Add OAuth"` |
 | `/hone:run`          | Execute implement/review/finalize loop | `/hone:run .plans/tasks-user-auth.yml -i 5`            |
+| `/hone:review`       | Strict end-of-feature audit of the branch | `/hone:review`                                      |
+| `/hone:fix`          | Turn supplied issues (or "the above" from a prior review) into tasks and run them | `/hone:fix .plans/tasks-user-auth.yml the above blocking issues` |
 
 ### Info
 
@@ -53,6 +55,8 @@ All skills are invoked via `/hone:<skill-name>`.
 # Review .plans/prd-user-login.md
 /hone:prd-to-tasks .plans/prd-user-login.md
 /hone:run .plans/tasks-user-login.yml -i 10
+/hone:review
+/hone:fix .plans/tasks-user-login.yml the above blocking issues
 /hone:prune
 ```
 
