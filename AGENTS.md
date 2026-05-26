@@ -12,6 +12,7 @@ LINT COMMANDS: [none]
 FORMAT COMMANDS: [`bun run format` — prettier on all md/yml files]
 
 No build, test, or lint commands. This is a markdown/YAML-only project.
+Always run `bun run format` before committing.
 
 ## Project Overview
 
