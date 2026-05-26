@@ -63,13 +63,23 @@ Append to `.plans/progress-<feature>.txt`:
 Added <N> review tasks (task-<a>..task-<b>).
 ```
 
-## Step 6: Run the iteration loop inline
+## Step 6: Commit the tasks + progress changes
+
+Before launching any iteration, commit the new tasks and progress note so the iteration loop starts from a clean state.
+
+1. Detect the VCS the same way `/hone:run` does — default `git`, otherwise the VCS indicated by `.jj/`, `.hg/`, `.sl/`, etc. For any non-git VCS, substitute the equivalent stage / commit commands.
+2. Detect `PLANS_IGNORED` — run the VCS's ignore-check against `.plans/` (for git: `git check-ignore -q .plans/`). If ignored, set `PLANS_IGNORED=true`.
+3. Commit:
+   - If `PLANS_IGNORED=true`: skip — the planning files are intentionally untracked.
+   - Otherwise: stage `<tasks-file>` and `.plans/progress-<feature>.txt`, commit with message `<feature>: add <N> review tasks`.
+
+## Step 7: Run the iteration loop inline
 
 Read the run skill's instructions from `claude-plugin/skills/run/SKILL.md` (sibling directory in the installed plugin). Execute its **Step 2: Run iterations** inline against `<tasks-file>` with `N = number of new tasks added`. Reuse the run skill's full per-iteration Agent prompt **verbatim** — do not paraphrase or duplicate it here. When the run loop changes, this skill must stay in sync automatically by re-reading that file.
 
-Skip the run skill's "Pre-step" (branch creation / PRD commit). Those are already in place by the time `/hone:fix` is invoked.
+Skip the run skill's "Pre-step" (branch creation / PRD commit). The branch is already in place by the time `/hone:fix` is invoked, and the planning-file commit is handled by Step 6 above.
 
-## Step 7: Final output
+## Step 8: Final output
 
 After all iterations complete, output:
 
