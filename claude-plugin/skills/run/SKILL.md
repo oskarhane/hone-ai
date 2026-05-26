@@ -36,9 +36,35 @@ Extract these values (be flexible with format — users may use `-i 5`, `-i=5`, 
 
 Validate the tasks file exists. Extract feature name from filename: `tasks-<feature>.yml` -> `<feature>`.
 
+## Step 1.5: Capture caller VCS/worktree context
+
+Before launching the first forked Agent, record the caller's repo root, worktree path, current branch/bookmark/checkout target, and current HEAD revision. This caller worktree is the source of truth for `/hone:run`.
+
+If using git and the current directory is a linked worktree, treat that starting worktree as the only place that counts as "done". Child Agents may use isolated worktrees or branches, but their finalized commit MUST be merged or cherry-picked back into the starting worktree before the iteration counts as complete.
+
+For git, prefer `git merge --ff-only <child-commit>` when possible. If fast-forward is not possible, use `git cherry-pick <child-commit>`.
+
+After merge-back, verify from the starting worktree that the child commit or equivalent diff is present before launching the next iteration.
+
 ## Step 2: Run iterations
 
 For each iteration from 1 to N, launch a **forked Agent** (using the Agent tool) with the full prompt below. Each iteration gets a fresh context to prevent bloat.
+
+Pass the caller repo/worktree context into every forked Agent prompt:
+
+- Caller repo root: `<caller-repo-root>`
+- Caller worktree: `<caller-worktree>`
+- Caller branch/bookmark: `<caller-branch>`
+- Caller HEAD at launch: `<caller-head>`
+
+Do NOT treat the child Agent's own worktree or branch as the final destination. The parent `/hone:run` agent is responsible for bringing the finalized child commit back into the caller worktree before marking the iteration complete.
+
+After each child Agent returns:
+
+1. Parse `TASK_COMPLETED`, `FINALIZED`, and `FINALIZED_CHANGESET` from its output.
+2. If the child finalized in a different git worktree or branch, immediately apply that commit back onto the starting worktree. Prefer `git merge --ff-only <child-commit>`; otherwise `git cherry-pick <child-commit>`.
+3. Verify from the starting worktree that the integrated commit is now present.
+4. Only then count the iteration as complete and continue.
 
 **Parallelize when safe.** Before launching, scan the task list for pending tasks that are mutually independent — no shared dependencies, no overlapping files or modules, no conflicting commits. When you find a group of independent tasks, launch their iteration Agents **in parallel** (multiple Agent tool calls in a single message), one Agent per task, with each Agent's prompt naming the specific task it owns so they don't pick the same one. Fall back to sequential launching whenever tasks touch overlapping code, share dependencies, or you can't confidently rule out conflicts — correctness over speed.
 
@@ -63,6 +89,10 @@ The Agent prompt MUST include the tasks file path, feature name, whether to skip
 Feature: <feature>
 Tasks file: <tasks-file>
 Skip review: <yes/no>
+Caller repo root: <caller-repo-root>
+Caller worktree: <caller-worktree>
+Caller branch/bookmark: <caller-branch>
+Caller HEAD at launch: <caller-head>
 
 # PHASE 1: IMPLEMENT
 
@@ -221,16 +251,18 @@ Read the following files again (they may have changed during implementation):
    - Commit message format: `<feature>-<task-id>: <descriptive message>`
    - Example: `<feature>-task-003: add password hashing with bcrypt`
    - Verify the commit succeeded (git: `git log -1`; others: equivalent).
+   - Record the finalized revision identifier after the commit succeeds. For git, use `git rev-parse HEAD`.
    - DO NOT push to remote.
 
 CRITICAL: A commit is required whenever there are committable changes. The only valid reasons to skip are (a) `PLANS_IGNORED=true` AND the task produced no code/AGENTS.md changes, or (b) no changes exist at all — both indicate something is off; investigate.
 
 ## FINALIZE OUTPUT
 
-At the end, output on a single line:
+At the end, output these lines:
 FINALIZED: <task-id>
+FINALIZED_CHANGESET: <commit-hash-or-revision>
 
-Only output this marker AFTER you have successfully created the git commit.
+Only output these markers AFTER you have successfully created the git commit, and ensure `FINALIZED_CHANGESET` is the exact revision the parent agent must merge or cherry-pick back into the caller worktree.
 ````
 
 ---
@@ -241,4 +273,4 @@ Only output this marker AFTER you have successfully created the git commit.
 - The Agent prompt must be fully self-contained — include all file paths and instructions
 - Replace all `<placeholders>` with actual values before launching the Agent
 - If an iteration fails, report the error and continue with the next iteration
-- Track TASK_COMPLETED and FINALIZED markers from Agent output to report progress
+- Track TASK_COMPLETED, FINALIZED, and FINALIZED_CHANGESET markers from Agent output to report progress, and verify merge-back into the caller worktree before continuing
