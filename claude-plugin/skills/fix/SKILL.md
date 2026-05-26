@@ -50,7 +50,7 @@ For each picked finding, append a task entry to `<tasks-file>`:
 
 - `id`: next sequential id (look at existing task ids; if highest is `task-007`, next is `task-008`).
 - `status: pending`.
-- `description`: the full finding as a paragraph. Preserve the reviewer's reasoning intact — the implementing agent needs the *why*, not just the *what*. Don't compress to a one-liner.
+- `description`: the full finding as a paragraph. Preserve the reviewer's reasoning intact — the implementing agent needs the _why_, not just the _what_. Don't compress to a one-liner.
 - `acceptance_criteria`: a clear, testable criterion derived from the finding.
 - `source: review` — new field, distinguishes review-derived tasks from PRD-derived ones.
 

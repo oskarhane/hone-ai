@@ -29,14 +29,14 @@ All skills are invoked via `/hone:<skill-name>`.
 
 ### Workflow
 
-| Skill                | Description                            | Example                                                |
-| -------------------- | -------------------------------------- | ------------------------------------------------------ |
-| `/hone:agents-md`    | Generate AGENTS.md project docs        | `/hone:agents-md --overwrite`                          |
-| `/hone:prd`          | Generate PRD from feature description  | `/hone:prd "Add user authentication"`                  |
-| `/hone:prd-to-tasks` | Generate task YAML from PRD            | `/hone:prd-to-tasks .plans/prd-user-auth.md`           |
-| `/hone:extend-prd`   | Add requirements to existing PRD       | `/hone:extend-prd .plans/prd-user-auth.md "Add OAuth"` |
-| `/hone:run`          | Execute implement/review/finalize loop | `/hone:run .plans/tasks-user-auth.yml -i 5`            |
-| `/hone:review`       | Strict end-of-feature audit of the branch | `/hone:review`                                      |
+| Skill                | Description                                                                       | Example                                                          |
+| -------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `/hone:agents-md`    | Generate AGENTS.md project docs                                                   | `/hone:agents-md --overwrite`                                    |
+| `/hone:prd`          | Generate PRD from feature description                                             | `/hone:prd "Add user authentication"`                            |
+| `/hone:prd-to-tasks` | Generate task YAML from PRD                                                       | `/hone:prd-to-tasks .plans/prd-user-auth.md`                     |
+| `/hone:extend-prd`   | Add requirements to existing PRD                                                  | `/hone:extend-prd .plans/prd-user-auth.md "Add OAuth"`           |
+| `/hone:run`          | Execute implement/review/finalize loop                                            | `/hone:run .plans/tasks-user-auth.yml -i 5`                      |
+| `/hone:review`       | Strict end-of-feature audit of the branch                                         | `/hone:review`                                                   |
 | `/hone:fix`          | Turn supplied issues (or "the above" from a prior review) into tasks and run them | `/hone:fix .plans/tasks-user-auth.yml the above blocking issues` |
 
 ### Info
