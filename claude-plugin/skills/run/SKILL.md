@@ -189,11 +189,21 @@ YOU CAN ONLY PICK A SINGLE TASK TO WORK ON!
 
 <If skip_review is false, include:>
 
-Launch the `hone-reviewer` subagent to review the changes. Pass it:
-- The task file path so it can check for in_progress tasks
-- Tell it to review the git diff
+Review your own uncommitted changes for this task before finalizing. Inspect the diff with `git diff HEAD` (and `git diff --staged` if anything is staged), then evaluate it against the checklist below.
 
-Wait for the review feedback.
+Check for:
+
+1. Correctness — does the implementation match the task's requirements?
+2. Tests — are there adequate tests, and do they pass?
+3. Security — any security concerns or vulnerabilities?
+4. Performance — any obvious performance issues?
+5. Edge cases — are edge cases handled?
+6. Is the code elegant, clean, well-structured, and easy to understand?
+7. Is it the most efficient approach, reusing existing code/libraries rather than reinventing them?
+8. Does it follow the conventions of the rest of the codebase?
+9. Unnecessary code comments (**high priority**) — flag any comment that restates what the code does, references the task/PR/caller, or could be removed without confusing a future reader. Real gotchas, hidden constraints, and workarounds are fine; everything else is noise.
+
+Record concrete findings as `Issue` / `Suggestion` / `Priority` (critical | high | medium | low) and carry them into Phase 3's REVIEW FEEDBACK section. If everything looks good, note "LGTM".
 
 ---
 
