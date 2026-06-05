@@ -22,8 +22,6 @@ Generate AGENTS.md documentation for this project:
 4. Generate `AGENTS.md` with this structure:
 
 ```markdown
-<!-- BEGIN GENERATED: AGENTS-MD -->
-
 # AGENTS.md
 
 Learnings and patterns for future agents working on this project.
@@ -68,24 +66,40 @@ DEPLOYMENT STRATEGY: <strategy>
 ---
 
 _This AGENTS.md was generated using agent-based project discovery._
-
-<!-- END GENERATED: AGENTS-MD -->
 ```
+
+Keep every section terse — high signal, fewer words. State only what an agent
+reader needs; drop vanity notes, restated obvious facts, and anything the code or
+tooling already makes clear.
 
 5. Discover feedback commands from:
    - `package.json` scripts (test, build, lint, format, check, typecheck)
    - CI/CD workflow files (commands in `run:` steps)
    - Config files (jest, vitest, eslint, prettier configs indicate available tools)
 
-6. Create `.agents/` directory if it doesn't exist, and generate detail files:
+6. Generate `.agents/` detail files ONLY where there's substantive detail worth a
+   separate file. Skip any topic that has no useful info beyond its `AGENTS.md`
+   summary — never write a near-empty stub. Create `.agents/` only if at least one
+   file is warranted. Candidate files:
    - `.agents/languages.md` - Language stack details
    - `.agents/build.md` - Build system details
    - `.agents/testing.md` - Testing framework details
    - `.agents/architecture.md` - Architecture patterns
    - `.agents/deployment.md` - Deployment strategy
 
-7. If `AGENTS.md` exists and overwrite was requested:
-   - Preserve any content OUTSIDE the `<!-- BEGIN GENERATED -->` / `<!-- END GENERATED -->` markers
-   - Only replace content between the markers
+7. If `AGENTS.md` exists and overwrite was requested, regenerate from scratch and
+   merge — never blindly preserve the old file:
+   - **Capture** custom content first: read the existing `AGENTS.md` and identify
+     anything beyond the standard generated sections (Feedback Instructions,
+     Project Overview, Build System, Testing Framework, Architecture, Deployment,
+     footer) — extra top-level sections (e.g. `## Conventions`) and extra
+     notes/bullets folded into standard sections.
+   - **Regenerate** all standard sections fresh from the discovery in steps 3–5.
+   - **Merge** captured content back, keeping only what's worth it:
+     - Drop anything that conflicts with or duplicates the freshly generated info.
+     - Drop anything not useful for an agent reader.
+     - Compact what remains (high signal, fewer words). Extra standalone sections
+       go after Deployment, before the footer; section-specific notes fold
+       compactly into the matching standard section.
 
 8. Write `AGENTS.md` to project root.
