@@ -176,7 +176,7 @@ tasks:
       MUST keep the "re-read and follow verbatim" instruction wording and MUST NOT flatten
       the chain by copy-pasting sub-skill steps. Keep it terse — one tight note in the
       relevant AGENTS.md section, no prose padding.
-    status: pending
+    status: completed
     source: review
     dependencies: []
     acceptance_criteria:
@@ -184,4 +184,4 @@ tasks:
       - "The note instructs future agents to preserve the 're-read and follow verbatim' wording and not flatten the chain"
       - "Note is terse (a few lines), placed in a sensible AGENTS.md section"
       - "`bun run format` passes"
-    completed_at: null
+    completed_at: 2026-06-08T08:55:00Z
