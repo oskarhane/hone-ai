@@ -88,7 +88,7 @@ tasks:
       fix Step 3 to auto-select all blocking/high-priority candidate findings (no
       AskUserQuestion multi-select), then proceed to the next round. If the cap is reached
       while still blocking, exit and mark remaining findings unresolved.
-    status: pending
+    status: completed
     dependencies:
       - task-004
     acceptance_criteria:
@@ -96,7 +96,7 @@ tasks:
       - "fix/SKILL.md is executed inline with Step 3 overridden to auto-select blocking/high findings"
       - 'Loop exits on "Nothing blocking." or at --max-rounds with a hard cap (no infinite loop)'
       - "Reaching the cap while blocking reports remaining findings as unresolved"
-    completed_at: null
+    completed_at: 2026-06-08T08:10:12Z
 
   - id: task-006
     title: "Cross-cutting: resume-from-state, halt-on-failure, final report"

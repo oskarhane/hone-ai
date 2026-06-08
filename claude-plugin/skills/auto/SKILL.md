@@ -151,8 +151,70 @@ Then emit the phase-transition banner and proceed to Phase 4:
 
 ## Phase 4: Review→fix loop
 
-_(filled in by a later task — for `round` 1..`max_rounds`, run `review/SKILL.md` inline
-and route on its closing line to `fix/SKILL.md`)_
+If `skip_review` is `true`, skip this phase entirely and proceed to the Control behaviors'
+final report — there is nothing to review against.
+
+Otherwise iterate for `round` = 1 to `max_rounds`. Each round runs the review skill inline,
+then routes **solely on review's closing-line contract**:
+
+### Review step
+
+Read the review skill's instructions from `claude-plugin/skills/review/SKILL.md` (sibling
+directory in the installed plugin) and execute it inline against `.plans/tasks-<slug>.yml`
+as the `$ARGUMENTS` input. Do not copy-paste or paraphrase those steps here — re-read that
+file and follow it verbatim, so this phase auto-syncs when the review skill changes.
+
+Capture the review's **closing line** and branch on it — and on nothing else (do not invent
+a new signal):
+
+- **`Nothing blocking.`** (review printed no `/hone:fix` line) → the branch is clean. Exit
+  the loop as **success** and proceed to the Control behaviors' final report.
+- **`Run /hone:fix <tasks-file> the above blocking issues`** → review is blocking. Proceed
+  to the Fix step of this round.
+
+### Fix step
+
+Emit the review→fix banner, then read the fix skill's instructions from
+`claude-plugin/skills/fix/SKILL.md` (sibling directory in the installed plugin) and execute
+it inline against `.plans/tasks-<slug>.yml` with the back-reference payload
+`the above blocking issues` (resolving to the review audit just printed). Do not copy-paste
+or paraphrase those steps here — re-read that file and follow it verbatim, so this phase
+auto-syncs when the fix skill changes.
+
+Apply this override while executing it:
+
+- **Override fix Step 3 (the `AskUserQuestion` multi-select).** The orchestrator runs
+  unattended, so do NOT prompt the user to pick findings. Instead, **auto-select every
+  blocking / high-priority candidate finding** the fix skill's Step 2 resolved — i.e. all
+  blockers / presumptive blockers / must-fix items and review Output priority 1–3 findings
+  (structural regressions, missed code-judo simplifications, spaghetti growth). Treat that
+  auto-selection as the user's picks and proceed to fix Step 4. If Step 2 resolved zero such
+  candidates, treat the round as having no actionable findings: exit the loop as success and
+  proceed to the final report.
+
+Everything else in the fix skill is inherited unchanged — do NOT redefine it here. In
+particular it appends the selected findings as new tasks, commits them, and runs its inline
+iteration loop over them. Suppress the fix skill's trailing
+`Next: /hone:prune to archive the feature.` line — the orchestrator owns the transition back
+into the next review round.
+
+After the Fix step completes, emit the fix→re-review banner and continue to the next
+`round`:
+
+```
+━━━ HONE:AUTO — review blocking → fix round <round> ━━━
+━━━ HONE:AUTO — fix round <round> done → re-reviewing ━━━
+```
+
+### Hard cap
+
+The loop runs at most `max_rounds` rounds — there is no other exit and no recursion, so it
+can never loop forever. If `round` reaches `max_rounds` and that round's review is **still
+blocking** after its fix completed (or `max_rounds` is exhausted without a `Nothing
+blocking.` result), stop the loop and treat the remaining blocking findings as
+**unresolved**. Do not run another round. Record those still-blocking findings (from the
+last review's audit) so the Control behaviors' final report can list them as unresolved,
+then proceed to that final report.
 
 ## Control behaviors
 
