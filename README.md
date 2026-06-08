@@ -31,7 +31,33 @@ To update:
 
 That's it! You're ready to use hone.
 
-## Common Workflow
+## Recommended Workflow: `/hone:auto`
+
+The preferred way to use hone is to **plan first, then hand the plan to `/hone:auto`** — it runs the entire chain (prd → prd-to-tasks → run → review → fix loop) hands-free.
+
+```
+# 1. Plan the feature first.
+#    Either iterate on a plan in Claude Code's plan mode (shift+tab),
+#    or point at an existing issue/card (e.g. a GitHub issue, Linear ticket).
+
+# 2. Hand that plan/details to /hone:auto and walk away.
+/hone:auto "<the plan, feature description, file paths, or issue link>"
+```
+
+`/hone:auto` stops **once, up front**, to ask batched PRD clarifying questions (or skips them entirely if codebase analysis answers everything), then drives every transition mechanically: it generates the PRD, breaks it into tasks, runs the implementation loop on its own feature branch (`hone/<slug>`), audits the branch, and loops review→fix until clean (capped by `--max-rounds`, default 3).
+
+```
+/hone:auto "Add OAuth login, see ./docs/auth.md and https://oauth.net/2/"
+/hone:auto "Implement the export feature described in this issue: <issue link>"
+/hone:auto "Add rate limiting" --max-rounds 5
+/hone:auto "Quick spike on caching" --skip-review
+```
+
+hone implements the feature, runs tests, and commits changes automatically when the project is version-controlled (git by default; other VCS like jj/hg/sl are detected and used in their place). If `.plans/` is ignored by VCS, hone skips committing those files but still commits code changes. `/hone:auto` is re-entrant — re-running it on the same feature resumes from the first incomplete phase.
+
+## Manual Workflow
+
+Prefer to drive each phase yourself (e.g. to review the PRD or tasks before implementing)? Run the steps individually:
 
 ```
 # 1. Enter plan mode in Claude Code (shift+tab) and describe the feature.
@@ -61,8 +87,6 @@ That's it! You're ready to use hone.
 /hone:prune
 ```
 
-hone will implement the feature, run tests, and commit changes automatically when the project is version-controlled (git by default; other VCS like jj/hg/sl are detected and used in their place). If `.plans/` is ignored by VCS, hone skips committing those files but still commits code changes.
-
 ### One-time setup: AGENTS.md
 
 If your project doesn't already have an `AGENTS.md`, generate one before running the workflow above. This is a one-time thing per project.
@@ -79,6 +103,7 @@ All skills are invoked via `/hone:<skill-name>`.
 
 | Skill                | Description                                                                       | Example                                                          |
 | -------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `/hone:auto`         | **Recommended.** Run the full chain hands-free from one feature description       | `/hone:auto "Add OAuth login"`                                   |
 | `/hone:agents-md`    | Generate AGENTS.md project docs                                                   | `/hone:agents-md --overwrite`                                    |
 | `/hone:prd`          | Generate PRD from feature description                                             | `/hone:prd "Add user authentication"`                            |
 | `/hone:prd-to-tasks` | Generate task YAML from PRD                                                       | `/hone:prd-to-tasks .plans/prd-user-auth.md`                     |
@@ -158,6 +183,8 @@ hone breaks feature development into 3 phases:
 Each `/hone:run` iteration executes this cycle. Unlike external CLI tools, the plugin runs everything natively inside Claude Code — no subprocess overhead.
 
 After all tasks complete, `/hone:review` audits the whole branch; `/hone:fix` reads findings from the conversation (the review output, or any review-like discussion), lets you pick which become new tasks, then drives the same iteration loop on them.
+
+`/hone:auto` chains all of the above — PRD, tasks, run, review, and the review→fix loop — into a single command, stopping only once up front for batched PRD questions. It's the recommended entry point; the individual skills remain available when you want manual control at each phase.
 
 ### File and URL References in PRDs
 
