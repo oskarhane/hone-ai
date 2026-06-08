@@ -16,14 +16,14 @@ tasks:
       (default 3) and --skip review flags. Establish the shared variables threaded through
       every phase (feature slug, N, max-rounds) and define the phase-transition banner
       convention used by later tasks. Do not implement the phases yet.
-    status: pending
+    status: completed
     dependencies: []
     acceptance_criteria:
       - "claude-plugin/skills/auto/SKILL.md exists with frontmatter containing a description field"
       - "Preamble explicitly states main-context requirement and the no-subagent-nesting constraint"
       - "Argument parsing covers feature description, --max-rounds N (default 3), and --skip review"
       - "A phase-banner convention is defined for later phase sections to reference"
-    completed_at: null
+    completed_at: 2026-06-08T00:00:00Z
 
   - id: task-002
     title: "PRD phase: inline prd skill with batched upfront clarifying questions"

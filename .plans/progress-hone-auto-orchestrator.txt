@@ -1,0 +1,4 @@
+## TASK-001 — 2026-06-08T00:00:00Z
+
+Created /hone:auto skill skeleton: frontmatter description, hands-free orchestration preamble, main-context/no-subagent-nesting constraint, arg parsing (feature desc + --max-rounds N default 3 + --skip review), shared vars (slug/N/max_rounds/skip_review), phase-banner convention, and placeholder headers for Phases 1-4 + Control behaviors.
+Files: +claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
