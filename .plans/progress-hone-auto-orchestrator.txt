@@ -2,3 +2,8 @@
 
 Created /hone:auto skill skeleton: frontmatter description, hands-free orchestration preamble, main-context/no-subagent-nesting constraint, arg parsing (feature desc + --max-rounds N default 3 + --skip review), shared vars (slug/N/max_rounds/skip_review), phase-banner convention, and placeholder headers for Phases 1-4 + Control behaviors.
 Files: +claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+
+## TASK-002 — 2026-06-08T08:05:18Z
+
+Filled in Phase 1 (PRD) of auto/SKILL.md: reads prd/SKILL.md and executes Steps 1–3,5,6 inline; overrides Step 4 to batch up to 4 clarifying questions into one AskUserQuestion (skip entirely when analysis suffices); suppresses Step 7; captures slug from the saved .plans/prd-<slug>.md path; emits the PRD→tasks banner.
+Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt

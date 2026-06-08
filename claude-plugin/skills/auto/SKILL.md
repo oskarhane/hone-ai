@@ -62,8 +62,35 @@ own banner on entry; later tasks fill in the exact wording.
 
 ## Phase 1: PRD
 
-_(filled in by a later task — execute `prd/SKILL.md` inline with batched questions and
-capture `slug`)_
+Read the prd skill's instructions from `claude-plugin/skills/prd/SKILL.md` (sibling
+directory in the installed plugin) and execute its **Steps 1–3, 5, and 6** inline against
+`feature_description` as the `$ARGUMENTS` input. Do not copy-paste or paraphrase those
+steps here — re-read that file and follow it verbatim, so this phase auto-syncs when the
+prd skill changes.
+
+Apply these overrides while executing it:
+
+- **Override Step 4 (clarifying questions).** Do not ask one question at a time. From the
+  Step 2 codebase analysis and Step 3 references, derive the highest-value clarifying
+  questions — those NOT already answerable from that analysis — and ask **up to 4** in a
+  **single `AskUserQuestion` call** (the tool's maximum is 4 questions). Pick the 4 that
+  most reduce ambiguity if more than 4 exist. **If the analysis answers everything, skip
+  the prompt entirely** — issue no `AskUserQuestion` call and proceed straight to Step 5,
+  running fully unattended. Feed the answers (if any) into Step 5 generation.
+
+- **Suppress Step 7.** Do not emit the prd skill's "Next steps" output — the orchestrator
+  owns all phase transitions.
+
+After Step 6 saves the PRD, **capture `slug` from the actual saved path**
+`.plans/prd-<slug>.md` (read back the path the skill wrote, don't re-slugify). Store it in
+the shared `slug` variable; all downstream phases derive their `.plans/` paths and the
+branch name from it.
+
+Then emit the phase-transition banner and proceed to Phase 2:
+
+```
+━━━ HONE:AUTO — PRD done → generating tasks ━━━
+```
 
 ## Phase 2: Tasks
 
