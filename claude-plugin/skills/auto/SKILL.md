@@ -60,6 +60,17 @@ Examples: `━━━ HONE:AUTO — PRD done → generating tasks ━━━`,
 `━━━ HONE:AUTO — review blocking → fix round 2 ━━━`. Each phase section below prints its
 own banner on entry; later tasks fill in the exact wording.
 
+## Step 1: Resume from state
+
+Before entering Phase 1, run the **Resume from state** behavior under Control behaviors. It
+resolves a candidate slug from `feature_description`, inspects existing `.plans/` files, and
+either adopts the existing slug and jumps to the first incomplete phase (Tasks, Run, Review,
+or straight to the Final report) or — when nothing matches — falls through to Phase 1 as a
+fresh run. Every phase below is entered _through_ this gate, so a re-invocation never redoes
+completed work. Throughout the run, also honor the **Halt on failure** behavior: any phase
+that cannot produce valid state for the next one stops the chain with a halt report instead
+of advancing.
+
 ## Phase 1: PRD
 
 Read the prd skill's instructions from `claude-plugin/skills/prd/SKILL.md` (sibling
@@ -218,4 +229,113 @@ then proceed to that final report.
 
 ## Control behaviors
 
-_(filled in by a later task — resume-from-state, halt-on-failure, and the final report)_
+These three behaviors are cross-cutting — they wrap the phase flow above rather than
+living inside any single phase.
+
+### Resume from state
+
+Runs **once, immediately after Step 0 (arg parsing) and before Phase 1**. The orchestrator
+is re-entrant: a prior `/hone:auto` run that was interrupted (or any equivalent manual
+`/hone:` work) leaves `.plans/` files behind, and re-invoking on the same feature must
+continue from the first incomplete phase instead of redoing finished work.
+
+The slug is normally captured _inside_ Phase 1, so before Phase 1 you do not yet have it.
+Resolve a **candidate slug** by slugifying `feature_description` the same way `prd/SKILL.md`
+does, then probe `.plans/` for files matching that slug (also accept a close match if a
+single `prd-*.md` plus `tasks-*.yml` pair clearly corresponds to this feature). If a
+matching PRD is found, adopt its slug as the shared `slug` for the whole run.
+
+Infer phase-completeness from `.plans/` state and jump to the **first incomplete phase**:
+
+- **No `.plans/prd-<slug>.md`** → nothing exists; start at **Phase 1 (PRD)** as a fresh run.
+- **PRD exists, no `.plans/tasks-<slug>.yml`** → PRD is done; skip Phase 1, capture `slug`
+  from the existing PRD path, start at **Phase 2 (Tasks)**.
+- **PRD + tasks exist, and any task still has `status: pending` (or `in_progress`)** → set
+  `N` = total task count in the file, skip Phases 1–2, start at **Phase 3 (Run)**. The run
+  skill's own per-task `status` gating skips already-`completed` tasks, so re-entering Run
+  resumes mid-list rather than re-implementing finished tasks.
+- **PRD + tasks exist, all tasks `status: completed`, review not yet clean** → implementation
+  is done; skip Phases 1–3 and enter **Phase 4 (Review→fix loop)** at round 1.
+- **PRD + tasks exist, all tasks completed, and a prior review already ended `Nothing
+blocking.`** → everything is done; skip straight to the **Final report** (success).
+
+When resuming, print a banner naming the resume point before diving in, e.g.:
+
+```
+━━━ HONE:AUTO — resuming <slug> at run (3 of 7 tasks pending) ━━━
+```
+
+If no `.plans/` files match the candidate slug, this is a fresh run: proceed to Phase 1
+normally (which will capture the real slug from the saved PRD path).
+
+### Halt on failure
+
+Any phase that **cannot produce valid state for the next phase** halts the chain
+immediately. Do not advance to a later phase on bad or incomplete state, and do not emit the
+success final report. Halt cases:
+
+- **Phase 2 (Tasks) yields zero tasks** — `prd-to-tasks` wrote a tasks file with an empty
+  `tasks:` list (or wrote none). Halt before Phase 3.
+- **Phase 3 (Run) cannot complete a task** — a child iteration exhausts the run skill's
+  retries without producing `FINALIZED` for its task (the task never reaches
+  `status: completed`). Halt before Phase 4.
+- **A phase errors out** — a sub-skill aborts (e.g. PRD generation fails, VCS detection
+  finds no usable repo). Halt at that phase.
+
+This is **distinct from the review→fix loop exhausting `max_rounds`**: that is _not_ a halt.
+Unresolved blocking findings after `max_rounds` still produce a final report — the
+implementation is committed and valid, the review outcome is simply `unresolved`. Halt is
+reserved for the cases above, where downstream phases would run against broken state.
+
+On halt, emit a banner and a **halt report** (not the success final report):
+
+```
+━━━ HONE:AUTO — HALTED at <phase> ━━━
+```
+
+The halt report states:
+
+- **Stopped at**: which phase failed and why (one line).
+- **Slug / PRD path**: the resolved `slug` and `.plans/prd-<slug>.md` (if it exists yet).
+- **Committed**: what has landed on `hone/<slug>` so far (PRD/tasks commit, plus any tasks
+  whose child commit was merged back) — read from VCS / task `status: completed`.
+- **Pending**: what remains (tasks still `pending`/`in_progress`, phases not reached).
+- **Resume hint**: `Re-run /hone:auto on this feature to resume from the failed phase.`
+
+### Phase-transition banners
+
+Each phase section above emits its own banner on entry/exit per the **Phase-banner
+convention** defined near the top of this skill — do not redefine the format here. The
+control layer only adds the **resume banner** and **halt banner** shown above. Ensure a
+banner is printed at every handoff so an unattended run leaves a complete visible trail.
+
+### Final report
+
+Emitted once the chain reaches a successful terminus — Phase 4 exited `Nothing blocking.`,
+`max_rounds` was exhausted (outcome `unresolved`), or `skip_review` short-circuited Phase 4.
+(A halt produces the halt report above instead.) Print:
+
+```
+━━━ HONE:AUTO — complete ━━━
+
+Feature: <slug>
+PRD: .plans/prd-<slug>.md
+Tasks implemented: <N> (+ <R> review tasks added across <rounds> fix round(s))
+Review: <clean | unresolved after <max_rounds> rounds | skipped>
+```
+
+Followed by, on its own line:
+
+```
+Next: /hone:prune to archive when ready.
+```
+
+Field rules:
+
+- **Tasks implemented** `<N>` — the task count captured in Phase 2 (the original PRD tasks).
+- **Review tasks added** `<R>` — total new tasks the Fix step(s) appended across all rounds
+  (sum of findings auto-selected and appended to `.plans/tasks-<slug>.yml`). `0` if none.
+  Omit the parenthetical entirely when `R` is `0` and no fix rounds ran.
+- **Review** — `clean` if Phase 4 exited on `Nothing blocking.`; `unresolved after
+<max_rounds> rounds` if the cap was hit while still blocking (list the still-blocking
+  findings from the last review beneath the report); `skipped` if `skip_review` was set.

@@ -109,7 +109,7 @@ tasks:
       proceed with bad state. Emit phase-transition banners throughout and a final summary
       report (slug, PRD path, tasks implemented + review tasks added across rounds, review
       outcome, and the "Next: /hone:prune" line).
-    status: pending
+    status: completed
     dependencies:
       - task-005
     acceptance_criteria:
@@ -117,7 +117,7 @@ tasks:
       - "A phase failure halts the chain and reports stop point, committed work, and pending work"
       - "Phase-transition banners print at each handoff"
       - "Final report includes slug, PRD path, task/review-task counts, outcome, and prune next-step"
-    completed_at: null
+    completed_at: 2026-06-08T08:12:30Z
 
   - id: task-007
     title: "Docs + version: README, AGENTS.md, plugin.json bump"

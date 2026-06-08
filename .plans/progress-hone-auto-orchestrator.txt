@@ -23,3 +23,9 @@ Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator
 Filled in Phase 4 (Review→fix loop) of auto/SKILL.md: for round 1..max_rounds runs review/SKILL.md inline and routes solely on its closing-line contract — "Nothing blocking." exits as success, the "/hone:fix … the above blocking issues" line proceeds to fix; runs fix/SKILL.md inline with that back-reference payload, overriding fix Step 3 to auto-select all blocking/priority-1–3 findings (no AskUserQuestion); hard cap at max_rounds with no recursion, reporting still-blocking findings as unresolved; emits review→fix and fix→re-review banners.
 Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
 Decisions: Phase 4 also short-circuits when skip_review=true (consistent with Phase 3) — skip the end-of-feature audit too.
+
+## TASK-006 — 2026-06-08T08:12:30Z
+
+Filled in Control behaviors of auto/SKILL.md and added "Step 1: Resume from state" gate between arg parsing and Phase 1. Resume infers phase-completeness from .plans/ state (PRD exists? tasks exist? any pending? review clean?) and jumps to the first incomplete phase; halt-on-failure stops the chain (zero tasks / unfinishable run task / phase error) with a halt report, kept distinct from the max_rounds "unresolved" case; final report emits slug, PRD path, task + review-task counts, outcome, and the prune next-step.
+Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+Decisions: Resume resolves a candidate slug by slugifying feature_description (slug normally captured only inside Phase 1), since the gate runs before the slug is known.
