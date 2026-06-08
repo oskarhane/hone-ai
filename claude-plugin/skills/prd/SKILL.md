@@ -12,9 +12,9 @@ Create `.plans/` directory if it doesn't exist.
 
 Read and analyze:
 
-- `package.json` (project name, description, dependencies, scripts, devDependencies)
-- Directory structure: check for `src/`, `lib/`, `components/`, `utils/`, `test/`, `__tests__/`
-- Config files: `tsconfig.json`, `Makefile`, `vitest.config.*`, `.eslintrc*`, `next.config.*`, `vite.config.*`, `docker-compose.yml`, `Dockerfile`, `pyproject.toml`
+- The project manifest(s) for name, description, dependencies, scripts — whichever the stack uses: `package.json` (Node), `go.mod` (Go), `pom.xml`/`build.gradle`(`.kts`) (Java), `pyproject.toml`/`setup.py`/`requirements.txt` (Python), `Cargo.toml` (Rust), or the equivalent
+- Directory structure: check for `src/`, `lib/`, `components/`, `utils/`, `test/`, `__tests__/`, `cmd/`, `internal/`, `pkg/`
+- Config files: `tsconfig.json`, `Makefile`, `vitest.config.*`, `.eslintrc*`, `next.config.*`, `vite.config.*`, `docker-compose.yml`, `Dockerfile`, `pyproject.toml`, `tox.ini`, `golangci.yml`, `checkstyle.xml`
 - `README.md` for project context
 - `AGENTS.md` if it exists (for project conventions and patterns)
 - Existing PRDs in `.plans/` for context on ongoing work
