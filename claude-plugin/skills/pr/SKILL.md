@@ -1,5 +1,5 @@
 ---
-description: Pushes the current feature branch to the appropriate remote, opens a pull request with a concise description of user-facing input/output changes and notable refactors, then monitors CI checks in the background and auto-triggers /hone:fix if any fail. Use after /hone:review or /hone:fix, or at the end of /hone:auto, to publish a finished feature branch.
+description: Pushes the current feature branch to the appropriate remote, opens a pull request with a concise description that classifies the change (new feature, fix, optimization, etc.) and notes any user-facing impact, then monitors CI checks in the background and auto-triggers /hone:fix if any fail. Use after /hone:review or /hone:fix, or at the end of /hone:auto, to publish a finished feature branch.
 ---
 
 Publish a finished feature branch: push it to the right remote, open a well-formed pull request, then watch the PR's CI checks and drive `/hone:fix` automatically when a check goes red — looping until the checks are green or a round cap is hit.
@@ -50,18 +50,17 @@ Gather context from:
 
 Derive a concise, conventional-commit-style title from the feature/branch and the changes (e.g. `feat(auth): add OAuth login`).
 
-Write the body to this template. Keep it tight — bullets, not essays. Omit a section entirely when it has nothing:
+Write the body to this template. Keep it tight — bullets, not essays. Classify what kind of change this is (new feature, fix, optimization, replacement, refactor, or other) and lead with that. Most changes are not user-facing — only include the **User-facing impact** section when something a user actually interacts with (API, CLI, config, UI, output) changed; omit it entirely otherwise. Omit any section that has nothing:
 
 ```
 ## Summary
-<1–2 sentences: what & why>
+<1–2 sentences: what changed & why, and the kind of change — new feature / fix / optimization / replacement / refactor / other>
 
-## User-facing changes
-- **Inputs:** <new/changed APIs, CLI flags, config, params, UI inputs — or "none">
-- **Outputs:** <new/changed responses, UI, files, logs — or "none">
+## Changes
+- <bullet per notable change — what it does, not a play-by-play>
 
-## Notable changes
-- <refactors / internal changes worth knowing>
+## User-facing impact
+<Only when the change is user-facing: what users will now see or do differently (inputs and/or outputs). Drop this whole section for internal-only changes.>
 ```
 
 Create the PR: `gh pr create --base <base> --title "<title>" --body "<body>"`. Let `gh` resolve the head branch (it handles fork `owner:branch` head refs automatically). Capture the PR URL and number (`<pr>`).

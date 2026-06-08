@@ -188,7 +188,7 @@ Each `/hone:run` iteration executes this cycle. Unlike external CLI tools, the p
 
 After all tasks complete, `/hone:review` audits the whole branch; `/hone:fix` reads findings from the conversation (the review output, or any review-like discussion), lets you pick which become new tasks, then drives the same iteration loop on them.
 
-Once the branch is reviewed and clean, `/hone:pr` is the manual publish step: it pushes the branch to the appropriate remote (the sole remote, or one you pick when there are several), opens a PR with a short description of the user-facing input/output changes and notable refactors, then watches the PR's CI checks in the background and auto-triggers `/hone:fix` if any go red — looping until green or a round cap is hit.
+Once the branch is reviewed and clean, `/hone:pr` is the manual publish step: it pushes the branch to the appropriate remote (the sole remote, or one you pick when there are several), opens a PR with a short description that classifies the change (new feature, fix, optimization, etc.) and notes any user-facing impact, then watches the PR's CI checks in the background and auto-triggers `/hone:fix` if any go red — looping until green or a round cap is hit.
 
 `/hone:auto` chains all of the above — PRD, tasks, run, review, and the review→fix loop — into a single command, stopping only once up front for batched PRD questions. It's the recommended entry point; the individual skills remain available when you want manual control at each phase.
 
