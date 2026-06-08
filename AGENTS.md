@@ -40,6 +40,7 @@ claude-plugin/                 # The plugin
 │   └── plugin.json            # Plugin metadata (name, version, description)
 ├── skills/                    # Slash command skills (/hone:<skill>)
 │   ├── agents-md/SKILL.md
+│   ├── auto/SKILL.md
 │   ├── extend-prd/SKILL.md
 │   ├── fix/SKILL.md
 │   ├── prd/SKILL.md
@@ -58,10 +59,14 @@ package.json                   # Metadata + prettier only
 
 Skills are markdown files (SKILL.md) with YAML frontmatter defining step-by-step instructions for Claude Code.
 
-Workflow skills: `agents-md`, `prd`, `prd-to-tasks`, `extend-prd`, `run`, `fix`, `review`
+Workflow skills: `auto`, `agents-md`, `prd`, `prd-to-tasks`, `extend-prd`, `run`, `fix`, `review`
 Info skills: `status`, `prds`, `prune`
 
 `.plans/` naming: `prd-<feature>.md`, `tasks-<feature>.yml`, `progress-<feature>.txt`.
+
+### Convention: verbatim inline references
+
+Skills reuse logic by inlining sibling SKILL.md files (e.g. `auto` reads `fix`, which reads `run`) rather than copy-pasting steps, keeping a single source of truth (DRY). This is a conscious tradeoff against the Agent Skills "keep references one level deep" guidance, which warns Claude may only partially read nested files. The mitigation is the explicit "re-read that file and follow it verbatim" wording in every inline reference. Future agents MUST preserve that wording and MUST NOT flatten the chain by copy-pasting sub-skill steps.
 
 ## Deployment
 

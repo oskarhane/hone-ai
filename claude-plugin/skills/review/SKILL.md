@@ -1,5 +1,5 @@
 ---
-description: Strict end-of-feature maintainability audit of the current branch — abstraction quality, file size, spaghetti growth, missed code-judo simplifications. Chat output only. Run after /hone:run finishes a feature.
+description: Performs a strict end-of-feature maintainability audit of the current branch — abstraction quality, file size, spaghetti growth, missed code-judo simplifications. Chat output only. Use after /hone:run finishes a feature.
 ---
 
 # Hone Review

@@ -1,0 +1,49 @@
+## TASK-001 — 2026-06-08T00:00:00Z
+
+Created /hone:auto skill skeleton: frontmatter description, hands-free orchestration preamble, main-context/no-subagent-nesting constraint, arg parsing (feature desc + --max-rounds N default 3 + --skip review), shared vars (slug/N/max_rounds/skip_review), phase-banner convention, and placeholder headers for Phases 1-4 + Control behaviors.
+Files: +claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+
+## TASK-002 — 2026-06-08T08:05:18Z
+
+Filled in Phase 1 (PRD) of auto/SKILL.md: reads prd/SKILL.md and executes Steps 1–3,5,6 inline; overrides Step 4 to batch up to 4 clarifying questions into one AskUserQuestion (skip entirely when analysis suffices); suppresses Step 7; captures slug from the saved .plans/prd-<slug>.md path; emits the PRD→tasks banner.
+Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+
+## TASK-003 — 2026-06-08T08:06:45Z
+
+Filled in Phase 2 (Tasks) of auto/SKILL.md: reads prd-to-tasks/SKILL.md and executes it inline against .plans/prd-<slug>.md; overrides Step 4 to suppress the "Now run /hone:run" output; records N (task count) for the run phase; derives tasks-<slug>.yml/progress-<slug>.txt from the captured slug; emits the tasks→run banner. Matches the PRD phase style.
+Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+
+## TASK-004 — 2026-06-08T08:08:30Z
+
+Filled in Phase 3 (Run) of auto/SKILL.md: reads run/SKILL.md and executes its VCS detection + Step 2 loop inline against tasks-<slug>.yml with -i N and skip_review; overrides the Pre-step branch gate to auto-create/switch hone/<slug> with no prompt (keeping the PRD/tasks commit); preserves <promise>COMPLETE</promise> early-exit and merge-back; suppresses run's trailing review line; emits the run→reviewing banner.
+Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+
+## TASK-005 — 2026-06-08T08:10:12Z
+
+Filled in Phase 4 (Review→fix loop) of auto/SKILL.md: for round 1..max_rounds runs review/SKILL.md inline and routes solely on its closing-line contract — "Nothing blocking." exits as success, the "/hone:fix … the above blocking issues" line proceeds to fix; runs fix/SKILL.md inline with that back-reference payload, overriding fix Step 3 to auto-select all blocking/priority-1–3 findings (no AskUserQuestion); hard cap at max_rounds with no recursion, reporting still-blocking findings as unresolved; emits review→fix and fix→re-review banners.
+Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+Decisions: Phase 4 also short-circuits when skip_review=true (consistent with Phase 3) — skip the end-of-feature audit too.
+
+## TASK-006 — 2026-06-08T08:12:30Z
+
+Filled in Control behaviors of auto/SKILL.md and added "Step 1: Resume from state" gate between arg parsing and Phase 1. Resume infers phase-completeness from .plans/ state (PRD exists? tasks exist? any pending? review clean?) and jumps to the first incomplete phase; halt-on-failure stops the chain (zero tasks / unfinishable run task / phase error) with a halt report, kept distinct from the max_rounds "unresolved" case; final report emits slug, PRD path, task + review-task counts, outcome, and the prune next-step.
+Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+Decisions: Resume resolves a candidate slug by slugifying feature_description (slug normally captured only inside Phase 1), since the gate runs before the slug is known.
+
+## TASK-007 — 2026-06-08T08:14:30Z
+
+Documented /hone:auto: added it as the first Workflow row in README skills table plus a hands-free usage example above the manual step-by-step block; added `auto` to AGENTS.md Workflow skills line and `auto/SKILL.md` to the skills tree; bumped plugin.json 1.11.1 -> 1.12.0. `bun run format` clean.
+Files: ~claude-plugin/README.md, ~AGENTS.md, ~claude-plugin/.claude-plugin/plugin.json, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+
+## REVIEW — 2026-06-08T08:30:00Z
+Added 2 review tasks (task-008..task-009).
+
+## TASK-008 — 2026-06-08T08:40:00Z
+
+Rewrote the `description:` frontmatter of all 11 hone skills into third person (Generates/Runs/Adds/Takes/Lists/Archives/Performs/Executes/Shows) per Agent Skills best practice; preserved what+when content and "Use when/after" trigger clauses; bodies untouched (diff is exactly 1 line per file). `bun run format` clean.
+Files: ~claude-plugin/skills/agents-md/SKILL.md, ~claude-plugin/skills/auto/SKILL.md, ~claude-plugin/skills/extend-prd/SKILL.md, ~claude-plugin/skills/fix/SKILL.md, ~claude-plugin/skills/prd/SKILL.md, ~claude-plugin/skills/prd-to-tasks/SKILL.md, ~claude-plugin/skills/prds/SKILL.md, ~claude-plugin/skills/prune/SKILL.md, ~claude-plugin/skills/review/SKILL.md, ~claude-plugin/skills/run/SKILL.md, ~claude-plugin/skills/status/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+
+## TASK-009 — 2026-06-08T08:55:00Z
+
+Added a terse "Convention: verbatim inline references" subsection to AGENTS.md Architecture: documents that skills inline sibling SKILL.md files for DRY (single source of truth), that this is a conscious tradeoff vs the Agent Skills one-level-deep guidance, and that future agents MUST preserve the "re-read that file and follow it verbatim" wording and MUST NOT flatten the chain. `bun run format` clean.
+Files: ~AGENTS.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt

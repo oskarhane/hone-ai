@@ -1,5 +1,5 @@
 ---
-description: Generate a task breakdown YAML from a PRD file. Creates an ordered list of implementable tasks with dependencies and acceptance criteria. Use after creating or reviewing a PRD.
+description: Generates a task breakdown YAML from a PRD file. Creates an ordered list of implementable tasks with dependencies and acceptance criteria. Use after creating or reviewing a PRD.
 ---
 
 Generate tasks from the PRD file specified in `$ARGUMENTS`.
