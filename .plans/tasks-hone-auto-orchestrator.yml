@@ -51,14 +51,14 @@ tasks:
       execute it inline against .plans/prd-<slug>.md. Suppress its "Now run /hone:run"
       output. Record N = number of generated tasks for the run phase. Derive
       tasks-<slug>.yml / progress-<slug>.txt paths from the captured slug.
-    status: pending
+    status: completed
     dependencies:
       - task-002
     acceptance_criteria:
       - "Phase reads and executes prd-to-tasks/SKILL.md inline against the captured PRD path"
       - 'The trailing "Now run /hone:run" output is suppressed'
       - "N (task count) is recorded and the tasks-<slug>.yml path is derived from the slug"
-    completed_at: null
+    completed_at: 2026-06-08T08:06:45Z
 
   - id: task-004
     title: "Run phase: inline run loop with auto-created feature branch"

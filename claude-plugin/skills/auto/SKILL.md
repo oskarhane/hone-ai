@@ -94,8 +94,28 @@ Then emit the phase-transition banner and proceed to Phase 2:
 
 ## Phase 2: Tasks
 
-_(filled in by a later task — execute `prd-to-tasks/SKILL.md` inline against
-`.plans/prd-<slug>.md` and capture `N`)_
+Read the prd-to-tasks skill's instructions from
+`claude-plugin/skills/prd-to-tasks/SKILL.md` (sibling directory in the installed plugin)
+and execute them inline against `.plans/prd-<slug>.md` as the `$ARGUMENTS` input — using
+the `slug` captured in Phase 1. Do not copy-paste or paraphrase those steps here — re-read
+that file and follow it verbatim, so this phase auto-syncs when the prd-to-tasks skill
+changes. It writes `.plans/tasks-<slug>.yml`.
+
+Apply these overrides while executing it:
+
+- **Suppress Step 4's "Now run /hone:run …" output.** Do not emit the prd-to-tasks skill's
+  trailing run instruction — the orchestrator owns all phase transitions.
+
+After Step 3 writes the task YAML, **record `N` = the number of generated tasks** into the
+shared `N` variable. The Run phase passes it through as `-i N`. The
+`.plans/tasks-<slug>.yml` and `.plans/progress-<slug>.txt` paths are derived from the
+shared `slug`.
+
+Then emit the phase-transition banner and proceed to Phase 3:
+
+```
+━━━ HONE:AUTO — tasks generated → running ━━━
+```
 
 ## Phase 3: Run
 
