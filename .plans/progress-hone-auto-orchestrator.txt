@@ -37,3 +37,8 @@ Files: ~claude-plugin/README.md, ~AGENTS.md, ~claude-plugin/.claude-plugin/plugi
 
 ## REVIEW — 2026-06-08T08:30:00Z
 Added 2 review tasks (task-008..task-009).
+
+## TASK-008 — 2026-06-08T08:40:00Z
+
+Rewrote the `description:` frontmatter of all 11 hone skills into third person (Generates/Runs/Adds/Takes/Lists/Archives/Performs/Executes/Shows) per Agent Skills best practice; preserved what+when content and "Use when/after" trigger clauses; bodies untouched (diff is exactly 1 line per file). `bun run format` clean.
+Files: ~claude-plugin/skills/agents-md/SKILL.md, ~claude-plugin/skills/auto/SKILL.md, ~claude-plugin/skills/extend-prd/SKILL.md, ~claude-plugin/skills/fix/SKILL.md, ~claude-plugin/skills/prd/SKILL.md, ~claude-plugin/skills/prd-to-tasks/SKILL.md, ~claude-plugin/skills/prds/SKILL.md, ~claude-plugin/skills/prune/SKILL.md, ~claude-plugin/skills/review/SKILL.md, ~claude-plugin/skills/run/SKILL.md, ~claude-plugin/skills/status/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt

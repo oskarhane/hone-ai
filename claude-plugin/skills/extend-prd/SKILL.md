@@ -1,5 +1,5 @@
 ---
-description: Add new requirements to an existing PRD with interactive refinement and task generation. Supports file paths and URLs in requirement description.
+description: Adds new requirements to an existing PRD with interactive refinement and task generation. Supports file paths and URLs in requirement description.
 ---
 
 Extend an existing PRD with new requirements.

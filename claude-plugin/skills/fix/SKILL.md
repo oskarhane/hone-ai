@@ -1,5 +1,5 @@
 ---
-description: Take a tasks file and a description of issues to fix (literal text or a back-reference like "the above blocking issues"), prompt the user to pick which become new tasks, append them to .plans/tasks-<feature>.yml, then run the iteration loop on those tasks.
+description: Takes a tasks file and a description of issues to fix (literal text or a back-reference like "the above blocking issues"), prompts the user to pick which become new tasks, appends them to .plans/tasks-<feature>.yml, then runs the iteration loop on those tasks.
 ---
 
 Convert review findings (or any free-text list of issues) into new tasks and drive them through the same iteration loop `/hone:run` uses.

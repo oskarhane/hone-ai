@@ -152,7 +152,7 @@ tasks:
       staying under 1024 chars. Cover all skills: agents-md, auto, extend-prd, fix, prd,
       prd-to-tasks, prds, prune, review, run, status. Do not change any body content — only
       the frontmatter description wording and grammatical voice.
-    status: pending
+    status: completed
     source: review
     dependencies: []
     acceptance_criteria:
@@ -160,7 +160,7 @@ tasks:
       - "Each description retains both what the skill does and when to use it, under 1024 chars, no XML tags"
       - "Only frontmatter descriptions change; no skill body content is modified"
       - "`bun run format` passes"
-    completed_at: null
+    completed_at: 2026-06-08T08:40:00Z
 
   - id: task-009
     title: "Document the inline-chain depth tradeoff in AGENTS.md"

@@ -1,5 +1,5 @@
 ---
-description: Archive completed PRDs and their associated files (tasks, progress) to .plans/archive/. Use --dry-run to preview.
+description: Archives completed PRDs and their associated files (tasks, progress) to .plans/archive/. Use --dry-run to preview.
 ---
 
 Archive completed PRDs to `.plans/archive/`:

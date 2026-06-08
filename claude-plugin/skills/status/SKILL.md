@@ -1,5 +1,5 @@
 ---
-description: Show task status for incomplete task lists across all features. Use when the user wants to check progress on active features.
+description: Shows task status for incomplete task lists across all features. Use when the user wants to check progress on active features.
 ---
 
 Show the status of all incomplete task lists:

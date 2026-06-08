@@ -1,5 +1,5 @@
 ---
-description: Run the full hone chain hands-free — prd → prd-to-tasks → run → review → fix loop — from a single feature description. Stops once up front for batched PRD questions, then drives every transition mechanically. Use to take a feature from idea to reviewed, committed implementation in one command.
+description: Runs the full hone chain hands-free — prd → prd-to-tasks → run → review → fix loop — from a single feature description. Stops once up front for batched PRD questions, then drives every transition mechanically. Use when taking a feature from idea to reviewed, committed implementation in one command.
 ---
 
 Orchestrate the full hone chain from a single feature description, hands-free:
