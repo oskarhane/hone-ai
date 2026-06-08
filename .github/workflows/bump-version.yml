@@ -1,0 +1,60 @@
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: "Version bump level"
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Compute new version
+        id: ver
+        run: |
+          file=claude-plugin/.claude-plugin/plugin.json
+          current=$(jq -r .version "$file")
+          IFS='.' read -r major minor patch <<< "$current"
+          case "${{ inputs.level }}" in
+            major) major=$((major+1)); minor=0; patch=0 ;;
+            minor) minor=$((minor+1)); patch=0 ;;
+            patch) patch=$((patch+1)) ;;
+          esac
+          next="$major.$minor.$patch"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+
+      - name: Update plugin.json
+        run: |
+          file=claude-plugin/.claude-plugin/plugin.json
+          tmp=$(mktemp)
+          jq --arg v "${{ steps.ver.outputs.next }}" '.version = $v' "$file" > "$tmp"
+          mv "$tmp" "$file"
+
+      - name: Commit, tag, push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add claude-plugin/.claude-plugin/plugin.json
+          git commit -m "chore: bump ${{ steps.ver.outputs.current }} -> ${{ steps.ver.outputs.next }}"
+          git tag -a "v${{ steps.ver.outputs.next }}" -m "v${{ steps.ver.outputs.next }}"
+          git push origin master
+          git push origin "v${{ steps.ver.outputs.next }}"
