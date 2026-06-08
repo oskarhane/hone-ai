@@ -12,3 +12,8 @@ Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator
 
 Filled in Phase 2 (Tasks) of auto/SKILL.md: reads prd-to-tasks/SKILL.md and executes it inline against .plans/prd-<slug>.md; overrides Step 4 to suppress the "Now run /hone:run" output; records N (task count) for the run phase; derives tasks-<slug>.yml/progress-<slug>.txt from the captured slug; emits the tasks→run banner. Matches the PRD phase style.
 Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+
+## TASK-004 — 2026-06-08T08:08:30Z
+
+Filled in Phase 3 (Run) of auto/SKILL.md: reads run/SKILL.md and executes its VCS detection + Step 2 loop inline against tasks-<slug>.yml with -i N and skip_review; overrides the Pre-step branch gate to auto-create/switch hone/<slug> with no prompt (keeping the PRD/tasks commit); preserves <promise>COMPLETE</promise> early-exit and merge-back; suppresses run's trailing review line; emits the run→reviewing banner.
+Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt

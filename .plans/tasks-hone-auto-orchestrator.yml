@@ -68,7 +68,7 @@ tasks:
       (and --skip review when the flag was passed). Override run's Pre-step branch gate:
       auto-create a generic feature branch named hone/<slug> without prompting the user.
       Preserve run's <promise>COMPLETE</promise> early-exit and merge-back behavior.
-    status: pending
+    status: completed
     dependencies:
       - task-003
     acceptance_criteria:
@@ -76,7 +76,7 @@ tasks:
       - "Branch is auto-created as hone/<slug> with no user prompt, overriding run Pre-step"
       - "--skip review is threaded through when passed"
       - "run early-exit and merge-back semantics are preserved (not redefined)"
-    completed_at: null
+    completed_at: 2026-06-08T08:08:30Z
 
   - id: task-005
     title: "Review->fix loop: route on review output, auto-select findings, capped"
