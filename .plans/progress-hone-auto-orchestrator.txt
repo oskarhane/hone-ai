@@ -34,3 +34,6 @@ Decisions: Resume resolves a candidate slug by slugifying feature_description (s
 
 Documented /hone:auto: added it as the first Workflow row in README skills table plus a hands-free usage example above the manual step-by-step block; added `auto` to AGENTS.md Workflow skills line and `auto/SKILL.md` to the skills tree; bumped plugin.json 1.11.1 -> 1.12.0. `bun run format` clean.
 Files: ~claude-plugin/README.md, ~AGENTS.md, ~claude-plugin/.claude-plugin/plugin.json, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
+
+## REVIEW — 2026-06-08T08:30:00Z
+Added 2 review tasks (task-008..task-009).

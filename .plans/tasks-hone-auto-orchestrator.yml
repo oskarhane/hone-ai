@@ -1,7 +1,7 @@
 feature: hone-auto-orchestrator
 prd: ./prd-hone-auto-orchestrator.md
 created_at: 2026-06-08T00:00:00Z
-updated_at: 2026-06-08T00:00:00Z
+updated_at: 2026-06-08T08:30:00Z
 
 tasks:
   - id: task-001
@@ -137,3 +137,51 @@ tasks:
       - "plugin.json version is 1.12.0"
       - "`bun run format` passes with all changes Markdown/YAML only"
     completed_at: 2026-06-08T08:14:30Z
+
+  - id: task-008
+    title: "Rewrite all hone skill descriptions in third person"
+    description: |
+      Anthropic's Agent Skills best-practices doc states the `description` frontmatter MUST
+      be written in third person, because it is injected verbatim into the system prompt for
+      skill discovery and an inconsistent point-of-view (imperative or first/second person)
+      can cause discovery problems. Most hone skill descriptions currently open in the
+      imperative ("Generate…", "Execute…", "Run…", "Take…", "Add…", "Show…", "List…",
+      "Archive…"). Rewrite the `description` field of every skill under
+      claude-plugin/skills/*/SKILL.md so it opens in third person (e.g. "Generates…",
+      "Runs…", "Lists…", "Archives…") while preserving the existing what + when content and
+      staying under 1024 chars. Cover all skills: agents-md, auto, extend-prd, fix, prd,
+      prd-to-tasks, prds, prune, review, run, status. Do not change any body content — only
+      the frontmatter description wording and grammatical voice.
+    status: pending
+    source: review
+    dependencies: []
+    acceptance_criteria:
+      - "Every claude-plugin/skills/*/SKILL.md description opens in third person (no imperative/first/second person)"
+      - "Each description retains both what the skill does and when to use it, under 1024 chars, no XML tags"
+      - "Only frontmatter descriptions change; no skill body content is modified"
+      - "`bun run format` passes"
+    completed_at: null
+
+  - id: task-009
+    title: "Document the inline-chain depth tradeoff in AGENTS.md"
+    description: |
+      The hone skills deliberately use multi-level inline references (auto reads fix, which
+      reads run) so logic stays DRY with a single source of truth. This runs against the
+      Agent Skills best practice "keep references one level deep from SKILL.md", which warns
+      that Claude may only partially read (e.g. `head -100`) files reached through nested
+      references. hone's mitigation is the explicit "re-read that file and follow it
+      verbatim" wording in every inline reference. Add a short note to AGENTS.md capturing
+      this as an intentional convention: skills inline sibling SKILL.md files verbatim for
+      DRY; this is a conscious tradeoff against the one-level-deep guidance; future agents
+      MUST keep the "re-read and follow verbatim" instruction wording and MUST NOT flatten
+      the chain by copy-pasting sub-skill steps. Keep it terse — one tight note in the
+      relevant AGENTS.md section, no prose padding.
+    status: pending
+    source: review
+    dependencies: []
+    acceptance_criteria:
+      - "AGENTS.md documents the verbatim inline-reference convention and that it is an intentional tradeoff vs one-level-deep guidance"
+      - "The note instructs future agents to preserve the 're-read and follow verbatim' wording and not flatten the chain"
+      - "Note is terse (a few lines), placed in a sensible AGENTS.md section"
+      - "`bun run format` passes"
+    completed_at: null
