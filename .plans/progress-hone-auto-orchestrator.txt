@@ -29,3 +29,8 @@ Decisions: Phase 4 also short-circuits when skip_review=true (consistent with Ph
 Filled in Control behaviors of auto/SKILL.md and added "Step 1: Resume from state" gate between arg parsing and Phase 1. Resume infers phase-completeness from .plans/ state (PRD exists? tasks exist? any pending? review clean?) and jumps to the first incomplete phase; halt-on-failure stops the chain (zero tasks / unfinishable run task / phase error) with a halt report, kept distinct from the max_rounds "unresolved" case; final report emits slug, PRD path, task + review-task counts, outcome, and the prune next-step.
 Files: ~claude-plugin/skills/auto/SKILL.md, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt
 Decisions: Resume resolves a candidate slug by slugifying feature_description (slug normally captured only inside Phase 1), since the gate runs before the slug is known.
+
+## TASK-007 — 2026-06-08T08:14:30Z
+
+Documented /hone:auto: added it as the first Workflow row in README skills table plus a hands-free usage example above the manual step-by-step block; added `auto` to AGENTS.md Workflow skills line and `auto/SKILL.md` to the skills tree; bumped plugin.json 1.11.1 -> 1.12.0. `bun run format` clean.
+Files: ~claude-plugin/README.md, ~AGENTS.md, ~claude-plugin/.claude-plugin/plugin.json, ~.plans/tasks-hone-auto-orchestrator.yml, ~.plans/progress-hone-auto-orchestrator.txt

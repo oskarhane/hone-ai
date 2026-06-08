@@ -31,6 +31,7 @@ All skills are invoked via `/hone:<skill-name>`.
 
 | Skill                | Description                                                                       | Example                                                          |
 | -------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `/hone:auto`         | Run the full chain (prd→tasks→run→review→fix) hands-free                          | `/hone:auto "Add user authentication"`                           |
 | `/hone:agents-md`    | Generate AGENTS.md project docs                                                   | `/hone:agents-md --overwrite`                                    |
 | `/hone:prd`          | Generate PRD from feature description                                             | `/hone:prd "Add user authentication"`                            |
 | `/hone:prd-to-tasks` | Generate task YAML from PRD                                                       | `/hone:prd-to-tasks .plans/prd-user-auth.md`                     |
@@ -48,6 +49,14 @@ All skills are invoked via `/hone:<skill-name>`.
 | `/hone:prune`  | Archive completed PRDs (`--dry-run` to preview) |
 
 ## Common Workflow
+
+Hands-free — one command runs prd→tasks→run→review→fix, asking batched questions once up front:
+
+```
+/hone:auto "Add user login with email and password"
+```
+
+Or step through each phase manually:
 
 ```
 /hone:agents-md
