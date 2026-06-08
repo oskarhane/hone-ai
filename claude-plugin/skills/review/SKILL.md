@@ -144,8 +144,11 @@ End the audit based on what you found:
 
   Example: `Run /hone:fix .plans/tasks-user-auth.yml the above blocking issues`. The phrase `the above blocking issues` is intentional — `/hone:fix` resolves it as a back-reference to the audit you just printed.
 
-- **If there are no blocking issues**, do NOT suggest `/hone:fix`. Print a short, warm closing line, e.g.:
+- **If there are no blocking issues**, do NOT suggest `/hone:fix`. Print a short, warm closing line, then suggest `/hone:pr` on its own line, e.g.:
 
   ```
   Nothing blocking. Branch looks clean.
+  Next: /hone:pr to push the branch and open a PR.
   ```
+
+  Keep the `Nothing blocking.` text exactly — `/hone:auto` parses that line to end its review→fix loop.

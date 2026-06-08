@@ -39,6 +39,7 @@ All skills are invoked via `/hone:<skill-name>`.
 | `/hone:run`          | Execute implement/review/finalize loop                                            | `/hone:run .plans/tasks-user-auth.yml -i 5`                      |
 | `/hone:review`       | Strict end-of-feature audit of the branch                                         | `/hone:review`                                                   |
 | `/hone:fix`          | Turn supplied issues (or "the above" from a prior review) into tasks and run them | `/hone:fix .plans/tasks-user-auth.yml the above blocking issues` |
+| `/hone:pr`           | Push the branch, open a PR, monitor CI checks, and auto-fix failures              | `/hone:pr .plans/tasks-user-auth.yml`                            |
 
 ### Info
 

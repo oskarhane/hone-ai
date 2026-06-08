@@ -81,9 +81,18 @@ Skip the run skill's "Pre-step" (branch creation / PRD commit). The branch is al
 
 ## Step 8: Final output
 
-After all iterations complete, output:
+After all iterations complete, check whether the current branch already has an open PR. If `gh` is available, run `gh pr view --json url -q .url` for the current branch; treat a non-error result as "PR exists".
 
-```
-Completed <actual> iterations (of <N> requested)
-Next: /hone:prune to archive the feature.
-```
+- **No PR yet** (or `gh` unavailable / not a GitHub repo): suggest opening one.
+
+  ```
+  Completed <actual> iterations (of <N> requested)
+  Next: /hone:pr to push the branch and open a PR, or /hone:prune to archive the feature.
+  ```
+
+- **A PR already exists**: don't suggest `/hone:pr` — the branch is already published. Tell the user to push the new commits to update it.
+
+  ```
+  Completed <actual> iterations (of <N> requested)
+  Next: push the new commits to update the existing PR, or /hone:prune to archive the feature.
+  ```
