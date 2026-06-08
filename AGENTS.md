@@ -43,6 +43,7 @@ claude-plugin/                 # The plugin
 │   ├── auto/SKILL.md
 │   ├── extend-prd/SKILL.md
 │   ├── fix/SKILL.md
+│   ├── pr/SKILL.md
 │   ├── prd/SKILL.md
 │   ├── prd-to-tasks/SKILL.md
 │   ├── prds/SKILL.md
@@ -59,7 +60,7 @@ package.json                   # Metadata + prettier only
 
 Skills are markdown files (SKILL.md) with YAML frontmatter defining step-by-step instructions for Claude Code.
 
-Workflow skills: `auto`, `agents-md`, `prd`, `prd-to-tasks`, `extend-prd`, `run`, `fix`, `review`
+Workflow skills: `auto`, `agents-md`, `prd`, `prd-to-tasks`, `extend-prd`, `run`, `fix`, `review`, `pr`
 Info skills: `status`, `prds`, `prune`
 
 `.plans/` naming: `prd-<feature>.md`, `tasks-<feature>.yml`, `progress-<feature>.txt`.

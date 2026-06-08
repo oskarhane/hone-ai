@@ -327,7 +327,7 @@ Review: <clean | unresolved after <max_rounds> rounds | skipped>
 Followed by, on its own line:
 
 ```
-Next: /hone:prune to archive when ready.
+Next: /hone:pr to push the branch and open a PR, then /hone:prune to archive when ready.
 ```
 
 Field rules:
