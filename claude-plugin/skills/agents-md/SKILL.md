@@ -11,8 +11,14 @@ Generate AGENTS.md documentation for this project:
    - Stop.
 
 3. Analyze the project by reading:
-   - `package.json` (dependencies, scripts, name, description)
-   - `tsconfig.json`, `jest.config.*`, `vitest.config.*`, `.eslintrc*`, `tailwind.config.*` etc.
+   - The project manifest(s) for dependencies, scripts, name, description — whichever the stack uses:
+     - Node: `package.json`
+     - Go: `go.mod`
+     - Java: `pom.xml`, `build.gradle`(`.kts`)
+     - Python: `pyproject.toml`, `setup.py`, `requirements.txt`, `Pipfile`
+     - Rust: `Cargo.toml`
+     - or the equivalent manifest for another stack
+   - Build/tool config: `tsconfig.json`, `jest.config.*`, `vitest.config.*`, `.eslintrc*`, `tailwind.config.*`, `Makefile`, `ruff.toml`/`tox.ini`, `golangci.yml`, `checkstyle.xml`, etc.
    - Directory structure (`src/`, `lib/`, `test/`, `components/`, `.github/workflows/`)
    - `README.md` for project description
    - Existing `.agents/` directory files if any
@@ -72,8 +78,8 @@ Keep every section terse — high signal, fewer words. State only what an agent
 reader needs; drop vanity notes, restated obvious facts, and anything the code or
 tooling already makes clear.
 
-5. Discover feedback commands from:
-   - `package.json` scripts (test, build, lint, format, check, typecheck)
+5. Discover feedback commands (test, build, lint, format, check, typecheck) from:
+   - Manifest scripts/targets: `package.json` scripts (Node), `Makefile` targets, `pyproject.toml`/`tox.ini`/`noxfile.py` (Python), Gradle/Maven tasks (Java), `go test`/`go build`/`go vet` and `golangci-lint` (Go)
    - CI/CD workflow files (commands in `run:` steps)
    - Config files (jest, vitest, eslint, prettier configs indicate available tools)
 
