@@ -1,0 +1,139 @@
+feature: hone-auto-orchestrator
+prd: ./prd-hone-auto-orchestrator.md
+created_at: 2026-06-08T00:00:00Z
+updated_at: 2026-06-08T00:00:00Z
+
+tasks:
+  - id: task-001
+    title: "Create /hone:auto skill skeleton: frontmatter, preamble, arg parsing"
+    description: |
+      Create claude-plugin/skills/auto/SKILL.md with valid frontmatter (a clear
+      `description`) so it registers as /hone:auto. Write the preamble that (a) states the
+      skill orchestrates prd -> prd-to-tasks -> run -> review -> fix-loop hands-free, (b)
+      hard-requires running in the main conversation context and warns it MUST NOT be
+      invoked as a forked subagent (run forks Agents; subagents can't nest), and (c)
+      parses $ARGUMENTS into the feature description plus optional --max-rounds N
+      (default 3) and --skip review flags. Establish the shared variables threaded through
+      every phase (feature slug, N, max-rounds) and define the phase-transition banner
+      convention used by later tasks. Do not implement the phases yet.
+    status: pending
+    dependencies: []
+    acceptance_criteria:
+      - "claude-plugin/skills/auto/SKILL.md exists with frontmatter containing a description field"
+      - "Preamble explicitly states main-context requirement and the no-subagent-nesting constraint"
+      - "Argument parsing covers feature description, --max-rounds N (default 3), and --skip review"
+      - "A phase-banner convention is defined for later phase sections to reference"
+    completed_at: null
+
+  - id: task-002
+    title: "PRD phase: inline prd skill with batched upfront clarifying questions"
+    description: |
+      Add the PRD phase section to SKILL.md. It must read claude-plugin/skills/prd/SKILL.md
+      and execute its Steps 1-3, 5, 6 inline (not copy-pasted). Override prd Step 4: derive
+      up to 4 highest-value clarifying questions and ask them in a single AskUserQuestion
+      call; if codebase analysis answers everything, skip the prompt entirely and run
+      unattended. Suppress prd Step 7 "next steps" output. Capture the feature slug from the
+      actually-saved .plans/prd-<slug>.md path and store it for downstream phases.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "Phase reads prd/SKILL.md and executes it inline rather than duplicating its steps"
+      - "Clarifying questions are batched into one AskUserQuestion call (max 4)"
+      - "When analysis is sufficient, no prompt is shown (fully unattended)"
+      - "prd Step 7 next-steps output is suppressed and the slug is captured from the saved path"
+    completed_at: null
+
+  - id: task-003
+    title: "Tasks phase: inline prd-to-tasks against the captured slug"
+    description: |
+      Add the tasks phase section. Read claude-plugin/skills/prd-to-tasks/SKILL.md and
+      execute it inline against .plans/prd-<slug>.md. Suppress its "Now run /hone:run"
+      output. Record N = number of generated tasks for the run phase. Derive
+      tasks-<slug>.yml / progress-<slug>.txt paths from the captured slug.
+    status: pending
+    dependencies:
+      - task-002
+    acceptance_criteria:
+      - "Phase reads and executes prd-to-tasks/SKILL.md inline against the captured PRD path"
+      - 'The trailing "Now run /hone:run" output is suppressed'
+      - "N (task count) is recorded and the tasks-<slug>.yml path is derived from the slug"
+    completed_at: null
+
+  - id: task-004
+    title: "Run phase: inline run loop with auto-created feature branch"
+    description: |
+      Add the run phase section. Read claude-plugin/skills/run/SKILL.md and execute its VCS
+      detection and Step 2 iteration loop inline against .plans/tasks-<slug>.yml with -i N
+      (and --skip review when the flag was passed). Override run's Pre-step branch gate:
+      auto-create a generic feature branch named hone/<slug> without prompting the user.
+      Preserve run's <promise>COMPLETE</promise> early-exit and merge-back behavior.
+    status: pending
+    dependencies:
+      - task-003
+    acceptance_criteria:
+      - "Phase reads and executes run/SKILL.md (VCS detection + Step 2 loop) inline with -i N"
+      - "Branch is auto-created as hone/<slug> with no user prompt, overriding run Pre-step"
+      - "--skip review is threaded through when passed"
+      - "run early-exit and merge-back semantics are preserved (not redefined)"
+    completed_at: null
+
+  - id: task-005
+    title: "Review->fix loop: route on review output, auto-select findings, capped"
+    description: |
+      Add the iterative review->fix loop section. For round 1..max-rounds: execute
+      review/SKILL.md inline and capture its closing line. If "Nothing blocking." exit the
+      loop as success. If "Run /hone:fix <tasks-file> the above blocking issues", execute
+      fix/SKILL.md inline with the review findings as the back-reference payload, overriding
+      fix Step 3 to auto-select all blocking/high-priority candidate findings (no
+      AskUserQuestion multi-select), then proceed to the next round. If the cap is reached
+      while still blocking, exit and mark remaining findings unresolved.
+    status: pending
+    dependencies:
+      - task-004
+    acceptance_criteria:
+      - "Loop runs review/SKILL.md inline and branches solely on its closing line contract"
+      - "fix/SKILL.md is executed inline with Step 3 overridden to auto-select blocking/high findings"
+      - 'Loop exits on "Nothing blocking." or at --max-rounds with a hard cap (no infinite loop)'
+      - "Reaching the cap while blocking reports remaining findings as unresolved"
+    completed_at: null
+
+  - id: task-006
+    title: "Cross-cutting: resume-from-state, halt-on-failure, final report"
+    description: |
+      Add the orchestrator control behaviors. Re-entrancy: on invocation detect existing
+      .plans/ files for the resolved slug and resume from the first incomplete phase (e.g.
+      pending tasks -> jump to run) instead of redoing work. Failure handling: if any phase
+      fails (run can't finish a task after retries, or prd-to-tasks yields zero tasks), halt
+      at that phase and report where it stopped and what is committed vs pending — never
+      proceed with bad state. Emit phase-transition banners throughout and a final summary
+      report (slug, PRD path, tasks implemented + review tasks added across rounds, review
+      outcome, and the "Next: /hone:prune" line).
+    status: pending
+    dependencies:
+      - task-005
+    acceptance_criteria:
+      - "Existing .plans/ files for the slug trigger resume from the first incomplete phase"
+      - "A phase failure halts the chain and reports stop point, committed work, and pending work"
+      - "Phase-transition banners print at each handoff"
+      - "Final report includes slug, PRD path, task/review-task counts, outcome, and prune next-step"
+    completed_at: null
+
+  - id: task-007
+    title: "Docs + version: README, AGENTS.md, plugin.json bump"
+    description: |
+      Update supporting files. Add /hone:auto to claude-plugin/README.md skills table plus a
+      one-line hands-free usage example next to the existing step-by-step example. Add `auto`
+      to the "Workflow skills" line in root AGENTS.md Architecture section. Bump
+      claude-plugin/.claude-plugin/plugin.json version 1.11.1 -> 1.12.0. Run `bun run format`.
+      This task touches different files than the phase work and can run in parallel once the
+      skill name/path is established.
+    status: pending
+    dependencies:
+      - task-001
+    acceptance_criteria:
+      - "README skills table lists /hone:auto and includes a hands-free usage example"
+      - "AGENTS.md Workflow skills line includes auto"
+      - "plugin.json version is 1.12.0"
+      - "`bun run format` passes with all changes Markdown/YAML only"
+    completed_at: null
