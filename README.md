@@ -77,16 +77,19 @@ Prefer to drive each phase yourself (e.g. to review the PRD or tasks before impl
 # 5. Implement the feature
 /hone:run .plans/tasks-<feature>.yml -i 10
 
-# 6. Strict end-of-feature audit of the branch (chat output)
+# 6. Verify each completed task's acceptance criteria are met (chat output)
+/hone:verify .plans/tasks-<feature>.yml
+
+# 7. Strict end-of-feature audit of the branch (chat output)
 /hone:review
 
-# 7. Convert the review findings into tasks and run them
+# 8. Convert the review/verify findings into tasks and run them
 /hone:fix .plans/tasks-<feature>.yml the above blocking issues
 
-# 8. Push the branch, open a PR, and monitor CI checks (auto-fixes failures)
+# 9. Push the branch, open a PR, and monitor CI checks (auto-fixes failures)
 /hone:pr .plans/tasks-<feature>.yml
 
-# 9. Archive completed features (optional)
+# 10. Archive completed features (optional)
 /hone:prune
 ```
 
@@ -112,6 +115,7 @@ All skills are invoked via `/hone:<skill-name>`.
 | `/hone:prd-to-tasks` | Generate task YAML from PRD                                                       | `/hone:prd-to-tasks .plans/prd-user-auth.md`                     |
 | `/hone:extend-prd`   | Add requirements to existing PRD                                                  | `/hone:extend-prd .plans/prd-user-auth.md "Add OAuth"`           |
 | `/hone:run`          | Execute implement/review/finalize loop                                            | `/hone:run .plans/tasks-user-auth.yml -i 5`                      |
+| `/hone:verify`       | Check each completed task's acceptance criteria are met by the code      | `/hone:verify .plans/tasks-user-auth.yml`                        |
 | `/hone:review`       | Strict end-of-feature audit of the branch                                         | `/hone:review`                                                   |
 | `/hone:fix`          | Turn supplied issues (or "the above" from a prior review) into tasks and run them | `/hone:fix .plans/tasks-user-auth.yml the above blocking issues` |
 | `/hone:pr`           | Push the branch, open a PR, monitor CI checks, and auto-fix failures              | `/hone:pr .plans/tasks-user-auth.yml`                            |
@@ -186,7 +190,7 @@ hone breaks feature development into 3 phases:
 
 Each `/hone:run` iteration executes this cycle. Unlike external CLI tools, the plugin runs everything natively inside Claude Code — no subprocess overhead.
 
-After all tasks complete, `/hone:review` audits the whole branch; `/hone:fix` reads findings from the conversation (the review output, or any review-like discussion), lets you pick which become new tasks, then drives the same iteration loop on them.
+After all tasks complete, `/hone:verify` checks each completed task's acceptance criteria against the committed code, mapping every criterion to the commit and the specific test/code that demonstrates it, with strict evidence tiers (verified by a passing test vs. merely asserted). This is to close the loop between "agent said done" and "criteria is met." `/hone:review` then audits the whole branch for maintainability. Both are chat-only; `/hone:fix` reads their findings from the conversation (the verify/review output, or any review-like discussion), lets you pick which become new tasks, then drives the same iteration loop on them.
 
 Once the branch is reviewed and clean, `/hone:pr` is the manual publish step: it pushes the branch to the appropriate remote (the sole remote, or one you pick when there are several), opens a PR with a short description that classifies the change (new feature, fix, optimization, etc.) and notes any user-facing impact, then watches the PR's CI checks in the background and auto-triggers `/hone:fix` if any go red — looping until green or a round cap is hit.
 
@@ -290,3 +294,4 @@ Contributions welcome! See [claude-plugin/README.md](claude-plugin/README.md) fo
 ## License
 
 MIT
+
