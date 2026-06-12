@@ -12,7 +12,7 @@ Run the strict end-of-feature maintainability audit in a dedicated sub-agent, th
 
 ## Run the audit
 
-Launch the `hone-auditor` subagent. Pass it:
+Launch the `hone:hone-auditor` subagent. Pass it:
 
 - The resolved `<tasks-file>` path (it derives `<feature>` for scoping language).
 - Tell it to audit the current branch.

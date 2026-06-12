@@ -189,7 +189,7 @@ YOU CAN ONLY PICK A SINGLE TASK TO WORK ON!
 
 <If skip_review is false, include:>
 
-Launch the `hone-reviewer` subagent to review the changes. Pass it:
+Launch the `hone:hone-reviewer` subagent to review the changes. Pass it:
 
 - The task file path so it can check for in_progress tasks
 - Tell it to review the git diff
