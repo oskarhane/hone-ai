@@ -38,6 +38,9 @@ ARCHITECTURE PATTERN: Claude Code plugin with markdown skills
 claude-plugin/                 # The plugin
 ├── .claude-plugin/
 │   └── plugin.json            # Plugin metadata (name, version, description)
+├── agents/                    # Sub-agent definitions (spawned by skills/iterations)
+│   ├── hone-reviewer.md       # In-loop per-task review agent
+│   └── hone-auditor.md        # End-of-feature maintainability audit agent
 ├── skills/                    # Slash command skills (/hone:<skill>)
 │   ├── agents-md/SKILL.md
 │   ├── auto/SKILL.md
