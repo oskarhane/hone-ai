@@ -31,6 +31,28 @@ The caller passes you the resolved `<tasks-file>` path (e.g. `.plans/tasks-<feat
 
 7. **Flag unnecessary sequential orchestration and non-atomic updates.** If independent work is serialized for no reason, ask for parallelism. If related updates can leave state half-applied, push for atomicity. Don't micro-optimize, but flag avoidable brittleness.
 
+## Code Smell Baseline
+
+Beyond the standards above, always scan for these high-signal "Bad Smells in Code" (Fowler, _Refactoring_ ch.3). Each is _what it is_ → _how to fix_:
+
+1. **Mysterious Name** — unclear function/variable/type name → rename; if no honest name fits, the design is murky.
+2. **Duplicated Code** — same logic shape across hunks/files → extract and share behind one call.
+3. **Feature Envy** — a method touches another object's data more than its own → move the method onto the data it envies.
+4. **Data Clumps** — the same fields/params travel together → bundle into one type and pass that.
+5. **Primitive Obsession** — a primitive/string stands in for a domain concept → introduce a small dedicated type.
+6. **Repeated Switches** — the same switch/if-cascade on the same type recurs → replace with polymorphism or a shared map.
+7. **Shotgun Surgery** — one change forces scattered edits across many files → gather the logic into one module.
+8. **Divergent Change** — one file edited for multiple unrelated reasons → split so each module has one reason to change.
+9. **Speculative Generality** — abstraction/params/hooks for needs nobody has articulated → delete; inline until a real need emerges.
+10. **Message Chains** — long `a.b().c().d()` navigation → hide the walk behind one method on the first object.
+11. **Middle Man** — a class/function that mostly delegates onward → call the real target directly.
+12. **Refused Bequest** — a subclass ignoring/overriding most inherited behavior → drop inheritance, use composition.
+
+Two binding rules:
+
+- **Documented repo conventions override this baseline.** Where AGENTS.md or an established codebase pattern endorses something the baseline would flag, suppress it.
+- **Every smell is a judgement call, never a hard violation.** Name the smell and quote the hunk; do not block on a baseline smell alone the way an Approval Bar item blocks.
+
 ## Primary Review Questions
 
 - Is there a code-judo move that makes this dramatically simpler?
