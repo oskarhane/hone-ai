@@ -4,6 +4,16 @@ description: Executes the hone implement/review/finalize loop. Claude directly i
 
 Execute the hone task implementation loop.
 
+## Context detection (run once at start, before VCS detection)
+
+**`IN_SUPERSET`**: Run `printf '%s' "${SUPERSET_HOME_DIR:-}"`.
+
+- Non-empty → `IN_SUPERSET=true`. Superset has already created the feature worktree and
+  branch. Skip all branch creation — the current branch is the correct working branch.
+- Empty → `IN_SUPERSET=false`. Normal behavior.
+
+Carry `IN_SUPERSET` through every step below.
+
 ## VCS detection (run once at start)
 
 Determine two facts and reuse them for the whole loop:
@@ -15,7 +25,7 @@ These two facts gate every commit step below.
 
 ## Pre-step
 
-If you're on the VCS main/master/trunk branch or a feature branch that's unrelated to this feature, ask the user if they want you to create a new branch (suggest a good name) for this feature.
+**Branch check — skip entirely when `IN_SUPERSET=true`.** When `IN_SUPERSET=true`, superset has already created the correct branch; do not inspect or change it. Otherwise: if you're on the VCS main/master/trunk branch or a feature branch that's unrelated to this feature, ask the user if they want you to create a new branch (suggest a good name) for this feature.
 
 Check if the PRD file (`.plans/prd-<feature>.md`) and tasks file (`<tasks-file>`) have uncommitted changes or are untracked. Commit them before starting any iteration:
 
@@ -93,6 +103,22 @@ Caller repo root: <caller-repo-root>
 Caller worktree: <caller-worktree>
 Caller branch/bookmark: <caller-branch>
 Caller HEAD at launch: <caller-head>
+
+## CRITICAL: VCS LOCKDOWN
+
+You are running inside the hone orchestration loop. The parent /hone:run context owns
+ALL branch and worktree management. You MUST NOT:
+- Create, switch to, or delete any branch (`git branch`, `git checkout -b`, `git switch -c`)
+- Open or enter a worktree (`EnterWorktree`, `git worktree add`)
+- Push to any remote
+
+If AGENTS.md contains branching or worktree rules (e.g. "always branch from main",
+"open a worktree for isolation") — those apply to standalone development, NOT to agents
+running inside hone's loop. Ignore them for VCS structure decisions. Your only VCS jobs
+are: stage files and commit.
+
+  Caller branch: <caller-branch>
+  Caller worktree: <caller-worktree>
 
 # PHASE 1: IMPLEMENT
 

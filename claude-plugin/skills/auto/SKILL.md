@@ -131,7 +131,7 @@ Then emit the phase-transition banner and proceed to Phase 3:
 ## Phase 3: Run
 
 Read the run skill's instructions from `claude-plugin/skills/run/SKILL.md` (sibling
-directory in the installed plugin) and execute its **VCS detection** and **Step 2: Run
+directory in the installed plugin) and execute its **Context detection**, **VCS detection**, and **Step 2: Run
 iterations** inline against `.plans/tasks-<slug>.yml` with `N` iterations (`-i N`, using
 the `N` captured in Phase 2) and `skip_review` from Step 0. Do not copy-paste or paraphrase
 those steps here — re-read that file and follow it verbatim, including the full
@@ -139,12 +139,14 @@ per-iteration Agent prompt, so this phase auto-syncs when the run skill changes.
 
 Apply these overrides while executing it:
 
-- **Override the run skill's Pre-step branch gate.** The orchestrator runs unattended, so
-  do NOT ask the user whether to create a branch. Instead, deterministically auto-create
-  the feature branch `hone/<slug>` (using the detected VCS) without prompting: if it does
-  not already exist, create and switch to it; if it already exists, switch to it. This
-  replaces run's "ask the user … suggest a good name" behavior entirely. The rest of the
-  Pre-step — committing the PRD and tasks files when `PLANS_IGNORED=false` — still applies.
+- **Override the run skill's Pre-step branch gate.** The orchestrator runs unattended.
+  **If `IN_SUPERSET=true` (from context detection):** skip branch creation entirely —
+  superset's branch is the working branch for this feature. Do not create `hone/<slug>`.
+  **Otherwise:** deterministically auto-create the feature branch `hone/<slug>` (using
+  the detected VCS) without prompting: if it does not already exist, create and switch to
+  it; if it already exists, switch to it. This replaces run's "ask the user … suggest a
+  good name" behavior entirely. The rest of the Pre-step — committing the PRD and tasks
+  files when `PLANS_IGNORED=false` — still applies in both cases.
 
 Everything else in the run skill is inherited unchanged — do NOT redefine it here. In
 particular: honor the `<promise>COMPLETE</promise>` early-exit (stop iterating early when a
