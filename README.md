@@ -283,6 +283,10 @@ To allow Claude Code to run without prompting for every action, add permissions 
 - Failed tasks remain pending and retry on next run
 - Check `.plans/progress-<feature>.txt` for error details
 
+### Related Spec Tools
+
+- **[MySpec](https://myspec.dev)**: Runs an interactive discovery interview to clarify requirements upfront and generates a 4-file bundle (`constitution.md`, `requirements.md`, `solution.md`, `tasks.md`). Connects directly to Claude Code via MCP (`@myspec/mcp-server`), making it straightforward to prepare structured PRDs before feeding tasks into `hone-ai`.
+
 ## Contributing
 
 Contributions welcome! See [claude-plugin/README.md](claude-plugin/README.md) for plugin development details.
